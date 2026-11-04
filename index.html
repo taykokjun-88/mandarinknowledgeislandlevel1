@@ -305,6 +305,30 @@ button.gcard:hover{border-color:var(--gold)}
 .gopt{position:relative;overflow:hidden}.gopt .hold{position:absolute;left:0;bottom:0;height:4px;width:0;background:var(--gold);transition:width .08s}
 .notice.warn{background:var(--bad-soft);border:1px solid var(--bad)}
 .lvl{display:flex;align-items:center;gap:8px}.lvlbar{flex:1;height:10px;border-radius:5px;background:var(--panel-2);overflow:hidden}.lvlbar i{display:block;height:100%;width:0;background:var(--ok);transition:width .05s}
+#arStage{position:fixed;inset:0;z-index:60;background:#000;overflow:hidden;touch-action:none}
+#arStage video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+#arc{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.ar-top{position:absolute;left:0;right:0;top:0;padding:calc(10px + env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) 10px max(12px,env(safe-area-inset-left,0px));display:flex;align-items:flex-start;gap:10px;background:linear-gradient(rgba(0,0,0,.6),transparent)}
+.ar-x{flex:none;width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.9);font-size:18px;color:#222}
+.ar-q{flex:1;color:#fff;font-size:clamp(18px,4.6vw,28px);font-weight:700;text-align:center;text-shadow:0 2px 6px rgba(0,0,0,.6);line-height:1.9}
+.ar-q rt{color:#ffd23f}.ar-q .ui-en{display:block;font-size:13px;opacity:.9;line-height:1.3}.ar-q .play{margin:6px auto 0}
+.ar-score{flex:none;color:#fff;font-weight:800;background:rgba(0,0,0,.45);border-radius:999px;padding:6px 12px;font-variant-numeric:tabular-nums}
+.ar-hint{position:absolute;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);width:min(92%,520px);text-align:center;color:#fff;background:rgba(0,0,0,.55);border-radius:14px;padding:10px 14px;font-size:14px;transition:opacity .6s}
+.ar-hint.dim{opacity:.35}
+.ar-b{position:absolute;width:clamp(120px,30vw,190px);aspect-ratio:1;border-radius:50%;border:3px solid rgba(255,255,255,.95);display:grid;place-items:center;padding:12px;color:#20313b;font-size:clamp(16px,4.2vw,24px);font-weight:800;text-align:center;line-height:1.7;
+  background:radial-gradient(circle at 32% 28%,rgba(255,255,255,.95),rgba(190,240,255,.82) 45%,rgba(120,205,235,.72));box-shadow:0 8px 24px rgba(0,0,0,.35),inset 0 -8px 18px rgba(0,120,170,.3);animation:bob 3.2s ease-in-out infinite;--p:0}
+.ar-b .ar-t{position:relative;z-index:1}.ar-b rt{color:#c0141d}
+.ar-b .ar-ring{position:absolute;inset:-9px;border-radius:50%;background:conic-gradient(#ffd23f calc(var(--p)*360deg),transparent 0);-webkit-mask:radial-gradient(circle,transparent 62%,#000 63%);mask:radial-gradient(circle,transparent 62%,#000 63%)}
+.ar-b.c0{left:4%;top:24%;animation-delay:0s}.ar-b.c1{right:4%;top:24%;animation-delay:-.8s}.ar-b.c2{left:4%;bottom:16%;animation-delay:-1.6s}.ar-b.c3{right:4%;bottom:16%;animation-delay:-2.4s}
+.ar-b.hover{border-color:#ffd23f;transform:scale(1.08)}
+.ar-b.pop{animation:popin .45s cubic-bezier(.3,1.6,.5,1),bob 3.2s ease-in-out .45s infinite}
+.ar-b.burst{animation:burstOut .45s ease-out forwards}
+.ar-b.wrong{background:radial-gradient(circle at 32% 28%,#fff,#ffb3b3 45%,#ff6b6b);animation:shake .4s}
+.ar-b.glow{border-color:#7bd389;box-shadow:0 0 0 6px rgba(123,211,137,.6),0 0 40px rgba(123,211,137,.9)}
+@keyframes bob{0%,100%{translate:0 0}50%{translate:0 -14px}}
+@keyframes popin{from{transform:scale(0)}to{transform:scale(1)}}
+@keyframes burstOut{to{transform:scale(1.6);opacity:0}}
+@media (prefers-reduced-motion:reduce){.ar-b{animation:none}}
 /* my progress */
 .sum{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
 .sum div{display:flex;flex-direction:column;align-items:center;padding:10px 4px;border-radius:12px;background:var(--panel-2)}
@@ -1279,7 +1303,7 @@ let cur=-1, tab="explore", quiz=null, game=null, gs=null, writer=null;
 const X_SVG=`<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>`;
 const BACK=`<button class="back" type="button" id="gBack">‹ 返回游戏列表<span class=ui-en>Back to games</span></button>`;
 
-function stopGame(){ if(typeof stopMedia==="function") stopMedia(); if(gs && gs.timers) gs.timers.forEach(clearInterval); if(writer){ try{ writer.cancelQuiz(); }catch(e){} writer=null; } }
+function stopGame(){ if(typeof arClose==="function" && document.getElementById("arStage") && !document.getElementById("arStage").hidden) arClose(); if(typeof stopMedia==="function") stopMedia(); if(gs && gs.timers) gs.timers.forEach(clearInterval); if(writer){ try{ writer.cancelQuiz(); }catch(e){} writer=null; } }
 function openIsland(i, mode){
   if(!isUnlocked(i)){ toast(`先在 ${ISLANDS[i-1].no}「${ISLANDS[i-1].name}」闯关拿到至少 1 颗星，才能登上这座岛。`, `Get at least 1 star on ${ISLANDS[i-1].no} first to land here.`); if(scene) focusIsland(i); return; }
   stopGame(); side.hidden=true; cur=i; tab=mode||"explore"; quiz=null; game=null; gs=null;
@@ -1658,7 +1682,7 @@ function swRender(body){
 const GAMES2=[
   {id:"tone", name:"声调冲浪", en:"Tone Surfing", desc:"用声音让小船冲浪，读出正确的声调", descEn:"Ride the waves with your voice — say the right tone", need:"mic"},
   {id:"read", name:"跟读过关", en:"Read Aloud", desc:"念对才能过关，每题 3 次机会", descEn:"Say it right to pass — 3 tries each", need:"asr"},
-  {id:"gest", name:"手势选答", en:"Gesture Quiz", desc:"对着摄像头举起 1–4 根手指选答案", descEn:"Hold up 1–4 fingers to the camera to answer", need:"cam"}];
+  {id:"gest", name:"抓抓泡泡", en:"AR Bubble Grab", desc:"答案在镜头四角漂浮，用手抓住正确答案", descEn:"Answers float in the camera corners — grab the right one with your hand", need:"cam"}];
 const CONSENT_TXT={
   mic:{t:"使用麦克风", te:"Use the microphone", zh:"这个游戏要用麦克风听你的声调。声音只在这台设备上分析，不会录音，也不会上传。", en:"This game uses your microphone to hear your tones. Sound is analysed on this device only — nothing is recorded or uploaded."},
   asr:{t:"使用麦克风和语音识别", te:"Use the microphone and speech recognition", zh:"这个游戏要用麦克风和浏览器的语音识别。Chrome 会把声音传到 Google、Safari 会传到 Apple 的服务器转成文字；本游戏不会保存任何声音。", en:"This game uses your microphone and the browser's speech recognition. Chrome sends the audio to Google and Safari to Apple to turn it into text. This game keeps no audio."},
@@ -1787,47 +1811,87 @@ function readRender(body){
     try{ r.start(); }catch(err){ clearTimeout(dog); Music.hold(false); reset(); msg(`语音识别启动失败：${esc(err.message||err.name||"")}<span class=ui-en data-b>Speech recognition failed to start.</span>`); } };
 }
 
-/* ---------- 手势选答 Gesture Quiz: MediaPipe hand tracking, fingers 1–4 ---------- */
+/* ---------- 抓抓泡泡 AR Grab: answers float in the camera's corners; grab with your hand ---------- */
 let handsP=null;
 function loadHands(){ if(handsP) return handsP; handsP=(async()=>{ const V=await import("./lib/mediapipe/vision_bundle.mjs"); const fs=await V.FilesetResolver.forVisionTasks("./lib/mediapipe/wasm");
-  const opt=d=>({baseOptions:{modelAssetPath:"./lib/mediapipe/hand_landmarker.task", delegate:d}, runningMode:"VIDEO", numHands:1});
+  const opt=d=>({baseOptions:{modelAssetPath:"./lib/mediapipe/hand_landmarker.task", delegate:d}, runningMode:"VIDEO", numHands:2, minHandDetectionConfidence:.5, minTrackingConfidence:.5});
   try{ return await V.HandLandmarker.createFromOptions(fs,opt("GPU")); }catch(e){ return await V.HandLandmarker.createFromOptions(fs,opt("CPU")); } })(); handsP.catch(()=>{ handsP=null; }); return handsP; }
-function countFingers(L){ const up=(t,p)=>L[t].y < L[p].y-.015; return [up(8,6),up(12,10),up(16,14),up(20,18)].filter(Boolean).length; }
+// tiny sound effects
+let sfxAC=null;
+function sfx(kind){ try{ sfxAC=sfxAC||new (window.AudioContext||window.webkitAudioContext)(); if(sfxAC.state!=="running") sfxAC.resume(); const t=sfxAC.currentTime;
+  const note=(f,dt,dur,type="sine",v=.18)=>{ const o=sfxAC.createOscillator(), g=sfxAC.createGain(); o.type=type; o.frequency.value=f; g.gain.setValueAtTime(0,t+dt); g.gain.linearRampToValueAtTime(v,t+dt+.01); g.gain.exponentialRampToValueAtTime(.0001,t+dt+dur); o.connect(g); g.connect(sfxAC.destination); o.start(t+dt); o.stop(t+dt+dur+.05); };
+  if(kind==="ok"){ [523,659,784,1047].forEach((f,k)=>note(f,k*.07,.35)); } else if(kind==="no"){ note(196,0,.3,"triangle",.2); note(185,.12,.35,"triangle",.18); } else if(kind==="grab"){ note(880,0,.08,"sine",.12); } else if(kind==="win"){ [523,659,784,1047,1319].forEach((f,k)=>note(f,k*.09,.5)); } }catch(e){} }
+const HAND_LINKS=[[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]];
+const AR_LEN=8;
 function gestStart(body){ withConsent("cam", body, async()=>{
-  const qs=shuffle(bankOf(cur).filter(q=>q.t==="mc" && !q.au && q.d && q.d.length>=3)).slice(0,6).map(q=>Object.assign({},q,{opts:shuffle([q.a].concat(pickN(q.d,3,[q.a])))}));
-  gs={qs, k:0, score:0, hold:{n:0,t:0}, lock:0, ready:false};
-  setHTML(body, `${BACK}<p class="sw-msg">正在启动摄像头和手势识别…<span class=ui-en data-b>Starting the camera and hand tracking…</span></p>`); bindBack(body);
-  try{ media.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user", width:{ideal:640}, height:{ideal:480}}, audio:false}); }catch(err){ return mediaError(body,err,"cam"); }
+  const qs=shuffle(bankOf(cur).filter(q=>q.t==="mc" && q.d && q.d.length>=3 && String(q.a).length<=14)).slice(0,AR_LEN).map(q=>Object.assign({},q,{opts:shuffle([q.a].concat(pickN(q.d,3,[q.a])))}));
+  gs={qs, k:0, score:0, answered:false, parts:[], grabbed:-1, dwell:[0,0,0,0], seenHand:false};
+  setHTML(body, `${BACK}<p class="sw-msg">正在打开摄像头和手势识别（第一次大约要等 5–10 秒）…<span class=ui-en data-b>Opening the camera and hand tracking (the first time takes about 5–10 s)…</span></p>`); bindBack(body);
+  try{ media.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user", width:{ideal:960}, height:{ideal:720}}, audio:false}); }catch(err){ return mediaError(body,err,"cam"); }
   let lm; try{ lm=await loadHands(); }catch(err){ stopMedia(); return mediaError(body,{name:"HandLandmarker"},"cam"); }
   if(game!=="gest"){ stopMedia(); return; }
-  gs.lm=lm; gestRender(body); }); }
-function gestRender(body){
-  if(gs.k>=gs.qs.length){ stopMedia(); const pass=gs.score>=4; if(pass) gameDone("gest");
-    setHTML(body, `${BACK}<div class="result"><div class="big">${gs.score} / ${gs.qs.length}</div><p style="margin:0">${pass?"手势答题完成！<span class=ui-en data-b>Gesture quiz complete!</span>":"再试一次，答对 4 题就完成。<span class=ui-en data-b>Try again — 4 correct to finish.</span>"}</p><button class="btn" type="button" id="again">再玩一次<span class=ui-en>Play again</span></button></div>`); bindBack(body); $("#again").onclick=()=>gestStart(body); refreshTabs(); return; }
-  const q=gs.qs[gs.k];
-  setHTML(body, `${BACK}<div class="q-top"><span>手势选答 · 第 ${gs.k+1}/${gs.qs.length} 题<span class=ui-en>Q${gs.k+1}/${gs.qs.length}</span></span><span>得分 ${gs.score}<span class=ui-en>Score</span></span></div>
-    <div class="cam-wrap"><video id="camv" playsinline muted></video><span class="fcount" id="fc">✋ 0</span></div>
-    <p class="q-text"><span${q.np?" data-nopy":""}>${esc(q.q)}</span>${q.qe?`<span class=ui-en data-b>${esc(q.qe)}</span>`:""}</p>
-    <div class="opts">${q.opts.map((o,j)=>`<button class="opt gopt" type="button" data-j="${j}"><span class="k">${j+1}☝</span><span${q.np?" data-nopy":""}>${esc(o)}</span><i class="hold"></i></button>`).join("")}</div>
-    <p class="sw-msg">举起 1–4 根手指（不算大拇指），保持一下就会选中。也可以直接点选项。<span class=ui-en data-b>Hold up 1–4 fingers (thumb not counted) and keep still to choose. You can also tap.</span></p><div id="gAfter"></div>`);
-  bindBack(body);
-  const v=$("#camv"); v.srcObject=media.stream; v.play().catch(()=>{});
-  body.querySelectorAll(".gopt").forEach(b=>b.onclick=()=>gestPick(+b.dataset.j, body));
-  gs.lock=performance.now()+600; gs.hold={n:0,t:0};
-  const loop=()=>{ if(game!=="gest"||!media.stream) return; media.raf=requestAnimationFrame(loop); if(v.readyState<2) return;
-    const now=performance.now(); let n=0; try{ const r=gs.lm.detectForVideo(v, now); if(r.landmarks && r.landmarks[0]) n=countFingers(r.landmarks[0]); }catch(e){}
-    const fc=$("#fc"); if(fc) fc.textContent="✋ "+n;
-    if(now<gs.lock || gs.answered) return;
-    if(n>=1 && n<=4){ if(gs.hold.n!==n){ gs.hold={n,t:now}; } const p=Math.min(1,(now-gs.hold.t)/1100);
-      body.querySelectorAll(".gopt").forEach((b,j)=>{ b.querySelector(".hold").style.width=(j===n-1?p*100:0)+"%"; });
-      if(p>=1) gestPick(n-1, body); }
-    else { gs.hold={n:0,t:0}; body.querySelectorAll(".gopt .hold").forEach(h=>h.style.width="0%"); } };
-  gs.answered=false; media.raf=requestAnimationFrame(loop);
+  gs.lm=lm; arOpen(body); }); }
+function arOpen(body){
+  let st=$("#arStage"); if(!st){ st=document.createElement("div"); st.id="arStage"; document.getElementById("app").appendChild(st); }
+  st.hidden=false;
+  st.innerHTML=`<video id="arv" playsinline muted autoplay></video><canvas id="arc"></canvas>
+    <div class="ar-top"><button class="ar-x" type="button" id="arClose" aria-label="关闭 Close">✕</button><div class="ar-q" id="arQ"></div><div class="ar-score" id="arScore"></div></div>
+    <div class="ar-hint" id="arHint">把手举到镜头前，移到答案泡泡上，<b>捏一下</b>或<b>握拳</b>就能抓住它（停在泡泡上一秒也可以）。每题之后先把手移开、张开。<span class=ui-en data-b>Raise your hand, move it onto a bubble, then pinch or make a fist to grab it (or hold still for a second). After each answer, move your hand away and open it.</span></div>
+    ${[0,1,2,3].map(j=>`<button class="ar-b c${j}" type="button" data-j="${j}"><span class="ar-t"></span><i class="ar-ring"></i></button>`).join("")}`;
+  rubify($("#arHint"));
+  const v=$("#arv"); v.srcObject=media.stream; v.play().catch(()=>{});
+  $("#arClose").onclick=()=>{ arClose(); game=null; gs=null; renderGames(body); refreshTabs(); };
+  st.querySelectorAll(".ar-b").forEach(b=>b.onclick=()=>arPick(+b.dataset.j, body));
+  arQuestion(body);
+  const cv=$("#arc"), cx=cv.getContext("2d");
+  const loop=()=>{ if(game!=="gest"||!media.stream) return; media.raf=requestAnimationFrame(loop);
+    const W=st.clientWidth, H=st.clientHeight; if(cv.width!==W||cv.height!==H){ cv.width=W; cv.height=H; }
+    cx.clearRect(0,0,W,H);
+    let hands=[]; if(v.readyState>=2){ try{ const r=gs.lm.detectForVideo(v, performance.now()); hands=r.landmarks||[]; }catch(e){} }
+    // map normalised landmarks onto the mirrored, cover-fitted video
+    const vw=v.videoWidth||640, vh=v.videoHeight||480, s=Math.max(W/vw,H/vh), ox=(W-vw*s)/2, oy=(H-vh*s)/2;
+    const P=p=>({x: W-(p.x*vw*s+ox), y: p.y*vh*s+oy});
+    const cursors=[];
+    hands.forEach(L=>{ const pts=L.map(P); cx.strokeStyle="rgba(255,255,255,.55)"; cx.lineWidth=3; cx.beginPath(); HAND_LINKS.forEach(([a,b])=>{ cx.moveTo(pts[a].x,pts[a].y); cx.lineTo(pts[b].x,pts[b].y); }); cx.stroke();
+      const size=Math.hypot(pts[0].x-pts[9].x, pts[0].y-pts[9].y)||1, pinch=Math.hypot(pts[4].x-pts[8].x, pts[4].y-pts[8].y)/size;
+      const folded=[[8,6],[12,10],[16,14],[20,18]].filter(([t,p])=>Math.hypot(pts[t].x-pts[0].x,pts[t].y-pts[0].y) < Math.hypot(pts[p].x-pts[0].x,pts[p].y-pts[0].y)).length;
+      const grab=pinch<.35 || folded>=3, c=grab?{x:(pts[4].x+pts[8].x+pts[9].x)/3, y:(pts[4].y+pts[8].y+pts[9].y)/3}:pts[8];
+      cursors.push({x:c.x, y:c.y, grab});
+      const g=cx.createRadialGradient(c.x,c.y,2,c.x,c.y,grab?34:26); g.addColorStop(0,grab?"rgba(255,210,63,.95)":"rgba(255,255,255,.95)"); g.addColorStop(1,"rgba(255,210,63,0)"); cx.fillStyle=g; cx.beginPath(); cx.arc(c.x,c.y,grab?34:26,0,6.29); cx.fill(); });
+    if(hands.length && !gs.seenHand){ gs.seenHand=true; const h=$("#arHint"); if(h) h.classList.add("dim"); }
+    // bubbles: hover → dwell ring; grab gesture on a bubble → pick
+    const now=performance.now(), bs=[...st.querySelectorAll(".ar-b")], sr=st.getBoundingClientRect();
+    const overAny=cursors.some(c=>bs.some(b=>{ const r=b.getBoundingClientRect(); return c.x>r.left-sr.left-14&&c.x<r.right-sr.left+14&&c.y>r.top-sr.top-14&&c.y<r.bottom-sr.top+14; }));
+    if(!gs.answered && !gs.armed && !overAny && !cursors.some(c=>c.grab)) gs.armed=true;   // hand must leave the bubbles / open before the next grab
+    bs.forEach((b,j)=>{ const r=b.getBoundingClientRect(), x0=r.left-sr.left-14, y0=r.top-sr.top-14, x1=r.right-sr.left+14, y1=r.bottom-sr.top+14;
+      const on=cursors.find(c=>c.x>x0&&c.x<x1&&c.y>y0&&c.y<y1); b.classList.toggle("hover",!!on);
+      if(gs.answered||now<gs.lock||!gs.armed){ gs.dwell[j]=0; b.style.setProperty("--p",0); return; }
+      if(on){ gs.dwell[j]=gs.dwell[j]||now; const p=Math.min(1,(now-gs.dwell[j])/1100); b.style.setProperty("--p",p); if(on.grab || p>=1){ sfx("grab"); arPick(j, body, {x:(x0+x1)/2, y:(y0+y1)/2}); } }
+      else { gs.dwell[j]=0; b.style.setProperty("--p",0); } });
+    // particles
+    gs.parts=gs.parts.filter(q=>q.life>0); gs.parts.forEach(q=>{ q.x+=q.vx; q.y+=q.vy; q.vy+=.25; q.life-=1; cx.globalAlpha=Math.max(0,q.life/50); cx.fillStyle=q.c; cx.fillRect(q.x,q.y,q.s,q.s); }); cx.globalAlpha=1;
+  };
+  media.raf=requestAnimationFrame(loop);
 }
-function gestPick(j, body){ if(gs.answered) return; gs.answered=true; const q=gs.qs[gs.k], ok=q.opts[j]===q.a; if(ok) gs.score++;
-  body.querySelectorAll(".gopt").forEach((b,k)=>{ b.disabled=true; if(q.opts[k]===q.a) b.classList.add("ok"); else if(k===j) b.classList.add("no"); });
-  setHTML($("#gAfter"), `<div class="explain"><b style="color:${ok?"var(--ok)":"var(--bad)"}">${ok?"答对了！<span class=ui-en>Correct!</span>":"再想想：<span class=ui-en>Not quite.</span>"}</b> 正确答案是<span class=ui-en>Answer</span>「${esc(q.a)}」。</div>`);
-  setTimeout(()=>{ if(game!=="gest") return; cancelAnimationFrame(media.raf); gs.k++; gestRender(body); },1700); }
+function arQuestion(body){ const st=$("#arStage"); if(!st) return; const q=gs.qs[gs.k];
+  gs.answered=false; gs.armed=false; gs.lock=performance.now()+700; gs.dwell=[0,0,0,0];
+  setHTML($("#arQ"), `<span${q.np?" data-nopy":""}>${esc(q.q)}</span>${q.qe?`<span class=ui-en data-b>${esc(q.qe)}</span>`:""}${q.au?`<button class="play sm" type="button" id="arPlay">▶ 播放<span class=ui-en>Play</span></button>`:""}`);
+  if(q.au){ $("#arPlay").onclick=()=>speak(q.au); speak(q.au); }
+  $("#arScore").innerHTML=`${gs.k+1} / ${gs.qs.length}　★ ${gs.score}`;
+  st.querySelectorAll(".ar-b").forEach((b,j)=>{ b.className=`ar-b c${j} pop`; b.disabled=false; const t=b.querySelector(".ar-t"); t.innerHTML=(q.au||q.np)?esc(q.opts[j]):rubyHTML(q.opts[j]); b.style.setProperty("--p",0); setTimeout(()=>b.classList.remove("pop"),500); });
+}
+function burst(x,y,ok){ const cols=ok?["#ffd23f","#ff6b6b","#4ecdc4","#ffffff","#7bd389"]:["#ff6b6b","#c0141d"]; for(let k=0;k<(ok?70:18);k++){ const a=Math.random()*6.28, sp=2+Math.random()*(ok?9:4); gs.parts.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-(ok?4:1),life:40+Math.random()*25,c:cols[k%cols.length],s:4+Math.random()*5}); } }
+function arPick(j, body, at){ if(!gs||gs.answered) return; gs.answered=true; const st=$("#arStage"), q=gs.qs[gs.k], ok=q.opts[j]===q.a, bs=[...st.querySelectorAll(".ar-b")];
+  const r=bs[j].getBoundingClientRect(), sr=st.getBoundingClientRect(), x=at?at.x:r.left-sr.left+r.width/2, y=at?at.y:r.top-sr.top+r.height/2;
+  if(ok){ gs.score++; bs[j].classList.add("burst"); burst(x,y,true); sfx("ok"); speak(q.a.length<=8?q.a:""); }
+  else { bs[j].classList.add("wrong"); burst(x,y,false); sfx("no"); const k=q.opts.indexOf(q.a); if(bs[k]) bs[k].classList.add("glow"); }
+  $("#arScore").innerHTML=`${gs.k+1} / ${gs.qs.length}　★ ${gs.score}`;
+  setTimeout(()=>{ if(game!=="gest"||!gs) return; gs.k++; if(gs.k>=gs.qs.length) arFinish(body); else arQuestion(body); }, ok?1300:1900); }
+function arFinish(body){ const pass=gs.score>=Math.ceil(gs.qs.length*.6); if(pass){ sfx("win"); gameDone("gest"); }
+  const sc=gs.score, n=gs.qs.length; arClose();
+  setHTML(body, `${BACK}<div class="result"><div class="big">${sc} / ${n}</div><p style="margin:0">${pass?"抓得好！全部泡泡都被你抓光了。<span class=ui-en data-b>Great grabbing!</span>":`再试一次，抓对 ${Math.ceil(n*.6)} 个就完成。<span class=ui-en data-b>Try again — ${Math.ceil(n*.6)} correct to finish.</span>`}</p><button class="btn" type="button" id="again">再玩一次<span class=ui-en>Play again</span></button></div>`);
+  bindBack(body); $("#again").onclick=()=>gestStart(body); refreshTabs(); }
+function arClose(){ stopMedia(); const st=$("#arStage"); if(st){ st.hidden=true; st.innerHTML=""; } }
 
 /* ============================== 建设南洋岛 Build your Nanyang island ============================== */
 const BUILD = [
