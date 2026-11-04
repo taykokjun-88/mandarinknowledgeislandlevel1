@@ -70,7 +70,11 @@ button{font:inherit;color:inherit;cursor:pointer}
 .tbtn svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .tbtn[aria-pressed="true"]{background:var(--gold-soft)}
 
-@media (min-width:721px){ body.drawer-open .topbar{right:auto;max-width:calc(100% - 492px)} body.drawer-open .hint{max-width:calc(100% - 500px)} }
+@media (min-width:721px) and (orientation:landscape), (min-width:1101px){ body.drawer-open .topbar{right:auto;max-width:calc(100% - 492px)} body.drawer-open .brand p,body.drawer-open .tbtn span{display:none} body.drawer-open .tbtn{padding:9px} body.drawer-open .hint{display:none} }
+.zoomer{position:absolute;left:16px;top:calc(var(--top-h,150px) + 4px);display:flex;flex-direction:column;gap:4px;padding:5px;background:var(--glass);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);z-index:4;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.zoomer button{width:42px;height:42px;border:0;border-radius:10px;background:transparent;display:grid;place-items:center;touch-action:manipulation}
+.zoomer button:hover{background:var(--panel-2)}
+.zoomer svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 .hint{position:absolute;left:16px;bottom:calc(14px + env(safe-area-inset-bottom,0px));font-size:12px;color:var(--ink);background:var(--glass);border:1px solid var(--line);border-radius:999px;padding:6px 14px;max-width:calc(100% - 32px);pointer-events:none}
 
 /* drawers */
@@ -198,7 +202,7 @@ body.nopy .py,body.nopy .apy{display:none}
 .wcard p{margin:0;font-size:14px;color:var(--muted)}
 .wcard label{font-weight:700;font-size:14px}
 .wcard small{color:var(--muted);font-size:12.5px}
-input,textarea{font:inherit;color:var(--ink);background:var(--panel);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;width:100%;min-width:0}
+input,textarea{box-sizing:border-box;font:inherit;color:var(--ink);background:var(--panel);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;width:100%;min-width:0}
 input:focus,textarea:focus{outline:none;border-color:var(--gold)}
 /* tabs: four */
 .tabs{gap:4px}.tab{padding:7px 4px;font-size:14px;gap:4px;flex-wrap:wrap}.tab small{font-weight:400;font-size:11px}
@@ -269,8 +273,8 @@ button.gcard:hover{border-color:var(--gold)}
 .bar{height:6px;border-radius:3px;background:var(--panel-2);overflow:hidden}.bar i{display:block;height:100%;background:var(--ok)}
 .pc{font-weight:700;font-variant-numeric:tabular-nums}
 textarea{resize:vertical;font-size:12px;font-family:ui-monospace,Menlo,monospace}
-@media (max-width:720px){ .drawer.tall{height:calc(100% - var(--top-h,132px))} .drawer.tall .meta,.drawer.tall .d-sub{display:none} .drawer.tall .d-title{font-size:28px} .sum b{font-size:17px} }
-@media (max-width:720px){
+@media (max-width:720px), (max-width:1100px) and (orientation:portrait){ .drawer.tall{height:calc(100% - var(--top-h,132px))} .drawer.tall .meta,.drawer.tall .d-sub{display:none} .drawer.tall .d-title{font-size:28px} .sum b{font-size:17px} }
+@media (max-width:720px), (max-width:1100px) and (orientation:portrait){
   .brand{padding:8px 12px;gap:10px}
   .seal{width:36px;height:36px;font-size:21px}
   .brand h1{font-size:21px}
@@ -317,6 +321,11 @@ textarea{resize:vertical;font-size:12px;font-family:ui-monospace,Menlo,monospace
     </nav>
   </header>
 
+  <div class="zoomer" id="zoomer" aria-label="缩放 Zoom">
+    <button type="button" id="zIn" title="放大 Zoom in" aria-label="放大 Zoom in"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+    <button type="button" id="zOut" title="缩小 Zoom out" aria-label="缩小 Zoom out"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+    <button type="button" id="zAll" title="看全部岛屿 See all islands" aria-label="看全部岛屿 See all islands"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+  </div>
   <div class="hint" id="hint">拖曳旋转 · 右键或双指平移 · 滚轮或双指缩放 · 点岛屿登岛学习<span class=ui-en data-b>Drag to rotate · right-click or two fingers to pan · scroll or pinch to zoom · tap an island</span></div>
 
   <aside class="drawer" id="panel" hidden aria-label="岛屿学习面板"></aside>
@@ -868,7 +877,7 @@ function buildRoute(){
 function refreshRoute(){ routeDots.forEach(({m,seg})=>{ m.material.color.setHex(starsOf(seg)>=1||state.teacher ? 0xf2c14e : 0xffffff); m.material.emissive=new THREE.Color(starsOf(seg)>=1?0x7a5200:0x000000); }); }
 
 function readTheme(){ const cs=getComputedStyle(document.documentElement); return {sky:cs.getPropertyValue("--sky").trim()||"#bfe2ec", fog:cs.getPropertyValue("--fog").trim()||"#cfe8ef", sea:cs.getPropertyValue("--sea").trim()||"#2a8ea6"}; }
-function applyTheme(){ if(!scene) return; const t=readTheme(); scene.background=new THREE.Color(t.sky); scene.fog=new THREE.Fog(t.fog,170,460); ocean.material.color.set(t.sea);
+function applyTheme(){ if(!scene) return; const t=readTheme(); scene.background=new THREE.Color(t.sky); scene.fog=new THREE.Fog(t.fog,220,640); ocean.material.color.set(t.sea);
   const dark=document.documentElement.dataset.theme==="dark"||(document.documentElement.dataset.theme!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);
   hemi.intensity=dark?.45:.8; sun.intensity=dark?.55:.95; sun.color.set(dark?0xc9d6ff:0xfff1dc); }
 
@@ -880,7 +889,7 @@ function initScene(){
   scene=new THREE.Scene();
   camera=new THREE.PerspectiveCamera(42,1,.5,1000);
   controls=new THREE.OrbitControls(camera, canvas);
-  controls.enableDamping=true; controls.dampingFactor=.08; controls.maxPolarAngle=1.32; controls.minDistance=14; controls.maxDistance=300; controls.screenSpacePanning=false;
+  controls.enableDamping=true; controls.dampingFactor=.08; controls.maxPolarAngle=1.32; controls.minDistance=14; controls.maxDistance=420; controls.screenSpacePanning=false;
   hemi=new THREE.HemisphereLight(0xffffff,0x6f8f5c,.8); scene.add(hemi);
   sun=new THREE.DirectionalLight(0xfff1dc,.95); sun.position.set(-70,110,60); sun.castShadow=true; sun.shadow.mapSize.set(2048,2048);
   Object.assign(sun.shadow.camera,{left:-120,right:120,top:120,bottom:-120,near:10,far:320}); sun.shadow.bias=-.0008; scene.add(sun);
@@ -902,12 +911,13 @@ function initScene(){
   requestAnimationFrame(loop);
 }
 
+function zoomBy(f){ if(!camera) return; const t=controls.target.clone(), dir=camera.position.clone().sub(t); const L=Math.min(controls.maxDistance, Math.max(controls.minDistance, dir.length()*f)); go(t.clone().add(dir.setLength(L)), t, 320); }
 function aspect(){ return innerWidth/Math.max(1,innerHeight); }
 function setOverview(instant){
   const a=aspect(), fov=camera.fov*Math.PI/180, hf=2*Math.atan(Math.tan(fov/2)*a);
   let dir, half;
   if(a<1){ dir=new THREE.Vector3(1,1.3,.2).normalize(); half=60; } else { dir=new THREE.Vector3(0,.9,1).normalize(); half=90; }
-  const dist=Math.min(290, Math.max(half/Math.tan(hf/2), (a<1?66:44)/Math.tan(fov/2)));
+  const dist=Math.min(400, Math.max(half/Math.tan(hf/2), (a<1?66:44)/Math.tan(fov/2)));
   const tgt=new THREE.Vector3(CENTER.x,0,CENTER.z), pos=tgt.clone().add(dir.multiplyScalar(dist));
   go(pos,tgt,instant?0:1100);
 }
@@ -917,8 +927,9 @@ const ease = k => k<.5 ? 4*k*k*k : 1-Math.pow(-2*k+2,3)/2;
 
 function resize(){ if(!renderer) return; const w=innerWidth, h=innerHeight; renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); applyOffset(); }
 function applyOffset(){ const w=innerWidth, h=innerHeight; if(Math.abs(viewOff.x)<.5 && Math.abs(viewOff.y)<.5){ camera.clearViewOffset(); } else camera.setViewOffset(w,h,viewOff.x,viewOff.y,w,h); }
+const SHEET_MQ = matchMedia("(max-width:720px), (max-width:1100px) and (orientation:portrait)");
 function updateOffsetGoal(){ const p=$("#panel"), s=$("#side"); const el=!p.hidden?p:(!s.hidden?s:null); document.body.classList.toggle("drawer-open", !!el); if(!el){ viewOffGoal={x:0,y:0}; return; }
-  if(innerWidth<=720) viewOffGoal={x:0,y:el.offsetHeight/2}; else viewOffGoal={x:(el.offsetWidth+16)/2,y:0}; }
+  if(SHEET_MQ.matches) viewOffGoal={x:0,y:el.offsetHeight/2}; else viewOffGoal={x:(el.offsetWidth+16)/2,y:0}; }
 
 function loop(now){
   requestAnimationFrame(loop);
@@ -1388,6 +1399,9 @@ function welcome(){
   $("#nickGo").onclick=go; inp.onkeydown=e=>{ if(e.key==="Enter") go(); };
 }
 
+$("#zIn").onclick=()=>zoomBy(.7);
+$("#zOut").onclick=()=>zoomBy(1.45);
+$("#zAll").onclick=()=>{ if(scene) setOverview(false); };
 $("#bMe").onclick=()=>openSide("me");
 $("#bList").onclick=()=>openSide("list");
 $("#bSet").onclick=()=>openSide("settings");
@@ -1400,6 +1414,8 @@ function fitTop(){ const t=$(".topbar"); if(t) document.documentElement.style.se
 addEventListener("resize",()=>{ resize(); fitTop(); updateOffsetGoal(); });
 
 /* ============================== boot ============================== */
+document.querySelectorAll(".tbtn").forEach(b=>{ const t=b.querySelector("span"); if(t) b.title=t.textContent.replace(/([^\x00-\x7F])([A-Za-z])/,"$1 $2"); });
+if(!HAS3D) $("#zoomer").hidden=true;
 rubify($(".topbar")); rubify($("#hint"));
 setAnim(animOn); applyPy(); applyEn(); updateCoins(); fitTop();
 if(HAS3D){ buildLabels(); initScene(); ISLANDS.forEach((_,i)=>render3DBuild(i)); }
