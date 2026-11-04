@@ -303,6 +303,8 @@ button.gcard:hover{border-color:var(--gold)}
 .cam-wrap video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
 .fcount{position:absolute;left:8px;top:8px;background:rgba(0,0,0,.6);color:#fff;border-radius:999px;padding:2px 10px;font-weight:700}
 .gopt{position:relative;overflow:hidden}.gopt .hold{position:absolute;left:0;bottom:0;height:4px;width:0;background:var(--gold);transition:width .08s}
+.notice.warn{background:var(--bad-soft);border:1px solid var(--bad)}
+.lvl{display:flex;align-items:center;gap:8px}.lvlbar{flex:1;height:10px;border-radius:5px;background:var(--panel-2);overflow:hidden}.lvlbar i{display:block;height:100%;width:0;background:var(--ok);transition:width .05s}
 /* my progress */
 .sum{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
 .sum div{display:flex;flex-direction:column;align-items:center;padding:10px 4px;border-radius:12px;background:var(--panel-2)}
@@ -1661,7 +1663,14 @@ const CONSENT_TXT={
   mic:{t:"使用麦克风", te:"Use the microphone", zh:"这个游戏要用麦克风听你的声调。声音只在这台设备上分析，不会录音，也不会上传。", en:"This game uses your microphone to hear your tones. Sound is analysed on this device only — nothing is recorded or uploaded."},
   asr:{t:"使用麦克风和语音识别", te:"Use the microphone and speech recognition", zh:"这个游戏要用麦克风和浏览器的语音识别。Chrome 会把声音传到 Google、Safari 会传到 Apple 的服务器转成文字；本游戏不会保存任何声音。", en:"This game uses your microphone and the browser's speech recognition. Chrome sends the audio to Google and Safari to Apple to turn it into text. This game keeps no audio."},
   cam:{t:"使用摄像头", te:"Use the camera", zh:"这个游戏要用摄像头看你的手势。画面只在这台设备上分析，不会录像，也不会上传。", en:"This game uses your camera to see your hand. Video is analysed on this device only — nothing is recorded or uploaded."}};
+const IS_IOS=/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+function inAppBrowser(){ const ua=navigator.userAgent; return (IS_IOS && !/Safari\//.test(ua)) || /FBAN|FBAV|Instagram|Line\/|MicroMessenger|Claude/i.test(ua); }
+function envWarn(kind){ if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return `<div class="notice warn">这个浏览器不能使用${kind==="cam"?"摄像头":"麦克风"}。${IS_IOS?"请用 Safari 打开这个网址。":"请用 Chrome 或 Edge 打开。"}<span class=ui-en data-b>This browser can't use the ${kind==="cam"?"camera":"microphone"}. ${IS_IOS?"Please open this link in Safari.":"Please use Chrome or Edge."}</span></div>`;
+  if(inAppBrowser()) return `<div class="notice warn">你现在是在 App 里面的浏览器打开游戏（例如从聊天或 Claude App 点进来）。这种浏览器通常不让网页使用${kind==="cam"?"摄像头":"麦克风"}。请点分享按钮，选「在 Safari 中打开」，或把网址复制到 Safari。<span class=ui-en data-b>You're in an app's built-in browser (for example opened from a chat or the Claude app). These usually block the ${kind==="cam"?"camera":"microphone"}. Tap Share → "Open in Safari", or paste the link into Safari.</span></div>`;
+  return ""; }
 function withConsent(kind, body, start){
+  const ew=envWarn(kind==="cam"?"cam":"mic");
+  if(ew && !gs?.ewOk){ setHTML(body, `${BACK}${ew}<div class="row"><button class="btn ghost" type="button" id="ewGo">仍然试试<span class=ui-en>Try anyway</span></button></div>`); bindBack(body); $("#ewGo").onclick=()=>{ gs={ewOk:true}; withConsent(kind, body, start); }; return; }
   const c=CONSENT_TXT[kind], v=(state.consent||{})[kind];
   if(v===true) return start();
   if(v===false){ setHTML(body, `${BACK}<div class="result"><p style="margin:0">你选择了跳过这个游戏。<span class=ui-en data-b>You chose to skip this game.</span></p><button class="btn ghost" type="button" id="cAgain">改变主意<span class=ui-en>Change my mind</span></button></div>`); bindBack(body); $("#cAgain").onclick=()=>{ state.consent[kind]=null; save(); withConsent(kind,body,start); }; return; }
@@ -1673,14 +1682,17 @@ function withConsent(kind, body, start){
   $("#cNo").onclick=()=>{ state.consent[kind]=false; save(); toast("已跳过这个游戏","Game skipped"); game=null; renderGames(body); };
 }
 const media={stream:null, ac:null, raf:0, rec:null};
-function stopMedia(){ cancelAnimationFrame(media.raf); if(media.stream) media.stream.getTracks().forEach(t=>t.stop()); media.stream=null; if(media.ac){ try{ media.ac.close(); }catch(e){} } media.ac=null; if(media.rec){ try{ media.rec.abort(); }catch(e){} } media.rec=null; if(typeof Music!=="undefined") Music.hold(false); }
-function mediaError(body, err, kind){ setHTML(body, `${BACK}<div class="result"><p style="margin:0">没办法使用${kind==="cam"?"摄像头":"麦克风"}。请检查浏览器的权限设置，或换用 Chrome 再试。<span class=ui-en data-b>Couldn't use the ${kind==="cam"?"camera":"microphone"}. Check the browser's permission settings, or try Chrome.</span></p><p class="sw-msg">${esc(err&&err.name||"")}</p></div>`); bindBack(body); }
+function stopMedia(){ cancelAnimationFrame(media.raf); cancelAnimationFrame(media.mraf); if(media.stream) media.stream.getTracks().forEach(t=>t.stop()); media.stream=null; if(media.ac){ try{ media.ac.close(); }catch(e){} } media.ac=null; if(media.rec){ try{ media.rec.abort(); }catch(e){} } media.rec=null; if(typeof Music!=="undefined") Music.hold(false); }
+function mediaError(body, err, kind){ const dev=kind==="cam"?"摄像头":"麦克风", devE=kind==="cam"?"camera":"microphone", n=err&&err.name||"";
+  const how = IS_IOS ? `iPhone / iPad：设置 → Safari → ${dev} → 选“允许”，或点网址栏左边的「大小」图标 → 网站设置 → ${dev} → 允许，然后重新载入。<span class=ui-en data-b>iPhone / iPad: Settings → Safari → ${kind==="cam"?"Camera":"Microphone"} → Allow, or tap the "aA" icon in the address bar → Website Settings → Allow, then reload.</span>`
+                     : `点网址栏左边的锁头图标，把${dev}改成“允许”，然后重新载入。<span class=ui-en data-b>Click the lock icon in the address bar, set the ${devE} to Allow, then reload.</span>`;
+  setHTML(body, `${BACK}<div class="result"><p style="margin:0">没办法使用${dev}。<span class=ui-en data-b>Couldn't use the ${devE}.</span></p>${envWarn(kind)}<p class="sw-msg" style="text-align:left">${how}</p><p class="sw-msg">${esc(n)}</p></div>`); bindBack(body); }
 
 /* ---------- 声调冲浪 Tone Surfing: on-device pitch tracking ---------- */
-function pitchOf(buf, sr){ const N=1024; let e=0; for(let i=0;i<N;i++) e+=buf[i]*buf[i]; if(Math.sqrt(e/N)<.012) return 0;
+function pitchOf(buf, sr){ const N=1024; let e=0; for(let i=0;i<N;i++) e+=buf[i]*buf[i]; if(Math.sqrt(e/N)<.005) return 0;
   const minL=Math.floor(sr/480), maxL=Math.min(Math.floor(sr/70), buf.length-N); let best=0, bl=0;
   for(let L=minL; L<=maxL; L+=2){ let s=0,b=0; for(let i=0;i<N;i++){ s+=buf[i]*buf[i+L]; b+=buf[i+L]*buf[i+L]; } const r=s/Math.sqrt(e*b+1e-9); if(r>best){ best=r; bl=L; } }
-  if(best<.72) return 0; return sr/bl; }
+  if(best<.62) return 0; return sr/bl; }
 function classifyTone(hz){ const v=hz.filter(h=>h>0); if(v.length<6) return 0;
   const srt=[...v].sort((a,b)=>a-b), med=srt[srt.length>>1]; let st=v.map(h=>12*Math.log2(h/med)).filter(x=>Math.abs(x)<7); const cut=Math.floor(st.length*.12); st=st.slice(cut, st.length-cut); if(st.length<5) return 0; st=st.map((x,k)=>(x+(st[k-1]??x)+(st[k+1]??x))/3);
   const n=st.length, q=Math.max(1,Math.ceil(n*.2)), avg=a=>a.reduce((s,x)=>s+x,0)/a.length;
@@ -1692,7 +1704,7 @@ function toneStart(body){ withConsent("mic", body, async()=>{
   let pool=toneTargets(cur); const byT=[1,2,3,4].map(t=>shuffle(pool.filter(x=>x.t===t)));
   const items=shuffle([0,1,2,3,0,1,2,3].map((t,k)=>byT[t][Math.floor(k/4)]).filter(Boolean)).slice(0,6);
   gs={items, k:0, tries:0, score:0, trace:[], listening:false, res:[]};
-  try{ media.stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true, noiseSuppression:true, autoGainControl:false}}); }catch(err){ return mediaError(body,err,"mic"); }
+  try{ media.stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false, noiseSuppression:false, autoGainControl:true}}); }catch(err){ return mediaError(body,err,"mic"); }
   media.ac=new (window.AudioContext||window.webkitAudioContext)(); const src=media.ac.createMediaStreamSource(media.stream), an=media.ac.createAnalyser(); an.fftSize=2048; src.connect(an); gs.an=an;
   // pitch is measured per audio block (≈23 ms), independent of the screen frame rate
   const sp=media.ac.createScriptProcessor(1024,1,1), ring=new Float32Array(2048); src.connect(sp); sp.connect(media.ac.destination);
@@ -1707,10 +1719,14 @@ function toneRender(body){
     <div class="surf-target"><span class="big-hz" data-nopy>${it.c}</span><span><b class="py">${it.p}</b><br>${TONE_NAME[it.t]}<span class=ui-en>${TONE_EN[it.t]}</span></span><button class="play sm" type="button" data-say="${it.c}"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>听<span class=ui-en>Listen</span></button></div>
     <canvas id="surf" width="640" height="300" aria-label="声调曲线 tone curve"></canvas>
     <div class="row" style="justify-content:center"><button class="btn" type="button" id="say">${gs.listening?"正在听…":"🎤 开始说"}<span class=ui-en>${gs.listening?"Listening…":"Speak"}</span></button></div>
-    <p class="sw-msg" id="tMsg">点“开始说”，然后清楚地读出这个字。金色虚线是目标声调。<span class=ui-en data-b>Tap Speak, then say the character clearly. The gold dashed line is the target tone.</span></p>`);
-  bindBack(body); drawSurf();
-  $("#say").onclick=()=>{ if(gs.listening) return; gs.listening=true; gs.trace=[]; Music.hold(true); listenTone(body); toneBtn(true); };
+    <div class="lvl" aria-label="麦克风音量 microphone level"><span>🎤</span><div class="lvlbar"><i id="lvlBar"></i></div></div>
+    <p class="sw-msg" id="tMsg">点“开始说”，然后清楚地读出这个字。金色虚线是目标声调。说话时绿色音量条会跳动。<span class=ui-en data-b>Tap Speak, then say the character clearly. The gold dashed line is the target tone. The green bar moves when the mic hears you.</span></p>`);
+  bindBack(body); drawSurf(); meterLoop();
+  $("#say").onclick=()=>{ if(gs.listening) return; if(media.ac && media.ac.state!=="running") media.ac.resume(); gs.listening=true; gs.trace=[]; gs.frames=0; Music.hold(true); listenTone(body); toneBtn(true); };
 }
+function meterLoop(){ cancelAnimationFrame(media.mraf); const an=gs&&gs.an; if(!an) return; const buf=new Float32Array(an.fftSize);
+  const tick=()=>{ if(game!=="tone"||!media.stream) return; an.getFloatTimeDomainData(buf); let s=0; for(let i=0;i<buf.length;i+=4) s+=buf[i]*buf[i]; const rms=Math.sqrt(s/(buf.length/4)); const b=$("#lvlBar"); if(b) b.style.width=Math.min(100,rms*900)+"%"; media.mraf=requestAnimationFrame(tick); };
+  media.mraf=requestAnimationFrame(tick); }
 function toneBtn(on){ const b=$("#say"); if(b){ b.innerHTML=on?"正在听…<span class=ui-en>Listening…</span>":"🎤 开始说<span class=ui-en>Speak</span>"; rubify(b); } }
 function drawSurf(){ const cv=$("#surf"); if(!cv) return; const x=cv.getContext("2d"), W=cv.width, H=cv.height, it=gs.items[gs.k];
   const g=x.createLinearGradient(0,0,0,H); g.addColorStop(0,"#bfeaf5"); g.addColorStop(1,"#1d8fb5"); x.fillStyle=g; x.fillRect(0,0,W,H);
@@ -1726,7 +1742,7 @@ function listenTone(body){ const t0=performance.now(); gs.voiced=0; gs.lastVoice
     media.raf=requestAnimationFrame(step); };
   media.raf=requestAnimationFrame(step); }
 function judgeTone(body){ const it=gs.items[gs.k], got=classifyTone(gs.trace), ok=toneOk(it.t,got,gs.trace), m=$("#tMsg");
-  if(!got){ setHTML(m, `没有听清楚，请靠近一点、大声一点再试。<span class=ui-en data-b>Didn't catch that — move closer and speak a bit louder.</span>`); return; }
+  if(!got){ if(!gs.frames) setHTML(m, `麦克风没有声音进来。请检查是否允许使用麦克风，然后再点一次“开始说”。<span class=ui-en data-b>No sound is reaching the game. Check the microphone permission and tap Speak again.</span>`); else setHTML(m, `没有听清楚，请靠近一点、拉长一点、大声一点再试。<span class=ui-en data-b>Didn't catch that — move closer, hold the sound a little longer and speak up.</span>`); return; }
   if(ok){ gs.score++; gs.res.push(true); setHTML(m, `<b style="color:var(--ok)">冲浪成功！</b>这是${TONE_NAME[it.t]}。<span class=ui-en data-b>Nice ride! That was the ${TONE_EN[it.t]}.</span>`); setTimeout(()=>{ if(game!=="tone") return; gs.k++; gs.tries=0; toneRender(body); },1400); return; }
   gs.tries++; if(gs.tries>=3){ gs.res.push(false); setHTML(m, `听起来像${TONE_NAME[got]}。3 次机会用完了，下一个。<span class=ui-en data-b>Sounded like the ${TONE_EN[got]}. Out of tries — next one.</span>`); setTimeout(()=>{ if(game!=="tone") return; gs.k++; gs.tries=0; toneRender(body); },1600); return; }
   setHTML(m, `听起来像${TONE_NAME[got]}，目标是${TONE_NAME[it.t]}。再试一次！<span class=ui-en data-b>Sounded like the ${TONE_EN[got]}; the target is the ${TONE_EN[it.t]}. Try again!</span>`);
@@ -1757,13 +1773,18 @@ function readRender(body){
   bindBack(body);
   $("#rec").onclick=()=>{ const r=new SRec(); media.rec=r; r.lang="zh-CN"; r.interimResults=false; r.maxAlternatives=5; Music.hold(true);
     const b=$("#rec"); b.disabled=true; b.innerHTML="正在听…<span class=ui-en>Listening…</span>"; rubify(b);
-    let got=false;
-    r.onresult=e=>{ got=true; const alts=[...e.results[0]].map(a=>a.transcript); gs.heard=alts[0]||""; const ok=readMatch(it.zh, alts);
+    let got=false; const msg=h=>{ const m=$("#rMsg"); if(m) setHTML(m,h); };
+    const reset=()=>{ b.disabled=false; b.innerHTML="🎤 开始念<span class=ui-en>Read now</span>"; rubify(b); };
+    const dog=setTimeout(()=>{ if(got) return; got=true; try{ r.abort(); }catch(e){} Music.hold(false); reset();
+      msg(`语音识别没有反应。${inAppBrowser()?"请改用 Safari 打开这个网址。":IS_IOS?"请确认已开启「听写」：设置 → 通用 → 键盘 → 启用听写，然后再试。":"请确认浏览器可以使用麦克风，并已连上网络。"}<span class=ui-en data-b>Speech recognition didn't respond. ${inAppBrowser()?"Please open this link in Safari.":IS_IOS?"Make sure Dictation is on: Settings → General → Keyboard → Enable Dictation.":"Check the microphone permission and your internet connection."}</span>`); }, 9000);
+    r.onstart=()=>msg(`正在听，请念出上面的内容…<span class=ui-en data-b>Listening — read the words above…</span>`);
+    r.onspeechstart=()=>msg(`听到声音了，继续念…<span class=ui-en data-b>Hearing you…</span>`);
+    r.onresult=e=>{ got=true; clearTimeout(dog); const alts=[...e.results[0]].map(a=>a.transcript); gs.heard=alts[0]||""; const ok=readMatch(it.zh, alts);
       if(ok){ gs.score++; setHTML($("#rMsg"), `<b style="color:var(--ok)">念对了！</b>听到：「${esc(gs.heard)}」<span class=ui-en data-b>Correct!</span>`); setTimeout(()=>{ if(game!=="read") return; gs.k++; gs.tries=0; gs.heard=""; readRender(body); },1300); }
       else { gs.tries++; if(gs.tries>=3){ setHTML($("#rMsg"), `听到：「${esc(gs.heard)}」。3 次机会用完了，下一题。<span class=ui-en data-b>Out of tries — next one.</span>`); setTimeout(()=>{ if(game!=="read") return; gs.k++; gs.tries=0; gs.heard=""; readRender(body); },1700); } else readRender(body); } };
-    r.onerror=e=>{ got=true; Music.hold(false); if(e.error==="not-allowed"||e.error==="service-not-allowed"){ mediaError(body,{name:e.error},"mic"); return; } setHTML($("#rMsg"), `没有听到声音，请再试一次。<span class=ui-en data-b>Didn't hear anything — try again.</span>`); b.disabled=false; b.innerHTML="🎤 开始念<span class=ui-en>Read now</span>"; rubify(b); };
-    r.onend=()=>{ Music.hold(false); if(!got && game==="read"){ b.disabled=false; b.innerHTML="🎤 开始念<span class=ui-en>Read now</span>"; rubify(b); } };
-    try{ r.start(); }catch(err){ Music.hold(false); } };
+    r.onerror=e=>{ got=true; clearTimeout(dog); Music.hold(false); if(e.error==="not-allowed"||e.error==="service-not-allowed"){ mediaError(body,{name:e.error},"mic"); return; } setHTML($("#rMsg"), `没有听到声音，请再试一次。<span class=ui-en data-b>Didn't hear anything — try again.</span>`); b.disabled=false; b.innerHTML="🎤 开始念<span class=ui-en>Read now</span>"; rubify(b); };
+    r.onend=()=>{ Music.hold(false); if(!got && game==="read"){ got=true; clearTimeout(dog); reset(); msg(`没有识别到声音，请靠近一点、清楚地再念一次。<span class=ui-en data-b>Nothing was recognised — move closer and read it clearly again.</span>`); } };
+    try{ r.start(); }catch(err){ clearTimeout(dog); Music.hold(false); reset(); msg(`语音识别启动失败：${esc(err.message||err.name||"")}<span class=ui-en data-b>Speech recognition failed to start.</span>`); } };
 }
 
 /* ---------- 手势选答 Gesture Quiz: MediaPipe hand tracking, fingers 1–4 ---------- */
@@ -2203,12 +2224,12 @@ const Music = (() => {
   // optional real recordings: lib/music/<style>.mp3
   fetch("lib/music/list.json").then(r=>r.ok?r.json():[]).then(list=>{ (list||[]).forEach(name=>{ if(!SONGS[name]) return; const a=new Audio(`lib/music/${name}.mp3`); a.loop=true; custom[name]=a; if(ac && cur && cur.name===name && !cur.el) startStyle(name); }); }).catch(()=>{});
   return {
-    unlock(){ if(state.music===false) return; if(!init()) return; if(ac.state==="suspended") ac.resume(); if(!cur || cur.name!==wanted) startStyle(wanted); },
+    unlock(){ if(state.music===false || held) return; if(!init()) return; if(ac.state==="suspended") ac.resume(); if(!cur || cur.name!==wanted) startStyle(wanted); },
     play(name){ wanted=SONGS[name]?name:"ocean"; if(ac && state.music!==false){ if(ac.state==="suspended") ac.resume(); if(!cur||cur.name!==wanted) startStyle(wanted); } },
     setOn(on){ state.music=on; save(); if(on){ this.unlock(); } else if(ac){ master.gain.setTargetAtTime(0,ac.currentTime,.1); } },
     setVol(v){ state.vol=v; save(); },
     duck(on){ ducked=on; },
-    hold(on){ held=on; if(ac) master.gain.setTargetAtTime(level(), ac.currentTime, .05); },
+    hold(on){ held=on; if(!ac) return; master.gain.setTargetAtTime(level(), ac.currentTime, .05); if(on) setTimeout(()=>{ if(held && ac.state==='running') ac.suspend(); },120); else if(ac.state==='suspended' && !document.hidden) ac.resume(); },
     rms(){ if(!meter) return 0; const a=new Float32Array(meter.fftSize); meter.getFloatTimeDomainData(a); let s=0; for(const v of a) s+=v*v; return Math.sqrt(s/a.length); },
     get styles(){ return Object.keys(SONGS); }
   };
