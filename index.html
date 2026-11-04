@@ -79,7 +79,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 
 /* drawers */
 .drawer{position:absolute;top:12px;right:16px;bottom:12px;width:min(440px,calc(100% - 32px));background:var(--panel);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden;z-index:5}
-.d-head{padding:18px 20px 12px;border-bottom:1px solid var(--line);position:relative;background:linear-gradient(var(--panel-2),var(--panel))}
+.d-head{padding:18px 20px 12px;position:relative;background:linear-gradient(var(--panel-2),var(--panel))}
 .d-head::before{content:"";position:absolute;left:0;right:0;top:0;height:7px;background:
   radial-gradient(circle at 50% 50%,var(--gold) 0 2px,transparent 2.5px) 0 0/14px 7px,
   conic-gradient(from 45deg,var(--tile-a) 25%,var(--tile-b) 0 50%,var(--tile-a) 0 75%,var(--tile-b) 0) 0 0/14px 7px}
@@ -93,7 +93,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .d-sub{margin:2px 0 0;color:var(--muted);font-size:13px}
 .meta{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;margin:10px 0 0;font-size:12.5px}
 .meta dt{color:var(--muted)} .meta dd{margin:0}
-.tabs{display:flex;gap:6px;margin-top:14px}
+.tabs{display:flex;gap:6px}
 .tab{flex:1;border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:9px 10px;font-weight:700;font-size:14px;display:flex;justify-content:center;align-items:center;gap:8px}
 .tab[aria-selected="true"]{background:var(--red);color:var(--red-ink);border-color:var(--red)}
 .tab[aria-selected="true"] .star.on{fill:var(--red-ink)} .tab[aria-selected="true"] .star.off{stroke:var(--red-ink)}
@@ -211,6 +211,7 @@ body.nopy .py,body.nopy .apy{display:none}
 input,textarea{box-sizing:border-box;font:inherit;color:var(--ink);background:var(--panel);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;width:100%;min-width:0}
 input:focus,textarea:focus{outline:none;border-color:var(--gold)}
 /* tabs: four */
+.tabbar{padding:10px 20px 10px;background:var(--panel);border-bottom:1px solid var(--line)}
 .tabs{gap:4px}.tab{padding:7px 4px;font-size:14px;gap:4px;flex-wrap:wrap}.tab small{font-weight:400;font-size:11px}
 .drawer.tall{}
 /* games */
@@ -317,7 +318,21 @@ button.gcard:hover{border-color:var(--gold)}
 .bar{height:6px;border-radius:3px;background:var(--panel-2);overflow:hidden}.bar i{display:block;height:100%;background:var(--ok)}
 .pc{font-weight:700;font-variant-numeric:tabular-nums}
 textarea{resize:vertical;font-size:12px;font-family:ui-monospace,Menlo,monospace}
-@media (max-width:720px), (max-width:1100px) and (orientation:portrait){ .drawer.tall{height:calc(100% - var(--top-h,132px))} .drawer.tall .meta,.drawer.tall .d-sub{display:none} .drawer.tall .d-title{font-size:28px} .sum b{font-size:17px} }
+@media (max-width:720px), (max-width:1100px) and (orientation:portrait){
+  .drawer{height:calc(100% - var(--top-h,132px));overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;display:block}
+  .d-body{overflow:visible;padding-bottom:calc(40px + env(safe-area-inset-bottom,0px))}
+  .tabbar{position:sticky;top:0;z-index:6;padding:8px 12px;box-shadow:0 6px 10px -8px rgba(0,0,0,.35)}
+  .d-head{padding:14px 16px 8px}
+  .d-head .meta{display:none}
+  .d-head .chip .mus .ui-en{display:none}
+  .d-title{font-size:30px}
+  .imap-wrap{top:var(--tabbar-h,64px)}
+  .brand h1{font-size:18px;white-space:nowrap}
+  .brand h1 rt{font-size:9px}
+  .prog small{display:none}
+  .prog{gap:4px;font-size:15px}
+  .seal{width:32px;height:32px;font-size:19px}
+  .drawer.tall .meta,.drawer.tall .d-sub{display:none} .drawer.tall .d-title{font-size:28px} .sum b{font-size:17px} }
 @media (max-width:720px), (max-width:1100px) and (orientation:portrait){
   .brand{padding:8px 12px;gap:10px}
   .seal{width:36px;height:36px;font-size:21px}
@@ -326,7 +341,7 @@ textarea{resize:vertical;font-size:12px;font-family:ui-monospace,Menlo,monospace
   .prog{padding-left:10px}
   .tbtn span{display:none}
   .tbtn{padding:9px}
-  .drawer{top:auto;left:0;right:0;bottom:0;width:100%;height:min(66%,640px);border-radius:22px 22px 0 0;border-bottom:0}
+  .drawer{top:auto;left:0;right:0;bottom:0;width:100%;height:calc(100% - var(--top-h,132px));border-radius:22px 22px 0 0;border-bottom:0}
   .d-body{padding-bottom:calc(28px + env(safe-area-inset-bottom,0px))}
   .d-title{font-size:34px}
   .hint{display:none}
@@ -1266,7 +1281,7 @@ function stopGame(){ if(typeof stopMedia==="function") stopMedia(); if(gs && gs.
 function openIsland(i, mode){
   if(!isUnlocked(i)){ toast(`先在 ${ISLANDS[i-1].no}「${ISLANDS[i-1].name}」闯关拿到至少 1 颗星，才能登上这座岛。`, `Get at least 1 star on ${ISLANDS[i-1].no} first to land here.`); if(scene) focusIsland(i); return; }
   stopGame(); side.hidden=true; cur=i; tab=mode||"explore"; quiz=null; game=null; gs=null;
-  renderPanel(); panel.hidden=false; $("#pBody").scrollTop=0; setLast(tab); Music.play(ISLANDS[i].no);
+  renderPanel(); panel.hidden=false; $("#pBody").scrollTop=0; panel.scrollTop=0; setLast(tab); Music.play(ISLANDS[i].no);
   updateOffsetGoal(); if(scene) focusIsland(i);
 }
 function closePanel(){ Music.play("ocean"); stopGame(); panel.hidden=true; cur=-1; quiz=null; game=null; if(hasTTS) speechSynthesis.cancel(); updateOffsetGoal(); }
@@ -1282,15 +1297,16 @@ function renderPanel(){
      <h2 class="d-title">${d.name}</h2>
      <p class="d-sub"><span class="py">${d.py}</span> · ${d.en}</p>
      <dl class="meta"><dt>主题<span class=ui-en>Topic</span></dt><dd>${d.module} <span style="color:var(--muted)">${d.moduleEn}</span></dd><dt>课本<span class=ui-en>Textbook</span></dt><dd>${d.lesson}</dd></dl>
-     <div class="tabs" role="tablist">
+   </div>
+   <div class="tabbar"><div class="tabs" role="tablist">
        <button class="tab" role="tab" data-t="explore" aria-selected="${tab==="explore"}" type="button">探索<span class=ui-en data-b>Explore</span></button>
        <button class="tab" role="tab" data-t="quiz" aria-selected="${tab==="quiz"}" type="button">闯关<span class=ui-en>Quiz</span> <span class="lbl-stars" style="display:flex">${stars3(st)}</span></button>
        <button class="tab" role="tab" data-t="games" aria-selected="${tab==="games"}" type="button">游戏<span class=ui-en>Games</span> <small>${gamesDone(cur)}/4</small></button>
        <button class="tab" role="tab" data-t="build" aria-selected="${tab==="build"}" type="button">建设<span class=ui-en data-b>Build</span></button>
-     </div>
-   </div>
+   </div></div>
    <div class="d-body" id="pBody"></div>`);
   $("#pClose").onclick=closePanel;
+  { const tb=panel.querySelector(".tabbar"); if(tb) panel.style.setProperty("--tabbar-h", tb.offsetHeight+"px"); }
   panel.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{ stopGame(); tab=b.dataset.t; quiz=null; game=null; gs=null; setLast(tab); renderPanel(); });
   const body=$("#pBody");
   if(tab==="explore") setHTML(body, exploreHTML(d));
@@ -2046,7 +2062,7 @@ function enableDrag(root, sel, onDrop){
       const sx=e.clientX, sy=e.clientY, touch=e.pointerType!=="mouse"; let ghost=null, timer=null, live=!touch, over=null;
       const start=()=>{ ghost=el.cloneNode(true); ghost.className+=" drag-ghost"; ghost.style.width=el.offsetWidth+"px"; document.body.appendChild(ghost); el.classList.add("dragging"); move(lastX,lastY); if(navigator.vibrate) try{ navigator.vibrate(15); }catch(_){} };
       let lastX=sx, lastY=sy;
-      const scroller=root.closest(".d-body"); const move=(x,y)=>{ if(!ghost) return; if(scroller){ const r=scroller.getBoundingClientRect(); if(y>r.bottom-50) scroller.scrollTop+=14; else if(y<r.top+40) scroller.scrollTop-=14; } ghost.style.left=(x-el.offsetWidth/2)+"px"; ghost.style.top=(y-24)+"px"; ghost.style.display="none"; const t=document.elementFromPoint(x,y); ghost.style.display=""; const p=t&&t.closest("[data-plot]"); if(over&&over!==p) over.classList.remove("over"); over=p; if(p) p.classList.add("over"); };
+      const scroller=SHEET_MQ.matches?root.closest(".drawer"):root.closest(".d-body"); const move=(x,y)=>{ if(!ghost) return; if(scroller){ const r=scroller.getBoundingClientRect(); if(y>r.bottom-50) scroller.scrollTop+=14; else if(y<r.top+40) scroller.scrollTop-=14; } ghost.style.left=(x-el.offsetWidth/2)+"px"; ghost.style.top=(y-24)+"px"; ghost.style.display="none"; const t=document.elementFromPoint(x,y); ghost.style.display=""; const p=t&&t.closest("[data-plot]"); if(over&&over!==p) over.classList.remove("over"); over=p; if(p) p.classList.add("over"); };
       if(touch) timer=setTimeout(()=>{ live=true; start(); },200);
       const onMove=ev=>{ lastX=ev.clientX; lastY=ev.clientY; const d=Math.hypot(ev.clientX-sx,ev.clientY-sy);
         if(!live){ if(d>10){ clearTimeout(timer); cleanup(); } return; }
@@ -2074,86 +2090,131 @@ function renderFarm(view, body){
   view.querySelectorAll("[data-rm]").forEach(b=>b.onclick=()=>{ const id=b.dataset.rm, j=list.lastIndexOf(id); if(j<0) return; list.splice(j,1); const c=SEA.find(x=>x.id===id); if(!free) state.coins+=Math.floor(c.cost/2); save(); updateCoins(); render3DFarm(cur); toast(`放走了一只${c.zh}`, `Released a ${c.en}`); renderFarm(view, body); });
 }
 
-/* ============================== Background music: generative Southeast Asian styles (Web Audio) ============================== */
+/* ============================== Background music v2: composed loops, warm instruments; optional mp3 per island ============================== */
 const Music = (() => {
   let held=false, meter=null, ac=null, master=null, verb=null, bus=null, timer=null, cur=null, nextT=0, step=0, ducked=false, wanted="ocean";
-  const SC={ slendro:[0,240,480,720,960], pelog:[0,120,270,540,670,785,950], maj5:[0,200,400,700,900], hijaz:[0,100,400,500,700,800,1000], major:[0,200,400,500,700,900,1100] };
-  const f=(base,scale,deg)=>{ const n=scale.length, o=Math.floor(deg/n), d=((deg%n)+n)%n; return base*Math.pow(2,o+scale[d]/1200); };
-  const level=()=> held||state.music===false ? 0 : (state.vol??.55) * (ducked?.35:1) * .5;
+  const custom={};   // name -> HTMLAudioElement if lib/music/<name>.mp3 exists
+  const level=()=> held||state.music===false ? 0 : (state.vol??.55) * (ducked?.35:1) * .55;
+  const mtof=m=>440*Math.pow(2,(m-69)/12);
   function init(){ if(ac) return true; const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return false;
     ac=new AC(); master=ac.createGain(); master.gain.value=0; master.connect(ac.destination);
-    const comp=ac.createDynamicsCompressor(); comp.threshold.value=-18; comp.ratio.value=3; comp.connect(master); meter=ac.createAnalyser(); meter.fftSize=2048; master.connect(meter);
-    bus=ac.createGain(); bus.connect(comp);
-    verb=ac.createConvolver(); const len=ac.sampleRate*2.4, ir=ac.createBuffer(2,len,ac.sampleRate);
-    for(let c=0;c<2;c++){ const d=ir.getChannelData(c); for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.6); }
-    verb.buffer=ir; const vg=ac.createGain(); vg.gain.value=.28; verb.connect(vg); vg.connect(comp);
+    meter=ac.createAnalyser(); meter.fftSize=2048; master.connect(meter);
+    const comp=ac.createDynamicsCompressor(); comp.threshold.value=-20; comp.ratio.value=2.5; comp.attack.value=.01; comp.connect(master);
+    const tone=ac.createBiquadFilter(); tone.type="lowpass"; tone.frequency.value=6500; tone.connect(comp);
+    bus=ac.createGain(); bus.connect(tone);
+    verb=ac.createConvolver(); const len=Math.floor(ac.sampleRate*1.7), ir=ac.createBuffer(2,len,ac.sampleRate);
+    for(let c=0;c<2;c++){ const d=ir.getChannelData(c); let lp=0; for(let i=0;i<len;i++){ lp=lp*.6+(Math.random()*2-1)*.4; d[i]=lp*Math.pow(1-i/len,3.2); } }
+    verb.buffer=ir; const vg=ac.createGain(); vg.gain.value=.22; verb.connect(vg); vg.connect(tone);
     timer=setInterval(tick, 40); document.addEventListener("visibilitychange",()=>{ if(!ac) return; document.hidden?ac.suspend():ac.resume(); });
     return true; }
-  // ---- instruments (all scheduled at absolute time t) ----
-  const out=(node,g,wet=.35)=>{ const a=ac.createGain(); a.gain.value=g; node.connect(a); a.connect(cur.gain); const s=ac.createGain(); s.gain.value=wet; a.connect(s); s.connect(verb); return a; };
-  function env(g,t,a,peak,dec){ g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(peak,t+a); g.gain.exponentialRampToValueAtTime(.0001,t+a+dec); }
-  function tone(t,fr,type,dur,peak,det=0){ const o=ac.createOscillator(), g=ac.createGain(); o.type=type; o.frequency.value=fr; o.detune.value=det; env(g,t,.004,peak,dur); o.connect(g); o.start(t); o.stop(t+dur+.1); return g; }
-  function bell(t,fr,dur=1.4,v=.3){ const m=ac.createGain(); [[1,1],[2.76,.32],[5.4,.12],[8.9,.05]].forEach(([r,a])=>tone(t,fr*r,"sine",dur/(r>1?r*.6:1),a).connect(m)); out(m,v,.45); }
-  function gong(t,fr,dur=3.5,v=.45){ const m=ac.createGain(); const o=ac.createOscillator(), g=ac.createGain(); o.frequency.setValueAtTime(fr*1.02,t); o.frequency.exponentialRampToValueAtTime(fr,t+.3); env(g,t,.02,1,dur); o.connect(g); g.connect(m); o.start(t); o.stop(t+dur+.2);
-    tone(t,fr*2.01,"sine",dur*.6,.3).connect(m); tone(t,fr*3.02,"sine",dur*.3,.12).connect(m); out(m,v,.5); }
+  // ---------- warm instruments ----------
+  const send=(node,g,wet)=>{ const a=ac.createGain(); a.gain.value=g; node.connect(a); a.connect(cur.gain); if(wet){ const s=ac.createGain(); s.gain.value=wet; a.connect(s); s.connect(verb); } };
+  function osc(t,fr,type,a,peak,dec,dest){ const o=ac.createOscillator(), g=ac.createGain(); o.type=type; o.frequency.value=fr; g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(peak,t+a); g.gain.exponentialRampToValueAtTime(.0001,t+a+dec); o.connect(g); g.connect(dest); o.start(t); o.stop(t+a+dec+.05); }
+  function marimba(t,m,v=.5){ const d=ac.createGain(), f=mtof(m); osc(t,f,"sine",.003,1,.9,d); osc(t,f*4,"sine",.002,.16,.11,d); osc(t,f*2,"sine",.003,.08,.25,d); send(d,v*.5,.25); }
+  function kalimba(t,m,v=.5){ const d=ac.createGain(), f=mtof(m); osc(t,f,"sine",.002,1,1.5,d); osc(t,f*3.01,"sine",.002,.06,.22,d); osc(t,f*5.2,"sine",.001,.03,.06,d); send(d,v*.45,.35); }
   const ks={};
-  function ksBuf(fr){ const k=Math.round(fr); if(ks[k]) return ks[k]; const sr=ac.sampleRate, N=Math.max(2,Math.round(sr/fr)), len=Math.round(sr*1.6), b=ac.createBuffer(1,len,sr), d=b.getChannelData(0), ring=new Float32Array(N);
-    for(let i=0;i<N;i++) ring[i]=Math.random()*2-1; let p=0; for(let i=0;i<len;i++){ const nx=(p+1)%N; const v=(ring[p]+ring[nx])*.5*.996; d[i]=ring[p]; ring[p]=v; p=nx; } return ks[k]=b; }
-  function pluck(t,fr,v=.35,bright=3000){ const s=ac.createBufferSource(); s.buffer=ksBuf(fr); const lp=ac.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=bright; s.connect(lp); out(lp,v,.3); s.start(t); }
-  function bamboo(t,fr,len=.5,v=.12){ for(let k=0;k<len*16;k++){ const tt=t+k/16; const m=ac.createGain(); tone(tt,fr,"sine",.09,.8).connect(m); tone(tt,fr*3,"sine",.05,.25).connect(m); out(m,v*(1-k/(len*20)),.3); } }
-  function noise(t,dur,ftype,fq,q,v){ const b=ac.createBuffer(1,Math.ceil(ac.sampleRate*dur),ac.sampleRate), d=b.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
-    const s=ac.createBufferSource(); s.buffer=b; const fl=ac.createBiquadFilter(); fl.type=ftype; fl.frequency.value=fq; fl.Q.value=q; const g=ac.createGain(); env(g,t,.002,1,dur); s.connect(fl); fl.connect(g); out(g,v,.15); s.start(t); }
-  function drum(t,kind,v=.5){ if(kind==="dum"){ const o=ac.createOscillator(), g=ac.createGain(); o.frequency.setValueAtTime(130,t); o.frequency.exponentialRampToValueAtTime(55,t+.18); env(g,t,.003,1,.32); o.connect(g); out(g,v,.12); o.start(t); o.stop(t+.4); noise(t,.05,"lowpass",900,.7,v*.3); }
-    else if(kind==="tak") noise(t,.07,"bandpass",2400,1.4,v*.55); else noise(t,.03,"highpass",6000,.7,v*.25); }
-  function flute(t,fr,dur,v=.12){ const o=ac.createOscillator(), g=ac.createGain(), lfo=ac.createOscillator(), lg=ac.createGain(); o.type="sine"; o.frequency.value=fr; lfo.frequency.value=5.2; lg.gain.value=fr*.012; lfo.connect(lg); lg.connect(o.frequency);
-    g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(1,t+.09); g.gain.setValueAtTime(1,t+Math.max(.1,dur-.15)); g.gain.linearRampToValueAtTime(0,t+dur); o.connect(g); out(g,v,.5); o.start(t); lfo.start(t); o.stop(t+dur+.05); lfo.stop(t+dur+.05); noise(t,.12,"highpass",3000,.5,v*.15); }
-  function pad(t,fr,dur,v=.05){ const lp=ac.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=900; const g=ac.createGain(); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(1,t+dur*.3); g.gain.linearRampToValueAtTime(0,t+dur); lp.connect(g); out(g,v,.6);
-    [-7,7].forEach(dt=>{ const o=ac.createOscillator(); o.type="sawtooth"; o.frequency.value=fr; o.detune.value=dt; o.connect(lp); o.start(t); o.stop(t+dur+.05); }); }
-  // ---- melody helper: seeded phrase on a scale ----
-  function phrase(seed, len, lo, hi, rest=.2){ const r=rng(seed); let d=Math.floor((lo+hi)/2); const out=[]; for(let k=0;k<len;k++){ if(r()<rest){ out.push(null); continue; } d=Math.max(lo,Math.min(hi,d+[-2,-1,-1,0,1,1,2][Math.floor(r()*7)])); out.push(d); } return out; }
-  // ---- styles: fn(step16, t, sixteenth) ----
-  const STY={
-    ocean:{bpm:66, make(){ const A=phrase(11,16,3,9,.55); return (s,t,d)=>{ const sc=SC.slendro, b=196; if(s%32===0) pad(t,b/2,d*32,.04); if(s%2===0 && A[(s/2)%16]!=null) pluck(t,f(b,sc,A[(s/2)%16]),.28,2200); if(s%16===8) pluck(t,b/2,.2,900); }; }},
-    M1:{bpm:84, make(){ const A=phrase(21,16,4,10,.3), B=phrase(22,16,3,9,.35); return (s,t,d)=>{ const sc=SC.slendro, b=220, bar=Math.floor(s/16)%4, P=bar===2?B:A;
-      if(s%8===0) pluck(t,b/2,.22,800); if(s%2===0){ const n=P[(s/2)%16]; if(n!=null){ pluck(t,f(b,sc,n),.32,3200); if((s/2)%8===7) pluck(t+d*.5,f(b,sc,n+1),.15,3200); } } if(s%64===0) pad(t,b/2,d*64,.03); }; }},
-    M2:{bpm:100, make(){ const A=phrase(31,8,5,11,.15); return (s,t,d)=>{ const sc=SC.maj5, b=392; if(s%4===0){ const n=A[(s/4)%8]; if(n!=null) bamboo(t,f(b/2,sc,n),d*3.2,.1); } if(s%16===0) bamboo(t,f(b/4,sc,5),d*6,.07);
-      const kp=[1,0,0,1,0,0,1,0, 1,0,1,0,0,1,0,0][s%16]; if(kp) drum(t,(s%8===0)?"dum":"tak",.35); }; }},
-    M3:{bpm:92, make(){ const bal=[2,1,2,4, 2,1,2,0, 3,2,0,1, 3,2,1,0]; return (s,t,d)=>{ const sc=SC.pelog, b=196;
-      if(s%4===0){ const n=bal[(s/4)%16]; bell(t,f(b,sc,n+7),1.1,.22); } if(s%2===0){ const n=bal[Math.floor(s/4)%16]; bell(t,f(b,sc,n+14-(s%4?1:0)),.45,.09); }
-      if(s%16===12) gong(t,f(b/2,sc,2),1.5,.22); if(s%64===0) gong(t,b/4,5,.55); if(s%8===4) drum(t,"tak",.18); }; }},
-    M4:{bpm:112, make(){ const A=phrase(41,16,5,12,.08); return (s,t,d)=>{ const sc=SC.slendro, b=330; if(s%2===0){ const n=A[(s/2)%16]; if(n!=null) bell(t,f(b,sc,n),.6,.15); }
-      if(s%8===2) gong(t,f(b/4,sc,0),1.6,.28); if(s%8===6) gong(t,f(b/4,sc,2),1.4,.22); const gd=[1,0,1,1,0,1,0,0][s%8]; if(gd) drum(t,s%8===0?"dum":"tak",.3); }; }},
-    M5:{bpm:90, make(){ const A=phrase(51,16,5,11,.3); return (s,t,d)=>{ const sc=SC.maj5, b=262; if(s%2===0){ const n=A[(s/2)%16]; if(n!=null) pluck(t,f(b,sc,n),.3,2800); } if(s%8===0) pluck(t,b/2,.2,700);
-      const kp=["dum",0,0,"tak",0,"tak","dum",0, 0,"tak",0,0,"dum",0,"tak",0][s%16]; if(kp) drum(t,kp,.32); }; }},
-    M6:{bpm:118, six:true, make(){ const A=phrase(61,12,7,14,.2); return (s,t,d)=>{ const sc=SC.major, b=294; const st=s%12;
-      if(st===0) pad(t,f(b/2,sc,[0,3,4,0][Math.floor(s/12)%4]),d*12,.05); if(s%2===0){ const n=A[(s/2)%12]; if(n!=null) flute(t,f(b,sc,n),d*1.8,.09); }
-      const rb=["dum",0,"tak","tak",0,"tak","dum",0,"tak","dum","tak",0][st]; if(rb) drum(t,rb,.3); }; }},
-    M7:{bpm:104, make(){ const A=phrase(71,16,4,11,.2); return (s,t,d)=>{ const sc=SC.hijaz, b=293; if(s%2===0){ const n=A[(s/2)%16]; if(n!=null) pluck(t,f(b,sc,n),.32,3600); }
-      if(s%16===0) pluck(t,b/2,.24,900); const mw=["dum",0,0,"tak","tak",0,"dum",0, "dum",0,"tak",0,"tak","tak",0,"shk"][s%16]; if(mw) drum(t,mw,.34); }; }},
-    M8:{bpm:108, make(){ const A=phrase(81,16,7,13,.35); const ch=[[0,2,4],[3,5,7],[4,6,8],[0,2,4]]; return (s,t,d)=>{ const sc=SC.major, b=262, c=ch[Math.floor(s/16)%4];
-      if(s%4===2){ c.forEach((n,k)=>pluck(t+k*.012,f(b,sc,n),.13,4200)); } if(s%4===3 && s%8===7){ c.forEach((n,k)=>pluck(t+k*.01,f(b*2,sc,n),.08,5000)); }
-      if(s%8===0) pluck(t,f(b/2,sc,c[0]),.3,600); if(s%4===0){ const n=A[(s/4)%16]; if(n!=null) flute(t,f(b,sc,n),d*3.4,.08); } }; }},
-    M9:{bpm:112, make(){ const bal=[4,2,4,5, 4,2,1,0, 2,4,5,6, 5,4,2,4]; return (s,t,d)=>{ const sc=SC.pelog, b=220;
-      if(s%2===0){ const n=bal[Math.floor(s/2)%16]; bell(t,f(b,sc,n+7),.8,.18); } if(s%4===1) bell(t,f(b,sc,bal[Math.floor(s/4)%16]+14),.4,.08);
-      if(s%32===0) gong(t,b/4,4,.55); if(s%8===4) gong(t,f(b/2,sc,4),1.2,.2); const kp=["dum","tak","tak","dum","tak",0,"dum","tak"][s%8]; if(kp) drum(t,kp,.38); }; }}
+  function ksBuf(fr){ const k=Math.round(fr*4); if(ks[k]) return ks[k]; const sr=ac.sampleRate, N=Math.max(2,Math.round(sr/fr)), len=Math.round(sr*1.8), b=ac.createBuffer(1,len,sr), d=b.getChannelData(0), ring=new Float32Array(N);
+    let lp=0; for(let i=0;i<N;i++){ lp=lp*.5+(Math.random()*2-1)*.5; ring[i]=lp; } let p=0; for(let i=0;i<len;i++){ const nx=(p+1)%N; const v=(ring[p]+ring[nx])*.5*.9965; d[i]=ring[p]; ring[p]=v; p=nx; } return ks[k]=b; }
+  function pluck(t,m,v=.5,bright=2400){ const s=ac.createBufferSource(); s.buffer=ksBuf(mtof(m)); const lp=ac.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=bright; const body=ac.createBiquadFilter(); body.type="peaking"; body.frequency.value=220; body.gain.value=4; s.connect(lp); lp.connect(body); send(body,v*.55,.25); s.start(t); }
+  function flute(t,m,dur,v=.5){ const f=mtof(m), d=ac.createGain(); const g=ac.createGain(); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(1,t+.07); g.gain.setValueAtTime(1,t+Math.max(.08,dur-.12)); g.gain.linearRampToValueAtTime(0,t+dur+.05); g.connect(d);
+    const lfo=ac.createOscillator(), lg=ac.createGain(); lfo.frequency.value=5; lg.gain.setValueAtTime(0,t); lg.gain.linearRampToValueAtTime(f*.006,t+.35); lfo.connect(lg);
+    [[1,1],[2,.22],[3,.06]].forEach(([r,a])=>{ const o=ac.createOscillator(), og=ac.createGain(); o.type="sine"; o.frequency.value=f*r; lg.connect(o.frequency); og.gain.value=a; o.connect(og); og.connect(g); o.start(t); o.stop(t+dur+.1); });
+    lfo.start(t); lfo.stop(t+dur+.1);
+    const nb=ac.createBuffer(1,Math.ceil(ac.sampleRate*.12),ac.sampleRate), nd=nb.getChannelData(0); for(let i=0;i<nd.length;i++) nd[i]=(Math.random()*2-1)*(1-i/nd.length);
+    const ns=ac.createBufferSource(); ns.buffer=nb; const bp=ac.createBiquadFilter(); bp.type="bandpass"; bp.frequency.value=f*2; bp.Q.value=2; const ng=ac.createGain(); ng.gain.value=.08; ns.connect(bp); bp.connect(ng); ng.connect(d); ns.start(t);
+    send(d,v*.3,.4); }
+  function bamboo(t,m,dur,v=.5){ const n=Math.max(2,Math.round(dur*11)); for(let k=0;k<n;k++){ const tt=t+k/11, d=ac.createGain(), f=mtof(m); osc(tt,f,"sine",.004,1,.12,d); osc(tt,f*2,"sine",.003,.25,.06,d); send(d,v*.32*(1-k/(n*1.4)),.3); } }
+  function pad(t,ms,dur,v=.5){ const lp=ac.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=750; lp.Q.value=.4; const g=ac.createGain(); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(1,t+.6); g.gain.setValueAtTime(1,t+Math.max(.7,dur-.6)); g.gain.linearRampToValueAtTime(0,t+dur+.2); lp.connect(g);
+    ms.forEach(m=>[-6,6].forEach(dt=>{ const o=ac.createOscillator(); o.type="sawtooth"; o.frequency.value=mtof(m); o.detune.value=dt; const og=ac.createGain(); og.gain.value=.25; o.connect(og); og.connect(lp); o.start(t); o.stop(t+dur+.3); }));
+    send(g,v*.09,.5); }
+  function bass(t,m,v=.5){ const d=ac.createGain(), f=mtof(m); osc(t,f,"triangle",.005,1,.5,d); osc(t,f,"sine",.005,.6,.7,d); const lp=ac.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=500; d.connect(lp); send(lp,v*.5,0); }
+  function gong(t,m,v=.5){ const d=ac.createGain(), f=mtof(m); const o=ac.createOscillator(), g=ac.createGain(); o.frequency.setValueAtTime(f*1.015,t); o.frequency.exponentialRampToValueAtTime(f,t+.4); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(1,t+.02); g.gain.exponentialRampToValueAtTime(.0001,t+3); o.connect(g); g.connect(d); o.start(t); o.stop(t+3.1); osc(t,f*2,"sine",.02,.25,1.6,d); send(d,v*.35,.45); }
+  function nz(t,dur,ft,fq,q,v,wet=0){ const b=ac.createBuffer(1,Math.ceil(ac.sampleRate*dur),ac.sampleRate), d=b.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2);
+    const s=ac.createBufferSource(); s.buffer=b; const fl=ac.createBiquadFilter(); fl.type=ft; fl.frequency.value=fq; fl.Q.value=q; s.connect(fl); send(fl,v,wet); s.start(t); }
+  function drum(t,k,v=.5){ if(k==="D"){ const d=ac.createGain(), o=ac.createOscillator(), g=ac.createGain(); o.frequency.setValueAtTime(115,t); o.frequency.exponentialRampToValueAtTime(58,t+.2); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(1,t+.004); g.gain.exponentialRampToValueAtTime(.0001,t+.32); o.connect(g); g.connect(d); o.start(t); o.stop(t+.36); send(d,v*.6,.08); }
+    else if(k==="T") nz(t,.06,"bandpass",1700,1.1,v*.32,.1); else if(k==="S") nz(t,.04,"highpass",7500,.7,v*.1,0); else if(k==="W"){ const d=ac.createGain(); osc(t,820,"sine",.001,1,.05,d); osc(t,1240,"sine",.001,.5,.035,d); send(d,v*.22,.1); } }
+  // ---------- score helpers ----------
+  const MAJ=[0,2,4,5,7,9,11], MIN_H=[0,2,3,5,7,8,11];
+  function deg(tok, root, scale){ const m=tok.match(/^([1-7])([',]*)$/); if(!m) return null; let o=0; for(const c of m[2]) o+= c==="'"?12:-12; return root+scale[+m[1]-1]+o; }
+  // parse a melody string (tokens per 8th note; "." rest, "-" hold) into [{i, m, len}]
+  function parseMel(str, root, scale){ const tk=str.trim().split(/\s+/), out=[]; tk.forEach((t,i)=>{ if(t==="-"&&out.length&&out[out.length-1].end===i){ out[out.length-1].len++; out[out.length-1].end++; return; } const m=deg(t,root,scale); if(m!=null) out.push({i,m,len:1,end:i+1}); }); return {notes:out, len:tk.length}; }
+  const CH={I:[0,4,7],ii:[2,5,9],iii:[4,7,11],IV:[5,9,12],V:[7,11,14],vi:[9,12,16],i:[0,3,7],iv:[5,8,12],VI:[8,12,15],VII:[10,14,17],bVII:[10,14,17]};
+  const hum=()=> (Math.random()-.5)*.012, vel=b=> b*(.85+Math.random()*.3);
+  // ---------- composed styles ----------
+  const SONGS={
+    ocean:{bpm:70, root:60, scale:MAJ, lead:"kalimba", comp:"pad", drums:"", bassOn:true,
+      mel:"3 . 5 . 6 . 5 . | 3 - - - 2 . 1 . | 2 . 3 . 5 . 3 . | 2 - - - . . . . | 3 . 5 . 6 . 1' . | 6 - - - 5 . 3 . | 2 . 3 . 2 . 1 . | 1 - - - . . . .",
+      ch:"I vi IV V I vi IV I"},
+    M1:{bpm:82, root:62, scale:MAJ, lead:"pluck", comp:"arp", drums:"", bassOn:true, drone:true,
+      mel:"6, 1 2 3 2 1 6, . | 5, - 6, 1 2 - . . | 3 5 6 5 3 2 1 2 | 3 - - - . . . . | 6 5 3 5 6 1' 6 5 | 3 - 2 3 5 - . . | 2 3 2 1 6, 1 2 . | 1 - - - . . . .",
+      ch:"I vi IV V I IV V I"},
+    M2:{bpm:96, root:67, scale:MAJ, lead:"bamboo", comp:"arp", drums:"kompang", bassOn:true,
+      mel:"1 . 3 . 5 . 3 . | 6 . 5 . 3 - . . | 2 . 3 . 5 . 6 . | 5 - - - . . . . | 1' . 6 . 5 . 3 . | 5 . 6 . 5 3 2 . | 3 . 2 . 1 . 2 . | 1 - - - . . . .",
+      ch:"I vi IV V I IV V I"},
+    M3:{bpm:90, root:65, scale:MAJ, lead:"marimba", comp:"ostinato", drums:"soft", bassOn:true, gongEvery:2,
+      mel:"5 . 6 . 1' - 6 5 | 3 - - - . . . . | 2 . 3 . 5 . 6 . | 5 - - - . . . . | 6 . 1' . 2' - 1' 6 | 5 - - - 3 . . . | 2 . 3 . 2 . 1 . | 1 - - - . . . .",
+      ch:"I I IV IV vi vi V I"},
+    M4:{bpm:104, root:72, scale:MAJ, lead:"marimba", comp:"pad", drums:"kompang", bassOn:true, gongEvery:1,
+      mel:"5 6 1' 6 5 3 5 6 | 1' 6 5 3 2 3 5 . | 3 5 6 5 3 2 1 2 | 3 2 1 6, 1 - . . | 5 6 1' 6 5 3 5 6 | 1' 2' 1' 6 5 6 1' . | 6 5 3 2 3 5 3 2 | 1 - - - . . . .",
+      ch:"I IV vi V I IV V I"},
+    M5:{bpm:86, root:65, scale:MAJ, lead:"flute", comp:"strum", drums:"shaker", bassOn:true,
+      mel:"3 - 5 - 6 - 5 3 | 2 - - - . . . . | 3 - 2 - 1 - 6, 1 | 2 - - - . . . . | 5 - 6 - 1' - 6 5 | 3 - - 5 6 - . . | 5 3 2 3 2 - 1 - | 1 - - - . . . .",
+      ch:"I vi IV V I vi IV I"},
+    M6:{bpm:122, six:true, root:62, scale:MAJ, lead:"flute", comp:"pad", drums:"rebana", bassOn:true,
+      mel:"1 2 3 5 3 2 | 3 - - 2 1 6, | 1 2 3 5 6 5 | 3 - - - - . | 5 6 1' 6 5 3 | 2 3 5 3 2 1 | 2 - 3 2 1 6, | 1 - - - - .",
+      ch:"I I IV V I IV V I"},
+    M7:{bpm:104, root:62, scale:MIN_H, lead:"pluck", comp:"pad", drums:"marwas", bassOn:true,
+      mel:"5 4 3 2 1 2 3 . | 4 - 3 2 3 - . . | 5 6 5 4 3 4 5 . | 3 - - - . . . . | 1' 7 6 5 4 5 6 . | 5 - 4 3 4 - . . | 3 2 1 2 3 4 3 2 | 1 - - - . . . .",
+      ch:"i iv V i i VI V i"},
+    M8:{bpm:108, root:65, scale:MAJ, lead:"flute", comp:"cakcuk", drums:"", bassOn:true,
+      mel:"5 - 3 - 5 6 5 3 | 2 - - 3 5 - . . | 6 - 5 - 6 1' 6 5 | 3 - - - . . . . | 1' - 6 - 5 6 5 3 | 2 - 3 5 6 - 5 - | 3 2 1 2 3 - 2 - | 1 - - - . . . .",
+      ch:"I vi IV V I IV V I"},
+    M9:{bpm:116, root:67, scale:MAJ, lead:"marimba", comp:"pad", drums:"festive", bassOn:true, gongEvery:2, double:true,
+      mel:"1 3 5 1' 5 3 5 6 | 5 - 3 5 6 - . . | 1' 6 5 3 5 6 1' . | 2' - 1' - 5 - . . | 6 5 3 5 6 1' 6 5 | 3 5 6 5 3 2 1 2 | 3 - 2 - 1 - 5, - | 1 - - - . . . .",
+      ch:"I vi IV V I IV V I"}
   };
-  function startStyle(name){ const sty=STY[name]||STY.ocean; const g=ac.createGain(); g.gain.setValueAtTime(0,ac.currentTime); g.gain.linearRampToValueAtTime(1,ac.currentTime+2); g.connect(bus);
-    if(cur){ const old=cur.gain; old.gain.cancelScheduledValues(ac.currentTime); old.gain.setValueAtTime(old.gain.value,ac.currentTime); old.gain.linearRampToValueAtTime(0,ac.currentTime+1.6); setTimeout(()=>old.disconnect(),2500); }
-    cur={name, gain:g, fn:null, d:60/sty.bpm/4}; cur.fn=sty.make(); nextT=ac.currentTime+.1; step=0; }
-  function tick(){ if(!ac||!cur||ac.state!=="running") return; master.gain.setTargetAtTime(level(), ac.currentTime, .3);
-    while(nextT<ac.currentTime+.3){ try{ cur.fn(step,nextT,cur.d); }catch(e){} nextT+=cur.d; step++; } }
+  const DRUMS={ kompang:"D..T..T.D.T.T...", soft:"..T.....W...T...", shaker:"S.S.S.S.S.S.S.S.", marwas:"D..TT.D.D.T.TT.S", festive:"D.TTD.T.D.TTDTT.", rebana:"D.TT.TD.T.T." };
+  function compile(name){ const s=SONGS[name]; const bars=s.mel.split("|"), per=s.six?6:8; const mel=parseMel(bars.join(" "), s.root, s.scale); return {s, mel, per, chords:s.ch.split(" "), stepsPerBar:per*2}; }
+  function play16(c, i, t, d){ const s=c.s, bar=Math.floor(i/c.stepsPerBar)%8, inBar=i%c.stepsPerBar, eighth=inBar/2, sw=(inBar%2===1)?d*.12:0, T=t+sw+hum();
+    const chord=(CH[c.chords[bar]]||CH.I).map(x=>s.root+x-12), eighthIdx=bar*c.per+Math.floor(eighth);
+    // melody on 8ths
+    if(inBar%2===0){ const n=c.mel.notes.find(n=>n.i===eighthIdx); if(n){ const dur=n.len*d*2; const L=s.lead;
+      if(L==="kalimba") kalimba(T,n.m,vel(.6)); else if(L==="pluck") pluck(T,n.m,vel(.7)); else if(L==="marimba") marimba(T,n.m,vel(.7)); else if(L==="bamboo") bamboo(T,n.m,Math.min(dur,.9),vel(.7)); else flute(T,n.m+12,dur*.95,vel(.65));
+      if(s.double) flute(T,n.m+12,dur*.9,.35); } }
+    // accompaniment
+    if(s.comp==="pad" && inBar===0) pad(t, chord.map(x=>x+12), d*c.stepsPerBar, .7);
+    if(s.comp==="arp" && inBar%4===0){ const k=(inBar/4)%4; kalimba(T, chord[[0,1,2,1][k]]+12, vel(.32)); }
+    if(s.comp==="ostinato" && inBar%2===0){ const pat=[0,2,1,2,0,2,1,2]; marimba(T, chord[pat[(inBar/2)%8]]+12, vel(.28)); if(inBar%4===2) marimba(T+.004, chord[2]+24, vel(.12)); }
+    if(s.comp==="strum" && (inBar===0||inBar===6||inBar===8||inBar===12)) chord.forEach((m,k)=>pluck(T+k*.018, m+12, vel(.28), 2000));
+    if(s.comp==="cakcuk"){ if(inBar%4===2) chord.forEach((m,k)=>pluck(T+k*.008, m+24, vel(.2), 3800)); if(inBar%4===3) pluck(T, chord[0]+24, vel(.14), 4200); }
+    if(s.drone && inBar===0) pad(t,[s.root-12, s.root-5],d*c.stepsPerBar,.45);
+    // bass
+    if(s.bassOn){ if(inBar===0) bass(T, chord[0]-12, vel(.75)); else if(inBar===(s.six?6:8)) bass(T, chord[s.six?0:2]-12, vel(.55)); }
+    // drums
+    const dp=DRUMS[s.drums]; if(dp){ const k=dp[inBar%dp.length]; if(k&&k!==".") drum(T,k,vel(.6)); }
+    if(s.gongEvery && inBar===0 && bar%s.gongEvery===0) gong(t, s.root-24, .55);
+  }
+  function startStyle(name){ const g=ac.createGain(); g.gain.setValueAtTime(0,ac.currentTime); g.gain.linearRampToValueAtTime(1,ac.currentTime+2); g.connect(bus);
+    if(cur){ const old=cur.gain, el=cur.el; old.gain.cancelScheduledValues(ac.currentTime); old.gain.setValueAtTime(old.gain.value,ac.currentTime); old.gain.linearRampToValueAtTime(0,ac.currentTime+1.6); setTimeout(()=>{ old.disconnect(); if(el) el.pause(); },2200); }
+    const el=custom[name]; if(el){ try{ if(!el._src){ el._src=ac.createMediaElementSource(el); } el._src.disconnect(); el._src.connect(g); el.currentTime=0; el.play().catch(()=>{}); }catch(e){} cur={name, gain:g, el, c:null, d:1}; return; }
+    const c=compile(name); cur={name, gain:g, c, d:60/c.s.bpm/4, el:null}; nextT=ac.currentTime+.1; step=0; }
+  function tick(){ if(!ac||!cur||ac.state!=="running") return; master.gain.setTargetAtTime(level(), ac.currentTime, .25); if(!cur.c) return;
+    while(nextT<ac.currentTime+.3){ try{ play16(cur.c, step, nextT, cur.d); }catch(e){} nextT+=cur.d; step++; } }
+  // optional real recordings: lib/music/<style>.mp3
+  fetch("lib/music/list.json").then(r=>r.ok?r.json():[]).then(list=>{ (list||[]).forEach(name=>{ if(!SONGS[name]) return; const a=new Audio(`lib/music/${name}.mp3`); a.loop=true; custom[name]=a; if(ac && cur && cur.name===name && !cur.el) startStyle(name); }); }).catch(()=>{});
   return {
     unlock(){ if(state.music===false) return; if(!init()) return; if(ac.state==="suspended") ac.resume(); if(!cur || cur.name!==wanted) startStyle(wanted); },
-    play(name){ wanted=STY[name]?name:"ocean"; if(ac && state.music!==false){ if(ac.state==="suspended") ac.resume(); if(!cur||cur.name!==wanted) startStyle(wanted); } },
+    play(name){ wanted=SONGS[name]?name:"ocean"; if(ac && state.music!==false){ if(ac.state==="suspended") ac.resume(); if(!cur||cur.name!==wanted) startStyle(wanted); } },
     setOn(on){ state.music=on; save(); if(on){ this.unlock(); } else if(ac){ master.gain.setTargetAtTime(0,ac.currentTime,.1); } },
     setVol(v){ state.vol=v; save(); },
     duck(on){ ducked=on; },
     hold(on){ held=on; if(ac) master.gain.setTargetAtTime(level(), ac.currentTime, .05); },
     rms(){ if(!meter) return 0; const a=new Float32Array(meter.fftSize); meter.getFloatTimeDomainData(a); let s=0; for(const v of a) s+=v*v; return Math.sqrt(s/a.length); },
-    get styles(){ return Object.keys(STY); }
+    get styles(){ return Object.keys(SONGS); }
   };
 })();
-const MUSIC_NAME={ocean:["海风","Sea breeze"],M1:["婆罗洲弹拨琴","Sape, Borneo lute"],M2:["竹管乐","Angklung"],M3:["甘美兰","Javanese gamelan"],M4:["文莱铜锣乐","Gulingtangan, Brunei gong chimes"],M5:["弹拨琴与手鼓","Sape and kompang"],M6:["马来舞曲","Joget"],M7:["沙宾舞曲","Zapin"],M8:["南洋民谣","Keroncong"],M9:["节庆甘美兰","Festive gamelan"]};
+
+const MUSIC_NAME={ocean:["海风","Sea breeze"],M1:["婆罗洲弹拨琴","Sape, Borneo lute"],M2:["竹管乐","Angklung"],M3:["甘美兰风","Gamelan-style marimba"],M4:["文莱铜锣乐风","Gulingtangan-style"],M5:["弹拨琴与手鼓","Sape and kompang"],M6:["马来舞曲","Joget"],M7:["沙宾舞曲","Zapin"],M8:["南洋民谣","Keroncong"],M9:["节庆","Festival"]};
 
 /* ============================== 我的成绩 · list · settings ============================== */
 const encodeProgress = () => "HYZD1-" + btoa(unescape(encodeURIComponent(JSON.stringify(Object.assign({}, state, {teacher:false})))));
