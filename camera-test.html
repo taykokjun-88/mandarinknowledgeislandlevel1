@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>摄像头麦克风测试</title>
+<style>
+  :root{--bg:#fffaf2;--ink:#2b1d16;--muted:#6e5d52;--line:rgba(90,55,30,.18);--red:#b3121c;--ok:#2c7a4b;--okbg:#dcefe2;--bad:#b3121c;--badbg:#f8dcdc;--warnbg:#f4e4b8}
+  *{box-sizing:border-box}
+  body{margin:0;padding:16px;background:var(--bg);color:var(--ink);font:15px/1.5 "Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif}
+  h1{margin:0 0 4px;font-size:20px} p.sub{margin:0 0 14px;color:var(--muted);font-size:13px}
+  .grid{display:grid;gap:10px;max-width:720px}
+  .card{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:#fff}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .tag{font-size:12px;font-weight:700;border-radius:6px;padding:2px 8px;background:#eee}
+  .tag.ok{background:var(--okbg);color:var(--ok)} .tag.bad{background:var(--badbg);color:var(--bad)} .tag.warn{background:var(--warnbg);color:#7a5a00}
+  button{font:inherit;font-weight:700;border:0;border-radius:10px;padding:9px 14px;background:var(--red);color:#fff;cursor:pointer}
+  video{width:100%;max-width:320px;border-radius:10px;background:#222;transform:scaleX(-1)}
+  .meter{height:12px;width:220px;border-radius:6px;background:#eee;overflow:hidden}
+  .meter i{display:block;height:100%;width:0;background:var(--ok);transition:width .08s}
+  code{font-size:12px;color:var(--muted);word-break:break-all}
+  .detail{font-size:13px;color:var(--muted);margin-top:6px}
+</style>
+</head>
+<body>
+<h1>知识群岛 · 摄像头与麦克风测试</h1>
+<p class="sub">把这一页嵌入 Google Sites 后，依次按下面三个按钮。浏览器询问权限时请选“允许”。</p>
+<div class="grid">
+  <div class="card"><b>环境检查</b><div id="env" class="detail"></div></div>
+
+  <div class="card">
+    <div class="row"><b>① 摄像头</b><span id="camTag" class="tag">未测试</span><button id="camBtn" type="button">测试摄像头</button></div>
+    <div id="camMsg" class="detail"></div>
+    <video id="vid" playsinline muted hidden></video>
+  </div>
+
+  <div class="card">
+    <div class="row"><b>② 麦克风</b><span id="micTag" class="tag">未测试</span><button id="micBtn" type="button">测试麦克风</button><div class="meter"><i id="lvl"></i></div></div>
+    <div id="micMsg" class="detail"></div>
+  </div>
+
+  <div class="card">
+    <div class="row"><b>③ 中文语音识别</b><span id="asrTag" class="tag">未测试</span><button id="asrBtn" type="button">说“你好”</button></div>
+    <div id="asrMsg" class="detail"></div>
+  </div>
+
+  <div class="card"><b>结论</b><div id="sum" class="detail">按完三个按钮后，这里会显示结论。可以截图发给 Claude。</div></div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const res={cam:null,mic:null,asr:null};
+function tag(id,state,text){const t=$(id);t.className="tag "+state;t.textContent=text;}
+function policy(f){try{const p=document.permissionsPolicy||document.featurePolicy;return p?p.allowsFeature(f):"未知";}catch(e){return "未知";}}
+let inFrame; try{inFrame=window.self!==window.top;}catch(e){inFrame=true;}
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+$("env").innerHTML=[
+ "浏览器："+navigator.userAgent.replace(/^Mozilla\/5\.0 /,""),
+ "安全连接 (HTTPS)："+(window.isSecureContext?"是":"否"),
+ "是否在嵌入框架里："+(inFrame?"是":"否"),
+ "所在网址："+location.origin,
+ "框架是否允许摄像头 / 麦克风："+policy("camera")+" / "+policy("microphone"),
+ "浏览器有语音识别功能："+(SR?"有":"没有（Safari 旧版、Firefox 没有）")
+].map(s=>"<div><code>"+s.replace(/</g,"&lt;")+"</code></div>").join("");
+
+function explain(e){
+  const n=e&&e.name||"Error";
+  if(n==="NotAllowedError") return n+"：被拒绝。如果你刚才没有看到询问权限的窗口，就是嵌入框架挡住了（网站没有开放权限）。如果你按了“拒绝”，请在网址栏左边的锁头图标里改成允许，再试一次。";
+  if(n==="NotFoundError") return n+"：找不到设备，这台电脑可能没有摄像头或麦克风。";
+  if(n==="NotReadableError") return n+"：设备正被其他程序占用（例如 Zoom、Teams），请先关掉它们。";
+  if(n==="SecurityError") return n+"：安全限制，页面不是 HTTPS 或框架不允许。";
+  return n+"："+(e&&e.message||"未知错误");
+}
+function summary(){
+  const L=[];
+  if(res.cam!==null) L.push("摄像头："+(res.cam?"✅ 可以用":"❌ 不能用"));
+  if(res.mic!==null) L.push("麦克风："+(res.mic?"✅ 可以用":"❌ 不能用"));
+  if(res.asr!==null) L.push("语音识别："+(res.asr===true?"✅ 可以用":res.asr));
+  if(res.cam===true&&res.mic===true) L.push("<b>结论：这个嵌入方式可以做 AR 手势和发音模式。</b>");
+  else if(res.cam===false||res.mic===false) L.push("<b>结论：这个嵌入方式挡住了摄像头或麦克风，AR 和发音模式需要放到独立网址，在 Google Sites 里用按钮链接过去。</b>");
+  $("sum").innerHTML=L.join("<br>");
+}
+$("camBtn").onclick=async()=>{
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){res.cam=false;tag("camTag","bad","不支持");$("camMsg").textContent="这个浏览器或页面不提供摄像头接口（可能不是 HTTPS）。";return summary();}
+  try{const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user"}});const v=$("vid");v.srcObject=s;v.hidden=false;await v.play().catch(()=>{});
+    res.cam=true;tag("camTag","ok","可以用");$("camMsg").textContent="看到自己的画面就代表成功。";setTimeout(()=>s.getTracks().forEach(t=>t.stop()),8000);}
+  catch(e){res.cam=false;tag("camTag","bad","不能用");$("camMsg").textContent=explain(e);}
+  summary();
+};
+$("micBtn").onclick=async()=>{
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){res.mic=false;tag("micTag","bad","不支持");return summary();}
+  try{const s=await navigator.mediaDevices.getUserMedia({audio:true});const ac=new (window.AudioContext||window.webkitAudioContext)();const an=ac.createAnalyser();an.fftSize=512;ac.createMediaStreamSource(s).connect(an);
+    const buf=new Uint8Array(an.fftSize);const t0=performance.now();
+    (function tick(){an.getByteTimeDomainData(buf);let m=0;for(const x of buf)m=Math.max(m,Math.abs(x-128));$("lvl").style.width=Math.min(100,m/1.28)+"%";if(performance.now()-t0<8000)requestAnimationFrame(tick);else{s.getTracks().forEach(t=>t.stop());ac.close();$("lvl").style.width="0";}})();
+    res.mic=true;tag("micTag","ok","可以用");$("micMsg").textContent="请说话，绿色音量条会跳动（测试 8 秒）。";}
+  catch(e){res.mic=false;tag("micTag","bad","不能用");$("micMsg").textContent=explain(e);}
+  summary();
+};
+$("asrBtn").onclick=()=>{
+  if(!SR){res.asr="❌ 这个浏览器没有语音识别，请改用 Chrome 或 Edge";tag("asrTag","warn","不支持");$("asrMsg").textContent="发音模式需要 Chrome 或 Edge。";return summary();}
+  const r=new SR();r.lang="zh-CN";r.interimResults=false;r.maxAlternatives=3;
+  tag("asrTag","warn","正在听…");$("asrMsg").textContent="请清楚地说“你好”。";
+  r.onresult=e=>{const alts=[...e.results[0]].map(a=>a.transcript);const ok=alts.some(a=>a.includes("你好"));res.asr=true;tag("asrTag","ok","可以用");$("asrMsg").textContent="识别结果："+alts.join(" / ")+(ok?"（正确 ✅）":"（没有听到“你好”，但识别功能可以用）");summary();};
+  r.onerror=e=>{res.asr="❌ "+e.error;tag("asrTag","bad","不能用");$("asrMsg").textContent="错误："+e.error+(e.error==="not-allowed"?"（麦克风被挡住或被拒绝）":e.error==="network"?"（需要联网，Chrome 的语音识别要连接 Google 服务器）":"");summary();};
+  r.onend=()=>{if($("asrTag").textContent==="正在听…"){tag("asrTag","warn","没听到");$("asrMsg").textContent="没有听到声音，请再试一次。";}};
+  try{r.start();}catch(e){$("asrMsg").textContent=explain(e);}
+};
+</script>
+</body>
+</html>

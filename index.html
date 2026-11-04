@@ -1,0 +1,955 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>华语一知识群岛</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Sans+SC:wght@400;500;700&display=swap">
+<style>
+/* Nanyang theme: shophouses, Kampong Ayer stilt houses, batik, Peranakan tiles.
+   Layout: full-bleed 3D archipelago; floating glass top bar; right drawer (desktop) / bottom sheet (phone) for island study + challenge.
+   Palette: UBD LC Chinese Red + Imperial Gold over a tropical Brunei sea. */
+:root{
+  --panel:#fffaf2; --panel-2:#f5ecdd; --ink:#2b1d16; --muted:#6e5d52; --line:rgba(90,55,30,.16);
+  --red:#b3121c; --red-ink:#fffaf2; --gold:#a87a12; --gold-soft:#f4e4b8;
+  --ok:#2c7a4b; --ok-soft:#dcefe2; --bad:#b3121c; --bad-soft:#f8dcdc;
+  --glass:rgba(255,250,242,.88); --shadow:0 12px 32px rgba(50,25,10,.18);
+  --tile-a:#2f7d6b; --tile-b:#f2b8b5; --tile-wash:rgba(47,125,107,.12);
+  --sky:#bfe2ec; --fog:#cfe8ef; --sea:#1f7d98;
+  --f-display:"Ma Shan Zheng","STKaiti","KaiTi",serif;
+  --f-body:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --panel:#1d1715; --panel-2:#2a211d; --ink:#f6ece2; --muted:#bfae9f; --line:rgba(255,225,190,.14);
+  --red:#e2474f; --red-ink:#1d1715; --gold:#e6b84c; --gold-soft:#4a3a1a;
+  --ok:#62c98f; --ok-soft:#1f3a2b; --bad:#ff7070; --bad-soft:#4a2224;
+  --glass:rgba(29,23,21,.88); --shadow:0 12px 32px rgba(0,0,0,.45); --tile-a:#4fb39a; --tile-b:#7a3f45; --tile-wash:rgba(79,179,154,.14);
+  --sky:#142638; --fog:#16283a; --sea:#1b5574; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --panel:#1d1715; --panel-2:#2a211d; --ink:#f6ece2; --muted:#bfae9f; --line:rgba(255,225,190,.14);
+  --red:#e2474f; --red-ink:#1d1715; --gold:#e6b84c; --gold-soft:#4a3a1a;
+  --ok:#62c98f; --ok-soft:#1f3a2b; --bad:#ff7070; --bad-soft:#4a2224;
+  --glass:rgba(29,23,21,.88); --shadow:0 12px 32px rgba(0,0,0,.45); --tile-a:#4fb39a; --tile-b:#7a3f45; --tile-wash:rgba(79,179,154,.14);
+  --sky:#142638; --fog:#16283a; --sea:#1b5574; color-scheme:dark;}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--sky);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55;overflow:hidden}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+#app{position:relative;height:100%;overflow:hidden}
+#scene{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+#labels{position:absolute;inset:0;pointer-events:none}
+
+/* island labels */
+.lbl{position:absolute;left:0;top:0;pointer-events:auto;display:flex;align-items:center;gap:6px;padding:5px 10px 5px 5px;border-radius:999px;border:1px solid var(--line);background:var(--glass);box-shadow:var(--shadow);white-space:nowrap;transform:translate(-50%,-100%);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.lbl:hover{border-color:var(--gold)}
+.lbl-no{font-size:11px;font-weight:700;letter-spacing:.04em;background:var(--red);color:var(--red-ink);border-radius:999px;padding:2px 7px}
+.lbl-name{font-family:var(--f-display);font-size:19px;line-height:1}
+.lbl-stars{display:flex;gap:1px}
+.lbl.locked{opacity:.82}
+.lbl.locked .lbl-no{background:var(--muted)}
+.lbl .now{font-size:11px;font-weight:700;color:var(--gold);border:1px solid var(--gold);border-radius:999px;padding:0 6px}
+.star{width:13px;height:13px;display:block}
+.star.on{fill:var(--gold)} .star.off{fill:none;stroke:var(--muted);stroke-width:1.6}
+.lock{width:13px;height:13px;fill:var(--muted)}
+
+/* top bar */
+.topbar{position:absolute;top:12px;left:16px;right:16px;display:flex;gap:10px;align-items:flex-start;justify-content:space-between;pointer-events:none;flex-wrap:wrap}
+.brand,.tools{pointer-events:auto;background:var(--glass);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:16px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.brand{padding:10px 16px;display:flex;align-items:center;gap:14px;min-width:0}
+.seal{width:44px;height:44px;flex:none;border-radius:10px;background:var(--red);color:var(--red-ink);display:grid;place-items:center;font-family:var(--f-display);font-size:26px;line-height:1;transform:rotate(-4deg)}
+.brand h1{margin:0;font-family:var(--f-display);font-weight:400;font-size:26px;line-height:1.05;letter-spacing:.04em}
+.brand p{margin:2px 0 0;font-size:12px;color:var(--muted);letter-spacing:.02em}
+.prog{display:flex;align-items:center;gap:6px;padding-left:14px;border-left:1px solid var(--line);font-variant-numeric:tabular-nums;font-weight:700}
+.prog small{display:block;font-weight:400;color:var(--muted);font-size:11px}
+.tools{display:flex;padding:5px;gap:2px;flex-wrap:wrap}
+.tbtn{display:flex;align-items:center;gap:6px;border:0;background:transparent;border-radius:11px;padding:8px 11px;font-size:13px;font-weight:500}
+.tbtn:hover{background:var(--panel-2)}
+.tbtn svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tbtn[aria-pressed="true"]{background:var(--gold-soft)}
+
+.hint{position:absolute;left:16px;bottom:calc(14px + env(safe-area-inset-bottom,0px));font-size:12px;color:var(--ink);background:var(--glass);border:1px solid var(--line);border-radius:999px;padding:6px 14px;max-width:calc(100% - 32px);pointer-events:none}
+
+/* drawers */
+.drawer{position:absolute;top:12px;right:16px;bottom:12px;width:min(440px,calc(100% - 32px));background:var(--panel);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden;z-index:5}
+.d-head{padding:18px 20px 12px;border-bottom:1px solid var(--line);position:relative;background:linear-gradient(var(--panel-2),var(--panel))}
+.d-head::before{content:"";position:absolute;left:0;right:0;top:0;height:7px;background:
+  radial-gradient(circle at 50% 50%,var(--gold) 0 2px,transparent 2.5px) 0 0/14px 7px,
+  conic-gradient(from 45deg,var(--tile-a) 25%,var(--tile-b) 0 50%,var(--tile-a) 0 75%,var(--tile-b) 0) 0 0/14px 7px}
+.brand{background-image:radial-gradient(circle at 0 0,var(--tile-wash),transparent 60%)}
+.d-close{position:absolute;top:12px;right:12px;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--panel);display:grid;place-items:center}
+.d-close svg{width:16px;height:16px;stroke:currentColor;stroke-width:2;fill:none}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;letter-spacing:.04em;color:var(--red);text-transform:uppercase}
+.chip b{background:var(--red);color:var(--red-ink);padding:1px 7px;border-radius:6px}
+.d-title{margin:6px 0 0;font-family:var(--f-display);font-weight:400;font-size:40px;line-height:1.05;letter-spacing:.04em;padding-right:40px}
+.d-sub{margin:2px 0 0;color:var(--muted);font-size:13px}
+.meta{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;margin:10px 0 0;font-size:12.5px}
+.meta dt{color:var(--muted)} .meta dd{margin:0}
+.tabs{display:flex;gap:6px;margin-top:14px}
+.tab{flex:1;border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:9px 10px;font-weight:700;font-size:14px;display:flex;justify-content:center;align-items:center;gap:8px}
+.tab[aria-selected="true"]{background:var(--red);color:var(--red-ink);border-color:var(--red)}
+.tab[aria-selected="true"] .star.on{fill:var(--red-ink)} .tab[aria-selected="true"] .star.off{stroke:var(--red-ink)}
+.d-body{flex:1;overflow-y:auto;padding:16px 20px 28px;display:flex;flex-direction:column;gap:18px;overscroll-behavior:contain}
+
+/* explore */
+.spot{display:flex;flex-direction:column;gap:10px}
+.spot-h{margin:0;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;font-size:17px}
+.spot-h .tag{font-size:11px;font-weight:700;color:var(--gold);letter-spacing:.06em;border:1px solid var(--gold);border-radius:6px;padding:0 6px}
+.spot-h .en{font-size:13px;color:var(--muted);font-weight:400}
+.vocab{display:grid;grid-template-columns:repeat(auto-fill,minmax(122px,1fr));gap:6px}
+.v{display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:0;padding:8px 10px;border:1px solid var(--line);background:var(--panel);border-radius:12px;min-width:0;position:relative}
+.v:hover,.pat:hover{border-color:var(--gold);background:var(--panel-2)}
+.v .hz{font-size:21px;font-weight:500;line-height:1.25}
+.v .py{font-size:13px;color:var(--red);font-weight:500}
+.v .en{font-size:12px;color:var(--muted);line-height:1.3}
+.spk{position:absolute;top:8px;right:8px;width:14px;height:14px;fill:none;stroke:var(--muted);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.pats{display:flex;flex-direction:column;gap:6px}
+.pat{display:flex;flex-direction:column;align-items:flex-start;text-align:left;padding:10px 34px 10px 12px;border:1px solid var(--line);border-left:3px solid var(--red);background:var(--panel);border-radius:10px;position:relative}
+.pat .zh{font-size:17px;font-weight:500}
+.pat .py{font-size:13px;color:var(--red)}
+.pat .en{font-size:12.5px;color:var(--muted)}
+.tips{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.tips li{font-size:13.5px;padding:8px 12px;border-radius:10px;background:var(--panel-2)}
+.tips li.err{background:var(--bad-soft)}
+.tips .wrong{text-decoration:line-through;color:var(--bad);font-weight:500}
+.tips .right{color:var(--ok);font-weight:700}
+.tips .why{display:block;color:var(--muted);font-size:12.5px}
+
+/* quiz */
+.q-top{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.dots{display:flex;gap:5px}
+.dots i{width:9px;height:9px;border-radius:50%;background:var(--line);display:block}
+.dots i.ok{background:var(--ok)} .dots i.no{background:var(--bad)} .dots i.cur{background:var(--gold)}
+.q-text{font-size:20px;font-weight:500;line-height:1.45;margin:0;text-wrap:balance}
+.play{align-self:flex-start;display:flex;align-items:center;gap:8px;border:0;border-radius:999px;background:var(--red);color:var(--red-ink);padding:10px 18px;font-weight:700}
+.play svg{width:18px;height:18px;fill:currentColor}
+.apy{font-size:13px;color:var(--muted)}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{text-align:left;padding:12px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--panel);font-size:16px;display:flex;gap:10px;align-items:center}
+.opt:hover:not(:disabled){border-color:var(--gold)}
+.opt .k{flex:none;width:24px;height:24px;border-radius:7px;background:var(--panel-2);display:grid;place-items:center;font-size:12px;font-weight:700;color:var(--muted)}
+.opt.ok{border-color:var(--ok);background:var(--ok-soft)} .opt.ok .k{background:var(--ok);color:var(--panel)}
+.opt.no{border-color:var(--bad);background:var(--bad-soft)} .opt.no .k{background:var(--bad);color:var(--panel)}
+.opt:disabled{cursor:default}
+.explain{font-size:14px;padding:10px 12px;border-radius:10px;background:var(--panel-2)}
+.btn{border:0;border-radius:12px;padding:12px 18px;font-weight:700;font-size:15px;background:var(--red);color:var(--red-ink)}
+.btn.ghost{background:transparent;border:1.5px solid var(--line);color:var(--ink)}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.start{display:flex;flex-direction:column;gap:14px;align-items:flex-start}
+.start h3{margin:0;font-size:18px}
+.start ul{margin:0;padding-left:18px;color:var(--muted);font-size:14px}
+.result{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding-top:8px}
+.result .big{font-family:var(--f-display);font-size:54px;line-height:1}
+.result .stars{display:flex;gap:6px}
+.result .stars .star{width:40px;height:40px}
+.result .stars .star.on{animation:pop .5s cubic-bezier(.3,1.6,.5,1) both}
+.result .stars .star:nth-child(2){animation-delay:.12s}.result .stars .star:nth-child(3){animation-delay:.24s}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+.unlock{font-weight:700;color:var(--ok)}
+
+/* list */
+.list{display:flex;flex-direction:column;gap:8px}
+.li{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;text-align:left;border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:10px 12px}
+.li:hover{border-color:var(--gold)}
+.li .n{font-size:12px;font-weight:700;background:var(--red);color:var(--red-ink);border-radius:8px;padding:3px 7px}
+.li.locked .n{background:var(--muted)}
+.li .nm{font-family:var(--f-display);font-size:22px;line-height:1.1}
+.li .ds{display:block;font-size:12px;color:var(--muted)}
+.li .rt{display:flex;flex-direction:column;align-items:flex-end;gap:3px;font-size:11px;color:var(--muted)}
+.notice{font-size:13.5px;background:var(--gold-soft);border-radius:12px;padding:10px 12px}
+.set{display:flex;flex-direction:column;gap:12px}
+.switch{display:flex;justify-content:space-between;align-items:center;gap:12px;border:1px solid var(--line);border-radius:14px;padding:12px 14px;text-align:left;background:var(--panel)}
+.switch .tr{flex:none;width:44px;height:26px;border-radius:999px;background:var(--line);position:relative;transition:background .2s}
+.switch .tr::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--panel);box-shadow:0 1px 3px rgba(0,0,0,.3);transition:left .2s}
+.switch[aria-checked="true"] .tr{background:var(--ok)} .switch[aria-checked="true"] .tr::after{left:21px}
+.switch small{display:block;color:var(--muted);font-size:12.5px}
+
+#toast{position:absolute;left:50%;top:84px;transform:translateX(-50%);background:var(--ink);color:var(--panel);padding:10px 18px;border-radius:999px;font-size:14px;z-index:20;max-width:calc(100% - 32px);text-align:center;box-shadow:var(--shadow)}
+
+@media (max-width:720px){
+  .brand{padding:8px 12px;gap:10px}
+  .seal{width:36px;height:36px;font-size:21px}
+  .brand h1{font-size:21px}
+  .brand p{display:none}
+  .prog{padding-left:10px}
+  .tbtn span{display:none}
+  .tbtn{padding:9px}
+  .drawer{top:auto;left:0;right:0;bottom:0;width:100%;height:min(66%,640px);border-radius:22px 22px 0 0;border-bottom:0}
+  .d-body{padding-bottom:calc(28px + env(safe-area-inset-bottom,0px))}
+  .d-title{font-size:34px}
+  .hint{display:none}
+  .lbl-name{font-size:16px}
+  .lbl .now,.lbl-stars{display:none}
+}
+@media (prefers-reduced-motion:reduce){.result .stars .star.on{animation:none}}
+</style>
+</head>
+<body>
+<div id="app">
+  <canvas id="scene" aria-label="三维知识群岛地图：九个岛屿，对应华语一的九个 Module"></canvas>
+  <div id="labels"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="seal" aria-hidden="true">华</div>
+      <div style="min-width:0">
+        <h1>华语一知识群岛</h1>
+        <p>LEM-1401 / LM-1403 Mandarin 1 · AY 2026/27 Semester 1 · 郑国俊老师</p>
+      </div>
+      <div class="prog" title="已获得的星星">
+        <svg class="star on" viewBox="0 0 24 24" style="width:20px;height:20px"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6L2.5 9.4l6.6-.8z"/></svg>
+        <div><span id="starCount">0</span>/27<small id="weekNow"></small></div>
+      </div>
+    </div>
+    <nav class="tools" aria-label="工具">
+      <button class="tbtn" id="bList" type="button"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg><span>地点清单</span></button>
+      <button class="tbtn" id="bHome" type="button"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>回到全景</span></button>
+      <button class="tbtn" id="bMotion" type="button" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M10 5v14M14 5v14"/></svg><span>暂停动态</span></button>
+      <button class="tbtn" id="bSet" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span>设置</span></button>
+    </nav>
+  </header>
+
+  <div class="hint" id="hint">拖曳旋转 · 右键或双指平移 · 滚轮或双指缩放 · 点岛屿登岛学习</div>
+
+  <aside class="drawer" id="panel" hidden aria-label="岛屿学习面板"></aside>
+  <aside class="drawer" id="side" hidden aria-label="清单与设置"></aside>
+  <div id="toast" hidden role="status"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+"use strict";
+/* ============================================================
+   CONTENT — 9 islands = 9 Modules of the LEM-1401 / LM-1403 syllabus
+   v: [汉字, pinyin, English]   p: [中文, pinyin, English]
+   tips: {r:"rule"} or {w:"wrong", ok:"right", why:"reason"}
+   quiz: {q, a, d:[distractors], x:explanation, au:text-to-speak, apy:pinyin}
+   ============================================================ */
+const ISLANDS = [
+{ no:"M1", name:"拼音灯塔", py:"Pīnyīn Dēngtǎ", en:"Pinyin Lighthouse", module:"语音基石与汉字基础", moduleEn:"Pinyin, Tones & Script Mechanics",
+  weeks:[1,2], lesson:"Unit 1 Lesson 1《汉语拼音与基本笔画》", assess:"拼音发音与辨调小测",
+  pos:[-60,30], grass:0x86c25e, lm:"lighthouse",
+  spots:[
+   { h:"四个声调", en:"The four tones + neutral tone",
+     v:[["妈","mā","mum · 1st tone, high & level"],["麻","má","hemp · 2nd tone, rising"],["马","mǎ","horse · 3rd tone, dipping"],["骂","mà","to scold · 4th tone, falling"],["吗","ma","question particle · neutral tone"]],
+     tips:[{r:"标调顺序：有 a 标 a；没有 a，找 o 或 e；i 和 u 在一起，标在后面那个：guì、liù。"}] },
+   { h:"拼读与变调", en:"Spelling rules & tone sandhi",
+     p:[["你好","nǐ hǎo → ní hǎo","Two 3rd tones: the first becomes 2nd tone"],["不是","bù + shì → bú shì","不 before a 4th tone becomes 2nd tone"],["去、女、绿","qù · nǚ · lǜ","j, q, x + ü drop the two dots: ju, qu, xu"]],
+     tips:[{r:"j、q、x 后面的 u 其实是 ü：ju = jü，qu = qü，xu = xü。"},{r:"n、l 后面要保留两点：nǚ（女）、lǜ（绿）。"}] },
+   { h:"基本笔画与笔顺", en:"Basic strokes & stroke order",
+     v:[["横","héng","horizontal ㇐"],["竖","shù","vertical ㇑"],["撇","piě","left-falling ㇒"],["捺","nà","right-falling ㇏"],["点","diǎn","dot ㇔"],["提","tí","rising ㇀"],["折","zhé","turning ㇕"],["钩","gōu","hook ㇚"]],
+     tips:[{r:"先横后竖：十　·　先撇后捺：人　·　从上到下：三　·　从左到右：你"},{r:"全包围的字“先进人，后关门”：国 —— 先写里面的“玉”，最后一横封口。"}] } ],
+  quiz:[
+   {q:"“mǎ” 是第几声？", a:"第三声 3rd tone", d:["第一声 1st tone","第二声 2nd tone","第四声 4th tone"]},
+   {q:"“hao” 的声调符号应标在哪个字母上？", a:"a", d:["h","o"], x:"有 a 标 a：hǎo。"},
+   {q:"“qu”（去）里的 u 实际读作？", a:"ü", d:["u","i","o"], x:"j、q、x 后的 u 都读 ü，只是省略了两点。"},
+   {q:"“你好” 实际读作？", a:"ní hǎo", d:["nǐ háo","nì hǎo","nī hǎo"], x:"两个三声相连，前一个变二声。"},
+   {q:"“不是” 里的 “不” 读？", a:"bú", d:["bù","bǔ","bū"], x:"“不”在四声前变二声：bú shì。"},
+   {q:"“人” 的笔顺是？", a:"撇、捺", d:["捺、撇","竖、横","横、撇"], x:"先撇后捺。"},
+   {q:"笔画 “丿” 叫什么？", a:"撇 piě", d:["捺 nà","提 tí","点 diǎn"]},
+   {q:"听一听，你听到的是哪一个？", au:"马", apy:"mǎ", a:"mǎ（马）", d:["mā（妈）","má（麻）","mà（骂）"]},
+   {q:"写 “国” 字，最后一笔是？", a:"最下面封口的横", d:["第一笔的竖","里面的点","右边的横折"], x:"先进人，后关门。"} ] },
+
+{ no:"M2", name:"问候码头", py:"Wènhòu Mǎtóu", en:"Greetings Pier", module:"问候礼貌与姓名表达", moduleEn:"Greetings, Courtesy & Names",
+  weeks:[3], lesson:"Unit 1 Lesson 2《问候》& Lesson 3《姓名》", assess:"校园初遇破冰问答",
+  pos:[-38,8], grass:0x7ab85a, lm:"pier",
+  spots:[
+   { h:"问候与礼貌", en:"Greetings & courtesy",
+     v:[["你好","nǐ hǎo","hello"],["您好","nín hǎo","hello (polite)"],["老师好","lǎoshī hǎo","hello, teacher"],["再见","zàijiàn","goodbye"],["谢谢","xièxie","thank you"],["不客气","bú kèqi","you're welcome"],["对不起","duìbuqǐ","sorry"],["没关系","méi guānxi","that's all right"]],
+     p:[["老师好！——同学们好！","Lǎoshī hǎo! — Tóngxuémen hǎo!","Hello, teacher! — Hello, everyone!"],["谢谢！——不客气！","Xièxie! — Bú kèqi!","Thank you! — You're welcome!"]],
+     tips:[{r:"对老师、长辈用“您 nín”，更礼貌。"}] },
+   { h:"姓名", en:"Names",
+     v:[["我","wǒ","I, me"],["你","nǐ","you"],["他","tā","he, him"],["她","tā","she, her"],["叫","jiào","to be called"],["什么","shénme","what"],["名字","míngzi","name"],["姓","xìng","surname; to be surnamed"]],
+     p:[["你叫什么名字？——我叫阿里。","Nǐ jiào shénme míngzi? — Wǒ jiào Ālǐ.","What's your name? — I'm Ali."],["您贵姓？——我姓郑。","Nín guìxìng? — Wǒ xìng Zhèng.","May I ask your surname? — My surname is Zheng."]],
+     tips:[{r:"中文姓名：姓在前，名在后。郑国俊 = 姓“郑” + 名“国俊”。"},{w:"你叫什么名字吗？", ok:"你叫什么名字？", why:"有“什么”的问句，句末不再加“吗”。"}] } ],
+  quiz:[
+   {q:"见到老师，最礼貌的问候是？", a:"您好！", d:["再见！","谢谢！","没关系！"]},
+   {q:"“你叫什么名字？” 怎么回答？", a:"我叫阿里。", d:["我是好。","我名字阿里。","阿里叫我。"]},
+   {q:"郑国俊老师姓什么？", a:"郑", d:["国","俊","国俊"], x:"姓在前，名在后。"},
+   {q:"哪一句是错的？", a:"你叫什么名字吗？", d:["你叫什么名字？","他叫什么名字？","您贵姓？"], x:"有“什么”就不加“吗”。"},
+   {q:"“不客气” 的意思是？", a:"You're welcome", d:["Thank you","Sorry","Goodbye"]},
+   {q:"别人对你说 “谢谢！”，你回答？", a:"不客气！", d:["没关系！","再见！","对不起！"]},
+   {q:"听一听，你听到的是哪一个？", au:"再见", apy:"zàijiàn", a:"再见", d:["谢谢","你好","老师"]},
+   {q:"“他” 和 “她” 的读音？", a:"一样，都读 tā", d:["“她”读 tà","“他”读 tǎ","完全不一样"]} ] },
+
+{ no:"M3", name:"日历钟楼", py:"Rìlì Zhōnglóu", en:"Calendar Clock Tower", module:"数字系统、日期与年龄", moduleEn:"Numbers, Calendar Dates & Age",
+  weeks:[4], lesson:"Unit 2 Lesson 4《数字与日期》", assess:"生日与年龄日历调查",
+  pos:[-52,-18], grass:0x8cc063, lm:"clock",
+  spots:[
+   { h:"数字 0–99", en:"Numbers 0–99",
+     v:[["零","líng","0"],["一","yī","1"],["二","èr","2"],["三","sān","3"],["四","sì","4"],["五","wǔ","5"],["六","liù","6"],["七","qī","7"],["八","bā","8"],["九","jiǔ","9"],["十","shí","10"],["二十","èrshí","20"],["九十九","jiǔshíjiǔ","99"]],
+     tips:[{r:"两位数 = 几十几：37 = 三十七，73 = 七十三。"}] },
+   { h:"年、月、日与星期", en:"Dates & days of the week",
+     v:[["年","nián","year"],["月","yuè","month"],["日 / 号","rì / hào","day of month (written / spoken)"],["星期","xīngqī","week"],["星期一","xīngqīyī","Monday"],["星期六","xīngqīliù","Saturday"],["星期天","xīngqītiān","Sunday"],["今天","jīntiān","today"],["昨天","zuótiān","yesterday"],["明天","míngtiān","tomorrow"]],
+     p:[["今天几月几号？——今天十一月四号。","Jīntiān jǐ yuè jǐ hào? — Jīntiān shíyī yuè sì hào.","What's the date today? — It's 4 November."],["今天星期几？——今天星期三。","Jīntiān xīngqī jǐ? — Jīntiān xīngqīsān.","What day is it? — It's Wednesday."],["二〇二六年","èr líng èr liù nián","the year 2026 (read digit by digit)"]],
+     tips:[{r:"日期由大到小：2026年11月4日，星期三。"}] },
+   { h:"年龄与生日", en:"Age & birthdays",
+     v:[["岁","suì","years old"],["多大","duō dà","how old (teens & adults)"],["几岁","jǐ suì","how old (young children)"],["生日","shēngrì","birthday"]],
+     p:[["你今年多大？——我今年二十岁。","Nǐ jīnnián duō dà? — Wǒ jīnnián èrshí suì.","How old are you? — I'm 20 this year."],["你的生日是几月几号？——八月十五号。","Nǐ de shēngrì shì jǐ yuè jǐ hào? — Bā yuè shíwǔ hào.","When's your birthday? — 15 August."]],
+     tips:[{w:"我是二十岁。", ok:"我今年二十岁。", why:"说年龄不用“是”。"}] } ],
+  quiz:[
+   {q:"“37” 怎么说？", a:"三十七", d:["七十三","三七","三十和七"]},
+   {q:"“星期六” 是？", a:"Saturday", d:["Sunday","Friday","Monday"]},
+   {q:"哪一句是对的？", a:"我今年二十岁。", d:["我是二十岁。","我二十岁是。","我岁二十。"], x:"年龄不用“是”。"},
+   {q:"“2005年” 怎么读？", a:"èr líng líng wǔ nián", d:["èrshí líng wǔ nián","èr wǔ nián","wǔ líng líng èr nián"], x:"年份一个数字一个数字读。"},
+   {q:"中文日期的顺序是？", a:"年 → 月 → 日", d:["日 → 月 → 年","月 → 日 → 年","月 → 年 → 日"], x:"由大到小。"},
+   {q:"问同学的年龄，哪一句最得体？", a:"你今年多大？", d:["你是几岁吗？","你多大岁？","你岁多大？"]},
+   {q:"星期五的明天是？", a:"星期六", d:["星期四","星期天","星期一"]},
+   {q:"听一听，你听到的日期是？", au:"十一月四号", apy:"shíyī yuè sì hào", a:"11月4号", d:["10月4号","11月14号","4月11号"]} ] },
+
+{ no:"M4", name:"文莱住址村", py:"Wénlái Zhùzhǐ Cūn", en:"Address Village", module:"联系方式与文莱居住地点", moduleEn:"Contact Details, Phone & Residence",
+  weeks:[5], lesson:"Unit 2 Lesson 5《电话号码与住址》", assess:"Quiz 1 随堂测验一 · 15%",
+  pos:[-24,-34], grass:0x79b65c, lm:"village",
+  spots:[
+   { h:"电话号码", en:"Phone numbers",
+     v:[["电话","diànhuà","telephone"],["手机","shǒujī","mobile phone"],["号码","hàomǎ","number"],["多少","duōshao","how many; what (number)"],["幺","yāo","“one” in phone numbers"]],
+     p:[["你的手机号码是多少？","Nǐ de shǒujī hàomǎ shì duōshao?","What's your mobile number?"],["我的手机号码是八七六幺四幺二。","Wǒ de shǒujī hàomǎ shì bā qī liù yāo sì yāo èr.","My number is 876-1412."]],
+     tips:[{r:"电话号码一个数字一个数字读，“1” 读 yāo，免得和 “七 qī” 听混。"}] },
+   { h:"住在哪儿", en:"Where you live",
+     v:[["住","zhù","to live"],["在","zài","at, in"],["哪儿","nǎr","where"],["家","jiā","home; family"],["文莱","Wénlái","Brunei"],["斯里巴加湾市","Sīlǐbājiāwān Shì","Bandar Seri Begawan"],["加东","Jiādōng","Gadong"],["都东","Dūdōng","Tutong"],["马来奕","Mǎláiyì","Belait"],["淡布隆","Dànbùlóng","Temburong"]],
+     p:[["你住在哪儿？——我住在斯里巴加湾市。","Nǐ zhù zài nǎr? — Wǒ zhù zài Sīlǐbājiāwān Shì.","Where do you live? — I live in BSB."],["你家在哪儿？——我家在加东。","Nǐ jiā zài nǎr? — Wǒ jiā zài Jiādōng.","Where's your home? — In Gadong."]],
+     tips:[{r:"地址由大到小：文莱 → 文莱-摩拉县 → 加东。"},{w:"我在住加东。", ok:"我住在加东。", why:"“住在 + 地方”。"}] } ],
+  quiz:[
+   {q:"电话号码里的 “1” 读？", a:"yāo", d:["yī","yí","yì"]},
+   {q:"问电话号码，用哪个词？", a:"多少", d:["几岁","什么时候","哪国"]},
+   {q:"“我住在加东。” 的意思是？", a:"I live in Gadong.", d:["My home is big.","I work in Gadong.","I am going to Gadong."]},
+   {q:"中文地址的顺序是？", a:"由大到小：国家 → 地区 → 地方", d:["由小到大：门牌号先写","随便排都可以","先写电话号码"]},
+   {q:"“马来奕” 是文莱的哪个地方？", a:"Belait", d:["Tutong","Temburong","Gadong"]},
+   {q:"哪一句是对的？", a:"我住在斯里巴加湾市。", d:["我在住斯里巴加湾市。","我住斯里巴加湾市在。","斯里巴加湾市住在我。"]},
+   {q:"听一听，你听到的号码是？", au:"八七六幺四幺二", apy:"bā qī liù yāo sì yāo èr", a:"876-1412", d:["876-4142","867-1412","876-1422"]} ] },
+
+{ no:"M5", name:"家庭树林", py:"Jiātíng Shùlín", en:"Family Grove", module:"家庭结构与父母职业（上、下）", moduleEn:"Family, Classifier 口, Occupations & 也",
+  weeks:[6,7], lesson:"Unit 3 Lesson 6《家庭成员》& Lesson 7《职业与工作》", assess:"家庭树海报 · My Family 视频展示 15%",
+  pos:[2,-14], grass:0x6fae55, lm:"tree",
+  spots:[
+   { h:"家庭成员", en:"Family members",
+     v:[["爸爸","bàba","dad"],["妈妈","māma","mum"],["哥哥","gēge","elder brother"],["姐姐","jiějie","elder sister"],["弟弟","dìdi","younger brother"],["妹妹","mèimei","younger sister"],["爷爷","yéye","grandpa (father's side)"],["奶奶","nǎinai","grandma (father's side)"],["口","kǒu","measure word for family members"],["没有","méiyǒu","not have"],["和","hé","and (joins nouns)"],["谁","shéi","who"]],
+     p:[["你家有几口人？——我家有五口人。","Nǐ jiā yǒu jǐ kǒu rén? — Wǒ jiā yǒu wǔ kǒu rén.","How many people are in your family? — Five."],["你家有谁？——爸爸、妈妈、一个弟弟和我。","Nǐ jiā yǒu shéi? — Bàba, māma, yí ge dìdi hé wǒ.","Who's in your family? — Dad, Mum, a younger brother and me."],["这是谁？——这是我姐姐。","Zhè shì shéi? — Zhè shì wǒ jiějie.","Who is this? — This is my elder sister."]],
+     tips:[{w:"我不有哥哥。", ok:"我没有哥哥。", why:"“有”的否定永远是“没有”。"}] },
+   { h:"职业与工作地点", en:"Occupations & workplaces",
+     v:[["工作","gōngzuò","job; to work"],["做","zuò","to do"],["老师","lǎoshī","teacher"],["医生","yīshēng","doctor"],["护士","hùshi","nurse"],["工程师","gōngchéngshī","engineer"],["律师","lǜshī","lawyer"],["公务员","gōngwùyuán","civil servant"],["商人","shāngrén","businessperson"],["家庭主妇","jiātíng zhǔfù","homemaker"],["退休","tuìxiū","to retire"],["医院","yīyuàn","hospital"],["公司","gōngsī","company"],["也","yě","also, too"]],
+     p:[["你爸爸做什么工作？——他是工程师。","Nǐ bàba zuò shénme gōngzuò? — Tā shì gōngchéngshī.","What does your dad do? — He's an engineer."],["我姐姐在医院工作。","Wǒ jiějie zài yīyuàn gōngzuò.","My elder sister works at a hospital."],["我爸爸是老师，我妈妈也是老师。","Wǒ bàba shì lǎoshī, wǒ māma yě shì lǎoshī.","My dad is a teacher, and my mum is a teacher too."],["我爷爷奶奶退休了。","Wǒ yéye nǎinai tuìxiū le.","My grandparents are retired."]],
+     tips:[{w:"他工作在医院。", ok:"他在医院工作。", why:"“在 + 地方”放在动词前面。"},{w:"我妈妈也老师。", ok:"我妈妈也是老师。", why:"“也”是副词，后面要有动词“是”。"},{w:"我妈妈是老师也。", ok:"我妈妈也是老师。", why:"“也”不能放在句末。"}] } ],
+  quiz:[
+   {q:"“我___哥哥。”（I don't have an elder brother.）", a:"没有", d:["不有","不是","没是"], x:"“有”的否定是“没有”。"},
+   {q:"课本里，问家庭人数用哪个量词：你家有几___人？", a:"口", d:["岁","号","名"]},
+   {q:"哪一句是对的？", a:"我妈妈也是老师。", d:["我妈妈也老师。","我妈妈是老师也。","也我妈妈是老师。"], x:"“也”在动词“是”前面。"},
+   {q:"哪一句是对的？", a:"我哥哥在医院工作。", d:["我哥哥工作在医院。","我哥哥医院在工作。","在医院我哥哥工作。"], x:"在 + 地方 + 工作。"},
+   {q:"“护士” 是？", a:"nurse", d:["doctor","lawyer","engineer"]},
+   {q:"“妹妹” 是？", a:"younger sister", d:["elder sister","younger brother","mum"]},
+   {q:"问职业：“你爸爸___？”", a:"做什么工作", d:["叫什么名字","今年多大","住在哪儿"]},
+   {q:"爷爷奶奶以前工作，现在不工作了，可以说？", a:"他们退休了。", d:["他们是家庭主妇。","他们是学生。","他们没有工作在。"]},
+   {q:"听一听，你听到的是？", au:"我家有五口人", apy:"Wǒ jiā yǒu wǔ kǒu rén.", a:"我家有五口人。", d:["我家有四口人。","我家有九口人。","我家有五个哥哥。"]} ] },
+
+{ no:"M6", name:"国籍港口", py:"Guójí Gǎngkǒu", en:"Nationality Harbour", module:"国家国籍、多语言与注册表（上、下）", moduleEn:"Countries, Nationalities, Languages & Registration Form",
+  weeks:[8,9], lesson:"Unit 3 Lesson 8《国家与语言》·《学生个人中文注册表》", assess:"跨国身份角色扮演 · 个人注册表填报 10%",
+  pos:[8,14], grass:0x84bd5f, lm:"port",
+  spots:[
+   { h:"国家与国籍", en:"Countries & nationalities",
+     v:[["国家","guójiā","country"],["文莱","Wénlái","Brunei"],["中国","Zhōngguó","China"],["马来西亚","Mǎláixīyà","Malaysia"],["新加坡","Xīnjiāpō","Singapore"],["英国","Yīngguó","the UK"],["美国","Měiguó","the USA"],["日本","Rìběn","Japan"],["韩国","Hánguó","South Korea"],["哪","nǎ","which"]],
+     p:[["你是哪国人？——我是文莱人。","Nǐ shì nǎ guó rén? — Wǒ shì Wénláirén.","What nationality are you? — I'm Bruneian."],["你是中国人吗？——不是，我是新加坡人。","Nǐ shì Zhōngguórén ma? — Bú shì, wǒ shì Xīnjiāpōrén.","Are you Chinese? — No, I'm Singaporean."]],
+     tips:[{r:"国家 + 人 = 国籍：文莱人、中国人、英国人。"},{w:"我是文莱。", ok:"我是文莱人。", why:"漏了“人”，意思变成“我就是文莱这个国家”。"},{w:"你是哪国人吗？", ok:"你是哪国人？", why:"有“哪”的问句不加“吗”。"},{r:"哪 nǎ（which，有口字旁） ≠ 那 nà（that）。"}] },
+   { h:"语言与“会”", en:"Languages with 会",
+     v:[["语言","yǔyán","language"],["会","huì","can (learned skill)"],["说","shuō","to speak"],["汉语 / 华语","Hànyǔ / Huáyǔ","Mandarin (spoken)"],["中文","Zhōngwén","Chinese (written / general)"],["英语","Yīngyǔ","English"],["马来语","Mǎláiyǔ","Malay"],["一点儿","yìdiǎnr","a little"]],
+     p:[["我会说马来语和英语，也会说一点儿华语。","Wǒ huì shuō Mǎláiyǔ hé Yīngyǔ, yě huì shuō yìdiǎnr Huáyǔ.","I speak Malay and English, and also a little Mandarin."],["你会说华语吗？——我会说一点儿。","Nǐ huì shuō Huáyǔ ma? — Wǒ huì shuō yìdiǎnr.","Do you speak Mandarin? — A little."]],
+     tips:[{w:"我会说汉语一点儿。", ok:"我会说一点儿汉语。", why:"“一点儿”在动词后、语言前。"},{w:"我会英语。", ok:"我会说英语。", why:"初学阶段，“会”后面加动词“说”。"},{r:"“-语”多指口头说的，“-文”多指书面写的：英语 / 英文，马来语 / 马来文。"}] },
+   { h:"个人中文注册表", en:"Personal registration form",
+     v:[["姓名","xìngmíng","full name"],["性别","xìngbié","gender"],["男","nán","male"],["女","nǚ","female"],["国籍","guójí","nationality"],["出生日期","chūshēng rìqī","date of birth"],["年龄","niánlíng","age"],["地址","dìzhǐ","address"]],
+     tips:[{r:"表格上的日期用“日”：八月十五日（口语才说“号”）。"},{r:"年龄栏只写“二十一岁”，不写“是”。"},{r:"地址由大到小填写。"}] } ],
+  quiz:[
+   {q:"哪一句是对的？", a:"你是哪国人？", d:["你是哪国人吗？","你是哪人国？","哪国你是人？"]},
+   {q:"“我是___。”（I am Bruneian.）", a:"文莱人", d:["文莱","文莱国","文莱的"], x:"国家 + 人 = 国籍。"},
+   {q:"哪一句是对的？", a:"我会说一点儿汉语。", d:["我会说汉语一点儿。","我一点儿会说汉语。","我会一点儿说汉语。"]},
+   {q:"“我会说马来语和英语，___会说一点儿华语。”", a:"也", d:["和","吗","的"]},
+   {q:"注册表 “性别” 一栏，男生写？", a:"男", d:["女","人","他"]},
+   {q:"注册表上的出生日期，规范写法是？", a:"八月十五日", d:["八月十五号","十五日八月","八号十五月"]},
+   {q:"问 “which” 用哪一个字？", a:"哪 nǎ", d:["那 nà","哪儿 nǎr","吗 ma"]},
+   {q:"“新加坡” 是？", a:"Singapore", d:["Malaysia","Japan","South Korea"]},
+   {q:"听一听，你听到的是？", au:"你是哪国人", apy:"Nǐ shì nǎ guó rén?", a:"你是哪国人？", d:["你是中国人吗？","你住在哪儿？","你会说英语吗？"]} ] },
+
+{ no:"M7", name:"交通车站", py:"Jiāotōng Chēzhàn", en:"Transport Station", module:"校园交通与日常出行", moduleEn:"Transportation & Commuting to UBD",
+  weeks:[10,11], lesson:"Unit 4 Lesson 9《交通工具》", assess:"Listening Test 听力测验 · 20%",
+  pos:[32,30], grass:0x7cb85e, lm:"bus",
+  spots:[
+   { h:"交通工具", en:"Means of transport",
+     v:[["巴士","bāshì","bus"],["公共汽车","gōnggòng qìchē","bus (standard term)"],["汽车 / 车","qìchē / chē","car"],["出租车","chūzūchē","taxi"],["校车","xiàochē","school bus"],["自行车","zìxíngchē","bicycle"],["摩托车","mótuōchē","motorbike"],["飞机","fēijī","aeroplane"],["船","chuán","boat"]],
+     tips:[{r:"文莱特色：去水村 (Kampong Ayer) 或淡布隆，可以坐船。"}] },
+   { h:"动词搭配与语序", en:"Verb + vehicle & word order",
+     v:[["坐","zuò","to take, ride (bus, plane, boat)"],["开","kāi","to drive"],["骑","qí","to ride (bike, motorbike)"],["走路","zǒulù","to walk"],["来","lái","to come"],["去","qù","to go"],["怎么","zěnme","how"],["每天","měitiān","every day"]],
+     p:[["你每天怎么来大学？——我每天坐巴士来大学。","Nǐ měitiān zěnme lái dàxué? — Wǒ měitiān zuò bāshì lái dàxué.","How do you get to uni every day? — I take the bus."],["我爸爸开车去公司。","Wǒ bàba kāichē qù gōngsī.","My dad drives to the office."],["我骑摩托车去加东。","Wǒ qí mótuōchē qù Jiādōng.","I ride a motorbike to Gadong."]],
+     tips:[{r:"坐 + 巴士 / 飞机 / 船　·　开 + 车　·　骑 + 自行车 / 摩托车"},{r:"语序：谁 + 什么时候 + 怎么去 + 去 / 来 + 哪儿"},{w:"我坐巴士来大学每天。", ok:"我每天坐巴士来大学。", why:"时间词“每天”放在动词前面。"}] },
+   { h:"要多长时间", en:"How long it takes",
+     v:[["分钟","fēnzhōng","minute(s)"],["小时","xiǎoshí","hour"],["半","bàn","half"],["要","yào","to take (time)"]],
+     p:[["我开车来UBD，要二十分钟。","Wǒ kāichē lái UBD, yào èrshí fēnzhōng.","I drive to UBD; it takes 20 minutes."],["坐飞机去新加坡要两个小时。","Zuò fēijī qù Xīnjiāpō yào liǎng ge xiǎoshí.","Flying to Singapore takes two hours."]] } ],
+  quiz:[
+   {q:"“___自行车”", a:"骑", d:["坐","开","走"]},
+   {q:"“___飞机”", a:"坐", d:["骑","开","走路"]},
+   {q:"“你每天怎么来大学？” 问的是？", a:"交通方式（how）", d:["时间（when）","地点（where）","人（who）"]},
+   {q:"哪一句语序是对的？", a:"我每天坐巴士来大学。", d:["我坐巴士来大学每天。","每天我来大学坐巴士我。","我来每天大学坐巴士。"]},
+   {q:"“出租车” 是？", a:"taxi", d:["school bus","motorbike","bicycle"]},
+   {q:"“要二十分钟” 的意思是？", a:"It takes 20 minutes.", d:["It takes 20 hours.","At 20 o'clock.","20 buses."]},
+   {q:"“船” 是？", a:"boat", d:["aeroplane","car","train"]},
+   {q:"听一听，你听到的是？", au:"我开车去公司", apy:"Wǒ kāichē qù gōngsī.", a:"我开车去公司。", d:["我坐车去学校。","我骑车去公司。","我走路去公司。"]} ] },
+
+{ no:"M8", name:"服饰街", py:"Fúshì Jiē", en:"Colour & Clothing Street", module:"颜色服饰与文莱传统装束", moduleEn:"Colours, Clothing & Traditional Attire",
+  weeks:[12,13], lesson:"Unit 4 Lesson 10《颜色与衣服》", assess:"Reading Test 阅读测验 · 20%",
+  pos:[48,4], grass:0x88c262, lm:"clothes",
+  spots:[
+   { h:"颜色", en:"Colours",
+     v:[["颜色","yánsè","colour"],["红色","hóngsè","red"],["黄色","huángsè","yellow"],["蓝色","lánsè","blue"],["绿色","lǜsè","green"],["白色","báisè","white"],["黑色","hēisè","black"]],
+     p:[["你喜欢什么颜色？——我喜欢蓝色。","Nǐ xǐhuan shénme yánsè? — Wǒ xǐhuan lánsè.","What colour do you like? — Blue."]],
+     tips:[{r:"在文莱，黄色是王室的颜色。"}] },
+   { h:"衣服与量词", en:"Clothes & measure words",
+     v:[["衣服","yīfu","clothes"],["衬衫","chènshān","shirt"],["裤子","kùzi","trousers"],["裙子","qúnzi","skirt"],["帽子","màozi","hat, cap"],["穿","chuān","to wear (clothes)"],["戴","dài","to wear (hat, glasses)"],["件","jiàn","measure word for tops"],["条","tiáo","measure word for trousers, skirts"]],
+     p:[["你穿什么颜色的衣服？——我穿白色的衬衫。","Nǐ chuān shénme yánsè de yīfu? — Wǒ chuān báisè de chènshān.","What colour are you wearing? — A white shirt."],["一件红色的衬衫，一条黑色的裤子。","yí jiàn hóngsè de chènshān, yì tiáo hēisè de kùzi","a red shirt and a pair of black trousers"]],
+     tips:[{w:"他穿帽子。", ok:"他戴帽子。", why:"帽子、眼镜用“戴”，衣服、裤子用“穿”。"},{r:"件：衬衫、衣服　·　条：裤子、裙子"}] },
+   { h:"文莱传统服装", en:"Brunei traditional attire",
+     v:[["传统","chuántǒng","traditional"],["服装","fúzhuāng","attire"],["开斋节","Kāizhāi Jié","Hari Raya Aidilfitri"]],
+     p:[["她穿 Baju Kurung。","Tā chuān Baju Kurung.","She is wearing a Baju Kurung."],["他穿 Baju Melayu，戴 songkok。","Tā chuān Baju Melayu, dài songkok.","He wears a Baju Melayu and a songkok."]],
+     tips:[{r:"开斋节等正式场合，大家常穿传统服装。"}] } ],
+  quiz:[
+   {q:"一___裤子", a:"条", d:["件","口","岁"]},
+   {q:"一___衬衫", a:"件", d:["条","口","号"]},
+   {q:"___帽子", a:"戴", d:["穿","坐","开"]},
+   {q:"“黄色” 是？", a:"yellow", d:["red","green","blue"]},
+   {q:"“你穿什么颜色的衣服？” 怎么回答？", a:"我穿蓝色的衣服。", d:["我是蓝色。","我穿衣服蓝色。","蓝色穿我。"]},
+   {q:"在文莱，哪个颜色代表王室？", a:"黄色", d:["绿色","黑色","白色"]},
+   {q:"“裙子” 是？", a:"skirt", d:["trousers","hat","shirt"]},
+   {q:"听一听，你听到的是？", au:"红色", apy:"hóngsè", a:"红色", d:["黄色","黑色","绿色"]} ] },
+
+{ no:"M9", name:"终点舞台", py:"Zhōngdiǎn Wǔtái", en:"Showcase Stage", module:"个人综合展示与结课评估", moduleEn:"Personal Showcase, Dining & Review",
+  weeks:[14], lesson:"综合拓展《全学期总复习与展示》", assess:"Final Oral Showcase 期末口语 · 20%",
+  pos:[40,-26], grass:0x7fba5c, lm:"stage", mixed:true,
+  spots:[
+   { h:"60 秒自我介绍", en:"Model 60-second self-introduction",
+     p:[["老师好，同学们好！我叫阿里。","Lǎoshī hǎo, tóngxuémen hǎo! Wǒ jiào Ālǐ.","Hello teacher, hello everyone! I'm Ali."],["我今年二十一岁，我的生日是八月十五号。","Wǒ jīnnián èrshíyī suì, wǒ de shēngrì shì bā yuè shíwǔ hào.","I'm 21. My birthday is 15 August."],["我是文莱人，我家住在斯里巴加湾市。","Wǒ shì Wénláirén, wǒ jiā zhù zài Sīlǐbājiāwān Shì.","I'm Bruneian; my family lives in BSB."],["我家有五口人：爸爸、妈妈、哥哥、妹妹和我。","Wǒ jiā yǒu wǔ kǒu rén: bàba, māma, gēge, mèimei hé wǒ.","There are five of us: Dad, Mum, elder brother, younger sister and me."],["我爸爸是公务员，我妈妈是老师。","Wǒ bàba shì gōngwùyuán, wǒ māma shì lǎoshī.","Dad is a civil servant; Mum is a teacher."],["我会说马来语和英语，也会说一点儿华语。","Wǒ huì shuō Mǎláiyǔ hé Yīngyǔ, yě huì shuō yìdiǎnr Huáyǔ.","I speak Malay and English, and a little Mandarin."],["我每天开车来大学。谢谢大家！","Wǒ měitiān kāichē lái dàxué. Xièxie dàjiā!","I drive to uni every day. Thank you, everyone!"]] },
+   { h:"餐厅点餐", en:"Ordering food",
+     v:[["要","yào","to want, would like"],["茶","chá","tea"],["咖啡","kāfēi","coffee"],["水","shuǐ","water"],["米饭","mǐfàn","rice"],["面","miàn","noodles"],["杯","bēi","cup (measure word)"],["碗","wǎn","bowl (measure word)"],["多少钱","duōshao qián","how much (money)"],["块","kuài","dollar (spoken)"]],
+     p:[["你要什么？——我要一杯茶。","Nǐ yào shénme? — Wǒ yào yì bēi chá.","What would you like? — A cup of tea."],["请给我一碗面。","Qǐng gěi wǒ yì wǎn miàn.","A bowl of noodles, please."],["多少钱？——五块。","Duōshao qián? — Wǔ kuài.","How much? — Five dollars."]],
+     tips:[{r:"杯：茶、咖啡、水　·　碗：米饭、面"}] },
+   { h:"期末口试十问", en:"Ten questions to practise for the Final Oral",
+     p:[["你叫什么名字？","Nǐ jiào shénme míngzi?","M2"],["你今年多大？","Nǐ jīnnián duō dà?","M3"],["你的生日是几月几号？","Nǐ de shēngrì shì jǐ yuè jǐ hào?","M3"],["你住在哪儿？","Nǐ zhù zài nǎr?","M4"],["你家有几口人？","Nǐ jiā yǒu jǐ kǒu rén?","M5"],["你爸爸做什么工作？","Nǐ bàba zuò shénme gōngzuò?","M5"],["你是哪国人？","Nǐ shì nǎ guó rén?","M6"],["你会说什么语言？","Nǐ huì shuō shénme yǔyán?","M6"],["你每天怎么来大学？","Nǐ měitiān zěnme lái dàxué?","M7"],["你今天穿什么颜色的衣服？","Nǐ jīntiān chuān shénme yánsè de yīfu?","M8"]] } ],
+  quiz:[
+   {q:"一___茶", a:"杯", d:["碗","条","件"]},
+   {q:"“多少钱？” 问的是？", a:"价钱（price）", d:["时间（time）","年龄（age）","名字（name）"]},
+   {q:"一___面", a:"碗", d:["杯","件","口"]} ] }
+];
+const SEM = { w1:Date.UTC(2026,7,31), brk:Date.UTC(2026,9,19), w8:Date.UTC(2026,9,26) };
+
+/* ============================== state ============================== */
+const KEY = "m1-knowledge-isles-v1";
+let state = (()=>{ try{ const s=JSON.parse(localStorage.getItem(KEY)); if(s && s.stars) return s; }catch(e){} return {stars:{}, teacher:false}; })();
+const save = ()=>{ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} };
+const starsOf = i => state.stars[i]||0;
+const isUnlocked = i => state.teacher || i===0 || starsOf(i-1)>=1;
+
+function semesterWeek(){
+  const d=new Date(), t=Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()), day=864e5;
+  if(t<SEM.w1) return null;
+  if(t<SEM.brk) return Math.floor((t-SEM.w1)/day/7)+1;
+  if(t<SEM.w8) return "break";
+  const w=Math.floor((t-SEM.w8)/day/7)+8; return w<=14?w:null;
+}
+const WEEK = semesterWeek();
+const NOW_IDX = typeof WEEK==="number" ? ISLANDS.findIndex(d=>d.weeks.includes(WEEK)) : -1;
+
+/* ============================== helpers ============================== */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const STAR = on => `<svg class="star ${on?"on":"off"}" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6L2.5 9.4l6.6-.8z"/></svg>`;
+const stars3 = n => [0,1,2].map(k=>STAR(k<n)).join("");
+const LOCK = `<svg class="lock" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V7a5 5 0 0 1 10 0v3h1a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1zm2 0h6V7a3 3 0 0 0-6 0z"/></svg>`;
+const SPK = `<svg class="spk" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5L6 9H2v6h4l5 4zM15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>`;
+const shuffle = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+const weeksTxt = w => w.length>1 ? `Week ${w[0]}–${w[w.length-1]}` : `Week ${w[0]}`;
+
+let toastT;
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>t.hidden=true, 2800); }
+
+/* speech */
+const hasTTS = "speechSynthesis" in window;
+let zhVoice=null;
+function pickVoice(){ if(!hasTTS) return; const vs=speechSynthesis.getVoices(); zhVoice = vs.find(v=>/zh[-_]CN/i.test(v.lang)) || vs.find(v=>/^zh/i.test(v.lang)) || null; }
+if(hasTTS){ pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+let warnedVoice=false;
+function speak(text){
+  if(!hasTTS){ toast("这个浏览器不支持朗读，请看拼音。"); return; }
+  try{
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text.replace(/——/g,"，"));
+    u.lang="zh-CN"; u.rate=0.82; if(zhVoice) u.voice=zhVoice;
+    speechSynthesis.speak(u);
+    if(!zhVoice && speechSynthesis.getVoices().length && !warnedVoice){ warnedVoice=true; toast("这台设备可能没有中文语音包，发音仅供参考。"); }
+  }catch(e){}
+}
+
+/* ============================== 3D scene ============================== */
+const HAS3D = !!(window.THREE && THREE.OrbitControls) && (()=>{ try{ const c=document.createElement("canvas"); return !!(c.getContext("webgl")||c.getContext("experimental-webgl")); }catch(e){ return false; } })();
+let renderer, scene, camera, controls, ocean, oceanBase, sun, hemi;
+const CENTER = {x:-6, z:-2};
+const isles = [];            // per island: {group, clouds, cloudK, anim:[]}
+let routeDots = [];
+const seaBoats = [];
+let animOn = !matchMedia("(prefers-reduced-motion: reduce)").matches;
+let simT = 0, lastNow = performance.now();
+let fly = null, viewOff = {x:0,y:0}, viewOffGoal = {x:0,y:0};
+
+const matCache = {};
+function M(color, opts){ const k=color+(opts?JSON.stringify(opts):""); if(!matCache[k]) matCache[k]=new THREE.MeshStandardMaterial(Object.assign({color, roughness:.85, metalness:0, flatShading:true}, opts||{})); return matCache[k]; }
+function mesh(geo, color, x=0,y=0,z=0, opts){ const m=new THREE.Mesh(geo, typeof color==="number"?M(color,opts):color); m.position.set(x,y,z); m.castShadow=true; m.receiveShadow=true; return m; }
+const box = (w,h,d,c,x,y,z,o)=>mesh(new THREE.BoxGeometry(w,h,d),c,x,y,z,o);
+const cyl = (rt,rb,h,seg,c,x,y,z,o)=>mesh(new THREE.CylinderGeometry(rt,rb,h,seg),c,x,y,z,o);
+const cone= (r,h,seg,c,x,y,z,o)=>mesh(new THREE.ConeGeometry(r,h,seg),c,x,y,z,o);
+const ball= (r,c,x,y,z,o)=>mesh(new THREE.IcosahedronGeometry(r,0),c,x,y,z,o);
+const C = {red:0xc0141d, gold:0xd9a521, white:0xf7f2ea, cream:0xf0e2c4, wood:0x8a5a35, dark:0x3a2f2a, stone:0xbcb3a5, roof:0xa3341f, blue:0x2f6fb5, teal:0x2a9d8f, leaf:0x3f8f3a, leaf2:0x56a845};
+
+function rng(seed){ return ()=>{ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+function wobble(geo, s1, s2){ const p=geo.attributes.position; for(let i=0;i<p.count;i++){ const x=p.getX(i), z=p.getZ(i), a=Math.atan2(z,x); const f=1+.09*Math.sin(3*a+s1)+.05*Math.sin(7*a+s2); p.setX(i,x*f); p.setZ(i,z*f);} geo.computeVertexNormals(); return geo; }
+
+function person(color, h){ const g=new THREE.Group(); g.add(cyl(h*.16,h*.22,h*.62,7,color,0,h*.31,0)); g.add(ball(h*.16,0xf1c9a5,0,h*.74,0)); return g; }
+function palm(g, x, z, s, r){ const p=new THREE.Group(); p.position.set(x,0,z); const lean=(r()-.5)*.5;
+  const tr=cyl(.18*s,.3*s,4.2*s,6,0x9a7046,0,2.1*s,0); tr.rotation.z=lean; p.add(tr);
+  const top=new THREE.Group(); top.position.set(-Math.sin(lean)*4.2*s, 4.2*s*Math.cos(lean), 0); p.add(top);
+  for(let k=0;k<6;k++){ const lf=cone(.5*s,3*s,4,k%2?C.leaf:C.leaf2); lf.scale.set(1,1,.25); lf.position.set(0,0,0); const a=k/6*Math.PI*2; lf.rotation.set(0,a,1.9); lf.position.set(Math.cos(a)*1.2*s,-.3*s,-Math.sin(a)*1.2*s); lf.rotation.order="YZX"; top.add(lf);}
+  g.add(p); }
+
+/* ---------- 南洋 Nanyang building kit ---------- */
+const NY = {pink:0xf3b9b2, mint:0xa9d9c1, butter:0xf6dc8c, sky:0x9fcbe9, peach:0xf5c29b, lilac:0xcfb8e1, cream:0xf6ecd6,
+  tile:0xb4502a, shutter:0x2f7d5b, attap:0x9c7b4b, teak:0x6e4426, lantern:0xd81e28};
+// triangular prism roof, ridge along x
+function prism(len, r, color, x=0,y=0,z=0, sy=.62){ const geo=new THREE.CylinderGeometry(r,r,len,3); geo.rotateX(-Math.PI/2); geo.rotateY(Math.PI/2); const m=mesh(geo,color,x,y,z); m.scale.y=sy; return m; }
+// Nanyang shophouse 店屋: arcade (five-foot way) below, shuttered windows above, clay-tile roof
+function shophouse(color, w=2.6, d=3){ const g=new THREE.Group();
+  g.add(box(w,1.9,d*.72,color,0,.95,-d*.14));                       // ground floor, set back
+  [-w/2+.18, w/2-.18].forEach(x=>g.add(box(.3,1.9,.3,NY.cream,x,.95,d/2-.15)));   // arcade pillars
+  g.add(box(w,1.7,d,color,0,2.75,0));                                // upper floor
+  g.add(box(w+.12,.18,d+.12,NY.cream,0,1.95,0));                     // cornice
+  g.add(box(w+.12,.18,d+.12,NY.cream,0,3.6,0));
+  [-w/4,w/4].forEach(x=>{ g.add(box(w*.28,.95,.06,NY.shutter,x,2.8,d/2+.03)); g.add(box(w*.3,.12,.08,NY.cream,x,3.32,d/2+.05)); });
+  g.add(box(w*.4,1.2,.06,NY.teak,0,.7,d*.22+.03));                   // door
+  g.add(prism(w+.3,d*.62,NY.tile,0,3.69+d*.62*.31,0));                // roof
+  return g; }
+// raised Malay kampung house / Kampong Ayer stilt house
+function stiltHouse(wall, roof, postH=2.2, w=3.4, d=2.6){ const g=new THREE.Group();
+  [[-1,-1],[1,-1],[-1,1],[1,1],[0,-1],[0,1]].forEach(([a,b])=>g.add(cyl(.11,.13,postH,6,NY.teak,a*w*.42,postH/2,b*d*.4)));
+  g.add(box(w+.5,.22,d+.5,NY.teak,0,postH,0));
+  g.add(box(w,1.7,d,wall,0,postH+.95,0));
+  [-w/4,w/4].forEach(x=>g.add(box(.7,.75,.06,NY.teak,x,postH+1.05,d/2+.03)));
+  g.add(prism(w+.7,d*.85,roof,0,postH+1.8+d*.85*.31,0,.85));
+  return g; }
+function banana(g,x,z,s=1){ const b=new THREE.Group(); b.position.set(x,0,z); b.add(cyl(.18*s,.24*s,2.6*s,6,0x7c8c3c,0,1.3*s,0));
+  for(let k=0;k<5;k++){ const lf=box(.05,.75*s,2.3*s,k%2?0x4f9e3a:0x6cb848,0,0,0); const a=k/5*Math.PI*2; const p=new THREE.Group(); p.position.y=2.5*s; p.rotation.y=a; lf.position.z=1*s; lf.rotation.x=.55; p.add(lf); b.add(p); }
+  g.add(b); }
+function frangipani(g,x,z){ const f=new THREE.Group(); f.position.set(x,0,z); f.add(cyl(.12,.16,1.2,5,0x8a6a4a,0,.6,0)); f.add(ball(1.05,0x4c9a3e,0,1.6,0));
+  for(let k=0;k<6;k++){ const a=k*1.05; f.add(ball(.2,0xfff6e0,Math.cos(a)*.8,1.75+Math.sin(k*2)*.35,Math.sin(a)*.8,{emissive:0x5a4a20,emissiveIntensity:.25})); } g.add(f); }
+// string of red lanterns between two points
+function lanterns(g, x1,z1, x2,z2, h=3.2, n=5){ [[x1,z1],[x2,z2]].forEach(([x,z])=>g.add(cyl(.08,.1,h+.4,6,NY.teak,x,(h+.4)/2,z)));
+  for(let k=1;k<=n;k++){ const u=k/(n+1), x=x1+(x2-x1)*u, z=z1+(z2-z1)*u, y=h-Math.sin(u*Math.PI)*.55;
+    const l=mesh(new THREE.SphereGeometry(.3,8,6),NY.lantern,x,y-.25,z,{emissive:0xb0101a,emissiveIntensity:.55}); l.scale.y=1.25; g.add(l); g.add(cyl(.12,.12,.08,6,C.gold,x,y+.1,z)); } }
+// perahu / water-taxi
+function perahu(colA=NY.lantern, colB=C.gold, canopy=true){ const b=new THREE.Group();
+  b.add(box(1.2,.55,3.6,0x2b5f8a,0,0,0)); b.add(box(1.25,.16,3.65,colA,0,.32,0));
+  const bow=cone(.62,1.4,4,0x2b5f8a,0,0,2.45); bow.rotation.x=Math.PI/2; bow.rotation.y=Math.PI/4; bow.scale.set(1,1,.5); b.add(bow);
+  const st=cone(.62,1.2,4,0x2b5f8a,0,0,-2.35); st.rotation.x=-Math.PI/2; st.rotation.y=Math.PI/4; st.scale.set(1,1,.5); b.add(st);
+  if(canopy){ b.add(box(1.1,.08,1.8,colB,0,1.05,-.2)); [-.5,.5].forEach(x=>[-1,.6].forEach(z=>b.add(cyl(.04,.04,.75,4,NY.teak,x,.65,z)))); }
+  return b; }
+// procedural batik cloth texture
+function batikTex(bg, fg, dot){ const c=document.createElement("canvas"); c.width=c.height=128; const x=c.getContext("2d");
+  x.fillStyle=bg; x.fillRect(0,0,128,128);
+  for(let i=0;i<4;i++) for(let j=0;j<4;j++){ const cx=i*32+16+(j%2?16:0), cy=j*32+16; x.fillStyle=fg;
+    for(let p=0;p<6;p++){ const a=p/6*Math.PI*2; x.beginPath(); x.ellipse(cx+Math.cos(a)*6,cy+Math.sin(a)*6,5,2.4,a,0,Math.PI*2); x.fill(); }
+    x.fillStyle=dot; x.beginPath(); x.arc(cx,cy,3,0,Math.PI*2); x.fill(); }
+  x.strokeStyle=fg; x.lineWidth=2; for(let k=0;k<128;k+=32){ x.beginPath(); x.moveTo(0,k); for(let t=0;t<=128;t+=8) x.lineTo(t,k+Math.sin(t/8)*3); x.stroke(); }
+  const t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; return t; }
+const batikMat = (bg,fg,dot)=>new THREE.MeshStandardMaterial({map:batikTex(bg,fg,dot),side:THREE.DoubleSide,roughness:.9});
+
+/* landmarks — each returns a Group; anim(t) callbacks pushed into A */
+const LM = {
+  lighthouse(A,r){ const g=new THREE.Group();
+    g.add(cyl(2.3,2.7,1,10,C.stone,0,.5,0));
+    let y=1; [C.white,C.red,C.white,C.red].forEach((c,k)=>{ g.add(cyl(1.55-.16*(k+1),1.55-.16*k,2.2,12,c,0,y+1.1,0)); y+=2.2; });
+    g.add(cyl(1.15,1.15,.3,12,C.dark,0,y+.15,0));
+    g.add(cyl(.75,.75,1.3,10,0xffe28a,0,y+.95,0,{emissive:0xffc940,emissiveIntensity:.9}));
+    g.add(cone(1.2,1.4,10,C.red,0,y+2.3,0));
+    const piv=new THREE.Group(); piv.position.y=y+.95;
+    const beam=new THREE.Mesh(new THREE.ConeGeometry(2.4,18,16,1,true), new THREE.MeshBasicMaterial({color:0xfff0a8,transparent:true,opacity:.16,depthWrite:false,side:THREE.DoubleSide}));
+    beam.rotation.z=Math.PI/2; beam.position.x=9; piv.add(beam); g.add(piv);
+    A.push(t=>{ piv.rotation.y=t*.7; });
+    [0xe9e1d4,0xd9c9b0,0xc6b293,0xa8916f].forEach((c,k)=>g.add(box(1.1,.5+k*.35,1.1,c,4+k*1.2,.25+k*.17,3.5)));   // four tone steps
+    const hut=stiltHouse(NY.cream,NY.attap,1.2,2.8,2.2); hut.position.set(-4.6,0,-2.6); hut.rotation.y=.5; g.add(hut);   // fisherman's attap hut
+    lanterns(g,-5.6,2.2,-1.6,4.4,3,4);
+    return g; },
+  pier(A,r){ const g=new THREE.Group();
+    // Nanyang jetty pavilion: red pillars, clay-tile roof, gold ridge
+    [[-2.4,-1.6],[2.4,-1.6],[-2.4,1.6],[2.4,1.6]].forEach(([x,z])=>g.add(cyl(.24,.28,3.6,8,C.red,x,1.8,z)));
+    g.add(box(5.6,.3,3.9,NY.teak,0,3.7,0)); g.add(prism(6.4,2.6,NY.tile,0,4.65,0,.7)); g.add(box(6.6,.18,.25,C.gold,0,5.92,0));
+    g.add(box(2.2,.7,.12,C.gold,0,3.25,1.95));
+    lanterns(g,-2.4,1.6,2.4,1.6,3.5,4);
+    const sh=shophouse(NY.mint); sh.position.set(-5.2,0,-2.6); sh.rotation.y=.35; g.add(sh);
+    const dock=new THREE.Group(); dock.position.set(0,-1.15,r-1);
+    for(let k=0;k<9;k++) dock.add(box(3.2,.25,1,NY.teak,0,0,k*1.15));
+    [-1.4,1.4].forEach(x=>{ for(let k=0;k<9;k+=3) dock.add(cyl(.15,.15,2.4,6,C.dark,x,-1,k*1.15)); });
+    const boat=perahu(); boat.position.set(3.2,-.55,7.5); dock.add(boat);
+    A.push(t=>{ boat.position.y=-.55+Math.sin(t*1.6)*.15; boat.rotation.z=Math.sin(t*1.3)*.05; });
+    g.add(dock);
+    const p1=person(C.blue,2.2); p1.position.set(-1,0,3.4); const p2=person(C.red,2); p2.position.set(1,0,3.4); g.add(p1,p2);
+    A.push(t=>{ p1.rotation.y=Math.sin(t*2)*.3; p2.rotation.y=-Math.sin(t*2)*.3; });
+    return g; },
+  clock(A){ const g=new THREE.Group();
+    // colonial Nanyang clock tower: whitewash, arched openings, green roof
+    g.add(box(4.4,1,4.4,C.stone,0,.5,0)); g.add(box(3.2,9,3.2,NY.cream,0,5.5,0));
+    [2.6,5].forEach(y=>[0,Math.PI/2,Math.PI,-Math.PI/2].forEach(a=>{ const w=box(.9,1.4,.06,0x3a4a52,Math.sin(a)*1.63,y,Math.cos(a)*1.63); w.rotation.y=a; g.add(w); }));
+    g.add(box(3.7,.6,3.7,NY.shutter,0,10.3,0));
+    const rf=cone(3,3.2,4,NY.shutter,0,12.2,0); rf.rotation.y=Math.PI/4; g.add(rf); g.add(ball(.35,C.gold,0,14,0));
+    const face=cyl(1.15,1.15,.2,24,C.white,0,8,1.65); face.rotation.x=Math.PI/2; g.add(face);
+    const ring=cyl(1.3,1.3,.12,24,C.gold,0,8,1.58); ring.rotation.x=Math.PI/2; g.add(ring);
+    const mh=new THREE.Group(); mh.position.set(0,8,1.8); mh.add(box(.12,.95,.06,C.dark,0,.45,0)); g.add(mh);
+    const hh=new THREE.Group(); hh.position.set(0,8,1.78); hh.add(box(.16,.6,.06,C.red,0,.28,0)); g.add(hh);
+    A.push(t=>{ mh.rotation.z=-t*1.1; hh.rotation.z=-t*.09; });
+    [[NY.butter,4.6,1.2],[NY.pink,4.6,-1.6]].forEach(([c,x,z])=>{ const s=shophouse(c,2.6,2.8); s.position.set(x,0,z); s.rotation.y=-Math.PI/2; g.add(s); });
+    return g; },
+  village(A,r){ const g=new THREE.Group();
+    // row of pastel shophouses (addresses!) + red phone booth
+    [NY.pink,NY.butter,NY.sky].forEach((c,k)=>{ const s=shophouse(c); s.position.set(-3.6+k*2.75,0,-2.4); g.add(s); });
+    g.add(box(1.1,2.6,1.1,C.red,3.6,1.3,2.4)); g.add(box(.8,1.1,.05,0xbfe7ff,3.6,1.7,2.98,{emissive:0x6fb6e6,emissiveIntensity:.5}));
+    frangipani(g,-2.8,2.6); banana(g,-.4,3.4,.9);
+    // Kampong Ayer: stilt houses over the water joined by boardwalks
+    const ka=new THREE.Group(); ka.position.set(r+2.5,-2.2,0);
+    [[2,-3.2,NY.cream,NY.tile],[5.6,.4,NY.mint,NY.attap],[2.2,4,NY.peach,NY.tile]].forEach(([x,z,w,rf])=>{ const h=stiltHouse(w,rf,2.6); h.position.set(x,0,z); h.rotation.y=Math.PI/2; ka.add(h); });
+    ka.add(box(7.6,.2,.9,NY.teak,1.6,2.6,0)); ka.add(box(.9,.2,8,NY.teak,2.1,2.6,.4));
+    for(let k=0;k<8;k++) ka.add(cyl(.08,.08,2.6,5,NY.teak,-1.8+k*1.1,1.3,.45));
+    g.add(ka);
+    return g; },
+  tree(A){ const g=new THREE.Group();
+    // great rain tree + raised kampung family house
+    const T=new THREE.Group(); T.position.set(-3.4,0,-1); g.add(T);
+    T.add(cyl(.8,1.25,5.5,8,0x7a5232,0,2.75,0));
+    const fol=[[0,6.6,0,3.6,C.leaf],[1.8,8,1,2.6,C.leaf2],[-1.9,8.2,-.6,2.5,C.leaf2],[0,9.8,.2,2.3,C.leaf]].map(([x,y,z,s,c])=>{ const b=ball(s,c,x,y,z); T.add(b); return b; });
+    A.push(t=>{ fol.forEach((b,k)=>{ b.rotation.y=Math.sin(t*.6+k)*.08; }); });
+    const kh=stiltHouse(NY.cream,NY.tile,1.6,3.6,2.8); kh.position.set(3.2,0,-1.6); kh.rotation.y=-.3; g.add(kh);
+    const stair=box(.9,.12,2,NY.teak,3.6,.8,.6); stair.rotation.x=.75; g.add(stair);
+    [[C.blue,2.3,-1.8],[C.red,2.1,-.6],[C.gold,1.5,.6],[C.teal,1.25,1.6]].forEach(([c,h,x])=>{ const p=person(c,h); p.position.set(x,0,3.8); g.add(p); });
+    const cl=shophouse(C.white,2.6,2.6); cl.position.set(-5.6,0,3); cl.rotation.y=.9; cl.add(box(.9,.25,.05,C.red,0,2.8,1.34)); cl.add(box(.25,.9,.05,C.red,0,2.8,1.34)); g.add(cl);   // clinic shophouse
+    banana(g,5.6,2.4,.9);
+    return g; },
+  port(A,r){ const g=new THREE.Group();
+    const flags=[]; [0xf7d117,0xd62828,0x1d4ed8,0xffffff].forEach((c,k)=>{ const x=-3.6+k*2.4; g.add(cyl(.09,.11,6.4,6,C.white,x,3.2,1)); const f=new THREE.Mesh(new THREE.PlaneGeometry(1.8,1.1), new THREE.MeshStandardMaterial({color:c,side:THREE.DoubleSide,roughness:.8})); f.geometry.translate(.9,0,0); f.position.set(x+.1,5.8,1); f.castShadow=true; g.add(f); flags.push(f); });
+    A.push(t=>{ flags.forEach((f,k)=>{ f.rotation.y=Math.sin(t*2.2+k)*.35; }); });
+    // godowns 货仓 (registration office)
+    [[-2.6,NY.cream],[2.6,NY.butter]].forEach(([x,c])=>{ g.add(box(4.6,2.6,3.4,c,x,1.3,-3.6)); g.add(prism(4.9,2.3,NY.tile,x,3.3,-3.6,.6)); g.add(box(1.4,1.6,.06,NY.shutter,x,.8,-1.87)); });
+    g.add(box(2.4,.6,.08,C.red,-2.6,2.1,-1.86));
+    // Nanyang junk 帆船 with batten sails
+    const ship=new THREE.Group(); ship.position.set(r+5,-1.2,2); ship.rotation.y=.4;
+    ship.add(box(2.6,1.4,7,NY.teak,0,0,0)); ship.add(box(2.7,.3,7.1,C.red,0,.75,0)); ship.add(box(2.4,1.2,1.6,NY.teak,0,1.3,-3));
+    const sails=[]; [[1.2,5.4],[-1.4,4.2]].forEach(([z,h])=>{ ship.add(cyl(.1,.12,h+1,6,C.dark,0,.6+(h+1)/2,z)); const s=new THREE.Mesh(new THREE.PlaneGeometry(2.6,h), new THREE.MeshStandardMaterial({color:0xb5532c,side:THREE.DoubleSide,roughness:.95})); s.position.set(0,1.4+h/2,z-.2); s.rotation.y=Math.PI/2; s.castShadow=true; ship.add(s); sails.push(s);
+      for(let k=1;k<5;k++) ship.add(box(.06,.06,2.7,C.dark,0,1.4+h*k/5,z-.2)); });
+    g.add(ship);
+    A.push(t=>{ ship.position.y=-1.2+Math.sin(t*1.2)*.2; ship.rotation.x=Math.sin(t*.9)*.03; sails.forEach((s,k)=>s.rotation.y=Math.PI/2+Math.sin(t*1.1+k)*.06); });
+    return g; },
+  bus(A,r){ const g=new THREE.Group(); const R=r*.66;
+    const road=new THREE.Mesh(new THREE.RingGeometry(R-1.1,R+1.1,48), M(0x55524f)); road.rotation.x=-Math.PI/2; road.position.y=.03; road.receiveShadow=true; g.add(road);
+    // Nanyang bus station: arcade pillars + clay-tile roof
+    const st=new THREE.Group(); st.add(box(4.4,2.2,2.6,NY.mint,0,1.1,-.4)); [-2,-.7,.7,2].forEach(x=>st.add(box(.25,2.4,.25,NY.cream,x,1.2,1.1)));
+    st.add(box(5,.25,3.4,NY.cream,0,2.5,0)); st.add(prism(5.2,2,NY.tile,0,3.2,0,.6)); st.add(cyl(.1,.1,3.6,6,C.dark,2.9,1.8,1.9)); st.add(box(1.2,.8,.1,C.gold,2.9,3.6,1.9)); g.add(st);
+    const bus=new THREE.Group(); const body=new THREE.Group(); body.add(box(1.4,1.4,3.4,0xf4c430,0,1,0)); body.add(box(1.45,.55,2.9,0x2f3d4a,0,1.35,-.1)); [[-.7,1.1],[.7,1.1],[-.7,-1.1],[.7,-1.1]].forEach(([x,z])=>{ const w=cyl(.32,.32,.25,10,C.dark,x,.32,z); w.rotation.z=Math.PI/2; body.add(w); }); bus.add(body); g.add(bus);
+    A.push(t=>{ const a=t*.35; bus.position.set(Math.cos(a)*R,0,Math.sin(a)*R); bus.rotation.y=-a; });
+    // water taxi 水上的士 circling the island
+    const wt=perahu(C.gold,NY.lantern); g.add(wt);
+    A.push(t=>{ const a=-t*.22+1, RR=r*1.6; wt.position.set(Math.cos(a)*RR,-2+Math.sin(t*1.7)*.12,Math.sin(a)*RR); wt.rotation.y=-a+Math.PI; });
+    const bike=new THREE.Group(); [-.5,.5].forEach(z=>{ const w=new THREE.Mesh(new THREE.TorusGeometry(.35,.06,6,14),M(C.dark)); w.position.set(0,.4,z); w.rotation.y=Math.PI/2; bike.add(w); }); bike.add(box(.08,.08,1,C.red,0,.6,0)); bike.position.set(-3.2,0,2); g.add(bike);
+    return g; },
+  clothes(A){ const g=new THREE.Group(); const cols=[0xd62828,0xf4c430,0x2f6fb5,0x3aa655,0xf7f7f2,0x222222];
+    // tamu market stalls with batik awnings, shophouse backdrop
+    [NY.lilac,NY.peach,NY.mint].forEach((c,k)=>{ const s=shophouse(c); s.position.set(-2.8+k*2.75,0,-4.2); g.add(s); });
+    const bat=[batikMat("#7a2e1d","#e9b44c","#f6ecd6"),batikMat("#1f4e79","#f2d27a","#ffffff"),batikMat("#2f6b3f","#f3c6a5","#f8e9c8")];
+    [-4,0,4].forEach((x,k)=>{ const s=new THREE.Group(); s.position.set(x,0,-.6); s.add(box(3,1,1.8,NY.teak,0,.5,0)); s.add(cyl(.08,.08,2.8,6,C.dark,-1.4,1.4,-.8)); s.add(cyl(.08,.08,2.8,6,C.dark,1.4,1.4,-.8));
+      const aw=new THREE.Mesh(new THREE.BoxGeometry(3.4,.08,2.2),bat[k]); aw.position.y=2.8; aw.rotation.x=.25; aw.castShadow=true; s.add(aw);
+      const roll=new THREE.Mesh(new THREE.CylinderGeometry(.22,.22,1.4,10),bat[(k+1)%3]); roll.rotation.z=Math.PI/2; roll.position.set(-.5,1.22,0); s.add(roll);
+      s.add(box(.9,.35,.9,cols[(k*2+1)%6],.7,1.17,.1)); g.add(s); });
+    g.add(cyl(.1,.1,3.6,6,NY.teak,-4.5,1.8,3)); g.add(cyl(.1,.1,3.6,6,NY.teak,4.5,1.8,3));
+    const line=cyl(.03,.03,9,4,C.dark,0,3.4,3); line.rotation.z=Math.PI/2; g.add(line);
+    const shirts=cols.map((c,k)=>{ const s=new THREE.Group(); s.position.set(-3.6+k*1.45,3.4,3); const b=new THREE.Mesh(new THREE.PlaneGeometry(1,1.2), k%2?bat[k%3]:new THREE.MeshStandardMaterial({color:c,side:THREE.DoubleSide,roughness:.9})); b.position.y=-.65; b.castShadow=true; s.add(b); g.add(s); return s; });
+    A.push(t=>{ shirts.forEach((s,k)=>{ s.rotation.x=Math.sin(t*2+k*.7)*.25; }); });
+    return g; },
+  stage(A){ const g=new THREE.Group();
+    g.add(cyl(4.6,5,1,24,C.red,0,.5,0)); g.add(cyl(4.3,4.3,.15,24,C.gold,0,1.08,0));
+    // open-air Nanyang opera stage 戏台: red pillars, tiled roof with gold ridge
+    [[-3.4,-2.4],[3.4,-2.4],[-3.4,1.6],[3.4,1.6]].forEach(([x,z])=>g.add(cyl(.25,.28,5,8,C.red,x,3.6,z)));
+    g.add(box(7.8,.4,5,NY.teak,0,6.2,-.4)); g.add(prism(8.6,3.4,NY.tile,0,7.55,-.4,.6)); g.add(box(8.8,.22,.3,C.gold,0,9.05,-.4));
+    g.add(box(3,.8,.12,C.gold,0,5.6,1.65));
+    lanterns(g,-3.4,1.6,3.4,1.6,5.4,5);
+    const tr=new THREE.Group(); tr.position.set(0,1.15,0); const gm=M(C.gold,{metalness:.5,roughness:.35,emissive:0x6b4a00,emissiveIntensity:.35});
+    tr.add(mesh(new THREE.BoxGeometry(1.2,.6,1.2),gm,0,.3,0)); tr.add(mesh(new THREE.CylinderGeometry(.18,.25,1,8),gm,0,1.1,0)); tr.add(mesh(new THREE.CylinderGeometry(1,.45,1.4,12),gm,0,2.2,0));
+    [-1,1].forEach(s=>{ const h=new THREE.Mesh(new THREE.TorusGeometry(.38,.09,6,12),gm); h.position.set(s*1,2.3,0); h.rotation.y=Math.PI/2; tr.add(h); }); g.add(tr);
+    // kopitiam shophouse for the 点餐 lesson
+    const kp=shophouse(NY.butter,3,3); kp.position.set(6.2,0,-1); kp.rotation.y=-Math.PI/2; g.add(kp);
+    [[5.6,2.6],[7,3.4]].forEach(([x,z])=>{ g.add(cyl(.55,.55,.08,10,C.white,x,.95,z)); g.add(cyl(.06,.06,.9,5,C.dark,x,.48,z)); });
+    const sp=[]; for(let k=0;k<7;k++){ const o=mesh(new THREE.OctahedronGeometry(.32,0), C.gold, 0,0,0,{emissive:0xffcc33,emissiveIntensity:.8}); g.add(o); sp.push(o); }
+    A.push(t=>{ tr.rotation.y=t*.5; sp.forEach((o,k)=>{ const a=t*.6+k/7*Math.PI*2; o.position.set(Math.cos(a)*2.6,3.2+Math.sin(t*1.5+k)*.5,Math.sin(a)*2.6); o.rotation.y=t*2; }); });
+    return g; }
+};
+
+function buildIsland(d, i){
+  const r=d.r||10.5, rr=rng(i*97+13);
+  const g=new THREE.Group(); g.position.set(d.pos[0],0,d.pos[1]); g.userData.idx=i;
+  g.add(mesh(new THREE.CylinderGeometry(r*1.25,r*1.7,6,22),0xc8b07a,0,-3.2,0));
+  g.add(mesh(wobble(new THREE.CylinderGeometry(r*1.12,r*1.26,1.4,22),i,i*2),0xead6a1,0,.45,0));
+  g.add(mesh(wobble(new THREE.CylinderGeometry(r,r*1.06,1.4,22),i,i*2),new THREE.Color(d.grass).multiplyScalar(.78).getHex(),0,1.5,0));
+  for(let k=0;k<5;k++){ const a=rr()*Math.PI*2; if(Math.abs(Math.sin(a)-1)<.5) continue; const x=Math.cos(a)*r*.84, z=Math.sin(a)*r*.84; const kind=k%3; if(kind===2) frangipani(g,x,z); else if(kind===1) banana(g,x,z,.85); else palm(g, x, z, .8+rr()*.35, rr); }
+  const A=[]; const lm=LM[d.lm](A,r); lm.position.y=2.2; g.add(lm);
+  // number post (gold flag pole with module colour)
+  // clouds over locked islands
+  const clouds=new THREE.Group(); const cm=new THREE.MeshStandardMaterial({color:0xffffff,roughness:1,flatShading:true,transparent:true,opacity:.96});
+  for(let k=0;k<9;k++){ const a=k/9*Math.PI*2+rr(); const s=3+rr()*2.8; const c=new THREE.Mesh(new THREE.IcosahedronGeometry(s,1),cm); c.position.set(Math.cos(a)*r*.55,8+rr()*4,Math.sin(a)*r*.55); clouds.add(c); }
+  { const top=new THREE.Mesh(new THREE.IcosahedronGeometry(6,1),cm); top.position.set(0,11,0); clouds.add(top); }
+  g.add(clouds);
+  scene.add(g);
+  const k0=isUnlocked(i)?0:1; clouds.scale.setScalar(k0||.001); clouds.visible=!!k0;
+  isles[i]={group:g, clouds, cloudK:k0, anim:A, r};
+}
+
+function buildRoute(){
+  const pts=ISLANDS.map(d=>new THREE.Vector3(d.pos[0],.4,d.pos[1]));
+  const curve=new THREE.CatmullRomCurve3(pts,false,"catmullrom",.4);
+  const N=150, geo=new THREE.SphereGeometry(.42,6,4);
+  routeDots=[];
+  for(let k=0;k<=N;k++){ const u=k/N, p=curve.getPointAt(u);
+    // skip dots inside islands
+    if(ISLANDS.some(d=>Math.hypot(p.x-d.pos[0],p.z-d.pos[1])<(d.r||10.5)*1.3)) continue;
+    const seg=Math.min(ISLANDS.length-2, Math.floor(u*(ISLANDS.length-1)));
+    const m=new THREE.Mesh(geo, new THREE.MeshStandardMaterial({color:0xffffff,roughness:.6})); m.position.copy(p); scene.add(m); routeDots.push({m,seg}); }
+}
+function refreshRoute(){ routeDots.forEach(({m,seg})=>{ m.material.color.setHex(starsOf(seg)>=1||state.teacher ? 0xf2c14e : 0xffffff); m.material.emissive=new THREE.Color(starsOf(seg)>=1?0x7a5200:0x000000); }); }
+
+function readTheme(){ const cs=getComputedStyle(document.documentElement); return {sky:cs.getPropertyValue("--sky").trim()||"#bfe2ec", fog:cs.getPropertyValue("--fog").trim()||"#cfe8ef", sea:cs.getPropertyValue("--sea").trim()||"#2a8ea6"}; }
+function applyTheme(){ if(!scene) return; const t=readTheme(); scene.background=new THREE.Color(t.sky); scene.fog=new THREE.Fog(t.fog,170,460); ocean.material.color.set(t.sea);
+  const dark=document.documentElement.dataset.theme==="dark"||(document.documentElement.dataset.theme!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);
+  hemi.intensity=dark?.45:.8; sun.intensity=dark?.55:.95; sun.color.set(dark?0xc9d6ff:0xfff1dc); }
+
+function initScene(){
+  const canvas=$("#scene");
+  renderer=new THREE.WebGLRenderer({canvas, antialias:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+  renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  scene=new THREE.Scene();
+  camera=new THREE.PerspectiveCamera(42,1,.5,1000);
+  controls=new THREE.OrbitControls(camera, canvas);
+  controls.enableDamping=true; controls.dampingFactor=.08; controls.maxPolarAngle=1.32; controls.minDistance=14; controls.maxDistance=300; controls.screenSpacePanning=false;
+  hemi=new THREE.HemisphereLight(0xffffff,0x6f8f5c,.8); scene.add(hemi);
+  sun=new THREE.DirectionalLight(0xfff1dc,.95); sun.position.set(-70,110,60); sun.castShadow=true; sun.shadow.mapSize.set(2048,2048);
+  Object.assign(sun.shadow.camera,{left:-120,right:120,top:120,bottom:-120,near:10,far:320}); sun.shadow.bias=-.0008; scene.add(sun);
+  const og=new THREE.PlaneGeometry(800,800,96,96); og.rotateX(-Math.PI/2);
+  ocean=new THREE.Mesh(og,new THREE.MeshStandardMaterial({color:0x2a8ea6,roughness:.55,metalness:.05,flatShading:true})); ocean.receiveShadow=true; scene.add(ocean);
+  oceanBase=Float32Array.from(og.attributes.position.array);
+  ISLANDS.forEach(buildIsland); buildRoute(); refreshRoute(); applyTheme();
+  [[-12,30,6,.16,NY.lantern,C.gold],[20,-2,5,-.2,C.gold,NY.shutter],[-28,-12,5,.18,NY.shutter,NY.lantern]].forEach(([cx,cz,R,sp,a,b])=>{ const bt=perahu(a,b); bt.scale.setScalar(1.1); scene.add(bt);
+    seaBoats.push(t=>{ const ang=t*sp; bt.position.set(cx+Math.cos(ang)*R,.2+Math.sin(t*1.5+cx)*.15,cz+Math.sin(ang)*R); bt.rotation.y=-ang+(sp>0?Math.PI:0); bt.rotation.z=Math.sin(t*1.2+cz)*.06; }); });
+  matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change",applyTheme);
+  new MutationObserver(applyTheme).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+  resize(); setOverview(true);
+  // picking
+  const ray=new THREE.Raycaster(), ndc=new THREE.Vector2(); let down=null;
+  canvas.addEventListener("pointerdown",e=>{ down=[e.clientX,e.clientY]; if(fly){ fly=null; controls.enabled=true; } });
+  canvas.addEventListener("pointerup",e=>{ if(!down) return; const dx=e.clientX-down[0], dy=e.clientY-down[1]; down=null; if(dx*dx+dy*dy>49) return;
+    const rc=canvas.getBoundingClientRect(); ndc.set((e.clientX-rc.left)/rc.width*2-1, -(e.clientY-rc.top)/rc.height*2+1); ray.setFromCamera(ndc,camera);
+    const hit=ray.intersectObjects(isles.map(o=>o.group),true)[0]; if(!hit) return; let o=hit.object; while(o && o.userData.idx===undefined) o=o.parent; if(o) openIsland(o.userData.idx); });
+  requestAnimationFrame(loop);
+}
+
+function aspect(){ return innerWidth/Math.max(1,innerHeight); }
+function setOverview(instant){
+  const a=aspect(), fov=camera.fov*Math.PI/180, hf=2*Math.atan(Math.tan(fov/2)*a);
+  let dir, half;
+  if(a<1){ dir=new THREE.Vector3(1,1.3,.2).normalize(); half=60; } else { dir=new THREE.Vector3(0,.9,1).normalize(); half=90; }
+  const dist=Math.min(290, Math.max(half/Math.tan(hf/2), (a<1?66:44)/Math.tan(fov/2)));
+  const tgt=new THREE.Vector3(CENTER.x,0,CENTER.z), pos=tgt.clone().add(dir.multiplyScalar(dist));
+  go(pos,tgt,instant?0:1100);
+}
+function focusIsland(i){ const d=ISLANDS[i], a=aspect(); const tgt=new THREE.Vector3(d.pos[0],3.5,d.pos[1]); const f=a<.8?1.55:1; const pos=tgt.clone().add(new THREE.Vector3(12*f,22*f,30*f)); go(pos,tgt,1100); }
+function go(pos,tgt,dur){ if(!dur){ camera.position.copy(pos); controls.target.copy(tgt); controls.update(); return; } fly={p0:camera.position.clone(),t0:controls.target.clone(),p1:pos,t1:tgt,s:performance.now(),dur}; controls.enabled=false; }
+const ease = k => k<.5 ? 4*k*k*k : 1-Math.pow(-2*k+2,3)/2;
+
+function resize(){ if(!renderer) return; const w=innerWidth, h=innerHeight; renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); applyOffset(); }
+function applyOffset(){ const w=innerWidth, h=innerHeight; if(Math.abs(viewOff.x)<.5 && Math.abs(viewOff.y)<.5){ camera.clearViewOffset(); } else camera.setViewOffset(w,h,viewOff.x,viewOff.y,w,h); }
+function updateOffsetGoal(){ const p=$("#panel"), s=$("#side"); const el=!p.hidden?p:(!s.hidden?s:null); if(!el){ viewOffGoal={x:0,y:0}; return; }
+  if(innerWidth<=720) viewOffGoal={x:0,y:el.offsetHeight/2}; else viewOffGoal={x:(el.offsetWidth+16)/2,y:0}; }
+
+function loop(now){
+  requestAnimationFrame(loop);
+  if(document.hidden) return;
+  const dt=Math.min(.05,(now-lastNow)/1000); lastNow=now; if(animOn) simT+=dt;
+  if(fly){ const k=Math.min(1,(now-fly.s)/fly.dur), e=ease(k); camera.position.lerpVectors(fly.p0,fly.p1,e); controls.target.lerpVectors(fly.t0,fly.t1,e); if(k>=1){ fly=null; controls.enabled=true; } }
+  // view offset easing
+  viewOff.x+=(viewOffGoal.x-viewOff.x)*Math.min(1,dt*7); viewOff.y+=(viewOffGoal.y-viewOff.y)*Math.min(1,dt*7); applyOffset();
+  controls.update();
+  if(animOn){ const p=ocean.geometry.attributes.position, b=oceanBase, t=simT; for(let i=0;i<p.count;i++){ const x=b[i*3], z=b[i*3+2]; p.array[i*3+1]=Math.sin(x*.07+t*.9)*.38+Math.cos(z*.06+t*.7)*.32; } p.needsUpdate=true; }
+  seaBoats.forEach(f=>f(simT));
+  isles.forEach((o,i)=>{ o.anim.forEach(f=>f(simT)); const goal=isUnlocked(i)?0:1; if(Math.abs(o.cloudK-goal)>.001){ o.cloudK+=(goal-o.cloudK)*Math.min(1,dt*2.2); if(Math.abs(o.cloudK-goal)<.01) o.cloudK=goal; } o.clouds.visible=o.cloudK>.01; o.clouds.scale.setScalar(Math.max(.001,o.cloudK)); o.clouds.rotation.y=simT*.05; });
+  renderer.render(scene,camera);
+  placeLabels();
+}
+
+/* ============================== labels ============================== */
+const labelsEl=$("#labels"); const lbls=[];
+function buildLabels(){ ISLANDS.forEach((d,i)=>{ const b=document.createElement("button"); b.type="button"; b.className="lbl"; b.addEventListener("click",()=>openIsland(i)); labelsEl.appendChild(b); lbls.push(b); }); refreshLabels(); }
+function refreshLabels(){ ISLANDS.forEach((d,i)=>{ const un=isUnlocked(i), b=lbls[i]; if(!b) return; b.classList.toggle("locked",!un);
+  b.setAttribute("aria-label",`${d.no} ${d.name}${un?"":"（未解锁）"}，${starsOf(i)} 颗星`);
+  b.innerHTML=`<span class="lbl-no">${d.no}</span><span class="lbl-name">${d.name}</span>${un?`<span class="lbl-stars">${stars3(starsOf(i))}</span>`:LOCK}${i===NOW_IDX?'<span class="now">本周</span>':""}`; });
+  $("#starCount").textContent=Object.values(state.stars).reduce((a,b)=>a+b,0);
+  $("#weekNow").textContent = WEEK==="break" ? "期中假" : (typeof WEEK==="number" ? `本周 Week ${WEEK}` : "");
+  if(scene) refreshRoute(); }
+const pv = window.THREE ? new THREE.Vector3() : null;
+function placeLabels(){ const w=innerWidth,h=innerHeight; ISLANDS.forEach((d,i)=>{ const b=lbls[i]; pv.set(d.pos[0], isUnlocked(i)?17:19, d.pos[1]).project(camera);
+  if(i===cur||pv.z>1||pv.x<-1.2||pv.x>1.2||pv.y<-1.2||pv.y>1.2){ b.style.display="none"; return; } b.style.display=""; b.style.transform=`translate(${(pv.x*.5+.5)*w}px,${(-pv.y*.5+.5)*h}px) translate(-50%,-100%)`; }); }
+
+/* ============================== panel ============================== */
+const panel=$("#panel"), side=$("#side");
+let cur=-1, tab="explore", quiz=null;
+const X_SVG=`<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>`;
+
+function openIsland(i){
+  const d=ISLANDS[i];
+  if(!isUnlocked(i)){ toast(`先在 ${ISLANDS[i-1].no}「${ISLANDS[i-1].name}」闯关拿到至少 1 颗星，才能登上这座岛。`); if(scene) focusIsland(i); return; }
+  side.hidden=true; cur=i; tab="explore"; quiz=null; renderPanel(); panel.hidden=false; panel.querySelector(".d-body").scrollTop=0;
+  updateOffsetGoal(); if(scene) focusIsland(i);
+}
+function closePanel(){ panel.hidden=true; cur=-1; quiz=null; if(hasTTS) speechSynthesis.cancel(); updateOffsetGoal(); }
+
+function renderPanel(){
+  const d=ISLANDS[cur], st=starsOf(cur);
+  panel.innerHTML=`
+   <div class="d-head">
+     <button class="d-close" type="button" id="pClose" aria-label="关闭">${X_SVG}</button>
+     <div class="chip"><b>${d.no}</b> Module ${cur+1} · ${weeksTxt(d.weeks)}${cur===NOW_IDX?" · 本周":""}</div>
+     <h2 class="d-title">${d.name}</h2>
+     <p class="d-sub">${d.py} · ${d.en}</p>
+     <dl class="meta"><dt>主题</dt><dd>${d.module} <span style="color:var(--muted)">${d.moduleEn}</span></dd><dt>课本</dt><dd>${d.lesson}</dd><dt>评估</dt><dd>${d.assess}</dd></dl>
+     <div class="tabs" role="tablist">
+       <button class="tab" role="tab" id="tExplore" aria-selected="${tab==="explore"}" type="button">探索 Explore</button>
+       <button class="tab" role="tab" id="tQuiz" aria-selected="${tab==="quiz"}" type="button">闯关 <span class="lbl-stars" style="display:flex">${stars3(st)}</span></button>
+     </div>
+   </div>
+   <div class="d-body" id="pBody"></div>`;
+  $("#pClose").onclick=closePanel;
+  $("#tExplore").onclick=()=>{ tab="explore"; quiz=null; renderPanel(); };
+  $("#tQuiz").onclick=()=>{ tab="quiz"; renderPanel(); };
+  const body=$("#pBody");
+  if(tab==="explore") body.innerHTML=exploreHTML(d); else renderQuiz(body);
+  body.querySelectorAll("[data-say]").forEach(b=>b.addEventListener("click",()=>speak(b.dataset.say)));
+}
+
+function exploreHTML(d){
+  return d.spots.map(s=>`
+   <section class="spot">
+     <h3 class="spot-h"><span class="tag">地标</span>${esc(s.h)}<span class="en">${esc(s.en)}</span></h3>
+     ${s.v?`<div class="vocab">${s.v.map(([hz,py,en])=>`<button class="v" type="button" data-say="${esc(hz.split(" / ")[0])}">${SPK}<span class="hz">${esc(hz)}</span><span class="py">${esc(py)}</span><span class="en">${esc(en)}</span></button>`).join("")}</div>`:""}
+     ${s.p?`<div class="pats">${s.p.map(([zh,py,en])=>`<button class="pat" type="button" data-say="${esc(zh)}">${SPK}<span class="zh">${esc(zh)}</span><span class="py">${esc(py)}</span><span class="en">${esc(en)}</span></button>`).join("")}</div>`:""}
+     ${s.tips?`<ul class="tips">${s.tips.map(t=>t.r?`<li>${esc(t.r)}</li>`:`<li class="err"><span class="wrong">${esc(t.w)}</span> → <span class="right">${esc(t.ok)}</span><span class="why">${esc(t.why)}</span></li>`).join("")}</ul>`:""}
+   </section>`).join("") + `<button class="btn" type="button" onclick="tab='quiz';renderPanel()">去闯关</button>`;
+}
+
+/* ---------- quiz ---------- */
+function buildQuiz(i){
+  const d=ISLANDS[i];
+  let qs;
+  if(d.mixed){ const pool=ISLANDS.slice(0,8).flatMap(x=>x.quiz.map(q=>Object.assign({from:x.no},q))); qs=shuffle(d.quiz).concat(shuffle(pool).slice(0,7)); qs=shuffle(qs); }
+  else qs=shuffle(d.quiz).slice(0,5);
+  return {i, qs:qs.map(q=>Object.assign({}, q, {opts:shuffle([q.a].concat(q.d))})), k:-1, score:0, res:[], picked:null};
+}
+function renderQuiz(body){
+  const d=ISLANDS[cur];
+  if(!quiz || quiz.i!==cur){ const n=d.mixed?10:5, need=Math.ceil(n*.6);
+    body.innerHTML=`<div class="start"><h3>${d.name} · 闯关挑战</h3>
+      <ul><li>共 ${n} 题，题目和选项顺序每次都会打乱。</li><li>答对 ${need} 题得 1 颗星${cur<8?`，并解锁下一座岛 ${ISLANDS[cur+1].no}「${ISLANDS[cur+1].name}」`:""}。</li><li>答对 ${Math.ceil(n*.8)} 题得 2 颗星，全对得 3 颗星。</li>${d.mixed?"<li>终点舞台的题目来自全学期九个岛。</li>":""}<li>带“听一听”的题目请打开声音。</li></ul>
+      <p style="margin:0;color:var(--muted);font-size:13px">最佳成绩：${stars3(starsOf(cur))}</p>
+      <button class="btn" type="button" id="qGo">开始闯关</button></div>`;
+    $("#qGo").onclick=()=>{ quiz=buildQuiz(cur); quiz.k=0; renderQuiz(body); speakIfListen(); };
+    return; }
+  if(quiz.k>=quiz.qs.length) return renderResult(body);
+  const q=quiz.qs[quiz.k], n=quiz.qs.length;
+  body.innerHTML=`
+    <div class="q-top"><span>第 ${quiz.k+1} / ${n} 题${q.from?` · 来自 ${q.from}`:""}</span><span class="dots">${quiz.qs.map((_,j)=>`<i class="${j<quiz.k?(quiz.res[j]?"ok":"no"):(j===quiz.k?"cur":"")}"></i>`).join("")}</span></div>
+    <p class="q-text">${esc(q.q)}</p>
+    ${q.au?`<button class="play" type="button" id="qPlay"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>播放 Play</button>${hasTTS?"":`<span class="apy">（此设备不能朗读，拼音：${esc(q.apy)}）</span>`}`:""}
+    <div class="opts">${q.opts.map((o,j)=>`<button class="opt" type="button" data-j="${j}"><span class="k">${"ABCD"[j]}</span><span>${esc(o)}</span></button>`).join("")}</div>
+    <div id="qAfter"></div>`;
+  if(q.au) $("#qPlay").onclick=()=>speak(q.au);
+  body.querySelectorAll(".opt").forEach(b=>b.addEventListener("click",()=>answer(+b.dataset.j, body)));
+}
+function speakIfListen(){ const q=quiz&&quiz.qs[quiz.k]; if(q&&q.au) speak(q.au); }
+function answer(j, body){
+  const q=quiz.qs[quiz.k]; if(quiz.res.length>quiz.k) return;
+  const ok=q.opts[j]===q.a; quiz.res.push(ok); if(ok) quiz.score++;
+  body.querySelectorAll(".opt").forEach((b,k)=>{ b.disabled=true; if(q.opts[k]===q.a) b.classList.add("ok"); else if(k===j) b.classList.add("no"); });
+  const last=quiz.k===quiz.qs.length-1;
+  $("#qAfter").innerHTML=`<div class="explain"><b style="color:${ok?"var(--ok)":"var(--bad)"}">${ok?"答对了！":"再想想："}</b> 正确答案是「${esc(q.a)}」。${q.x?esc(q.x):""}${q.au?` <span class="apy">（${esc(q.au)} · ${esc(q.apy)}）</span>`:""}</div>
+    <div class="row" style="margin-top:12px"><button class="btn" type="button" id="qNext">${last?"看成绩":"下一题"}</button></div>`;
+  const dots=body.querySelectorAll(".dots i"); dots[quiz.k].className=ok?"ok":"no";
+  $("#qNext").onclick=()=>{ quiz.k++; renderQuiz(body); speakIfListen(); };
+  $("#qNext").focus();
+}
+function renderResult(body){
+  const n=quiz.qs.length, sc=quiz.score, r=sc/n, st=r>=1?3:r>=.8?2:r>=.6?1:0;
+  const prev=starsOf(cur), wasLocked=cur<8 && !isUnlocked(cur+1);
+  if(st>prev){ state.stars[cur]=st; save(); }
+  const newly = wasLocked && isUnlocked(cur+1);
+  refreshLabels(); $("#tQuiz").innerHTML=`闯关 <span class="lbl-stars" style="display:flex">${stars3(starsOf(cur))}</span>`;
+  const msg = st===3?"满分！太棒了！": st===2?"很好！差一点就满分。": st===1?"过关了！再练练可以拿更多星。":"还差一点，回到「探索」复习一下再来。";
+  body.innerHTML=`<div class="result">
+    <div class="stars">${stars3(st)}</div>
+    <div class="big">${sc} / ${n}</div>
+    <p style="margin:0">${msg}</p>
+    ${st>prev&&prev>0?`<p style="margin:0;color:var(--muted)">刷新最佳成绩：${prev} → ${st} 颗星</p>`:""}
+    ${newly?`<p class="unlock" style="margin:0">云雾散开了！新岛屿已解锁：${ISLANDS[cur+1].no}「${ISLANDS[cur+1].name}」</p>`:""}
+    ${cur===8&&st>0?`<p class="unlock" style="margin:0">恭喜你走完整个学期的知识群岛！</p>`:""}
+    <div class="row" style="justify-content:center;margin-top:8px">
+      <button class="btn ghost" type="button" id="rAgain">再挑战一次</button>
+      ${cur<8&&isUnlocked(cur+1)?`<button class="btn" type="button" id="rNext">前往 ${ISLANDS[cur+1].name}</button>`:`<button class="btn" type="button" id="rExp">回到探索</button>`}
+    </div></div>`;
+  $("#rAgain").onclick=()=>{ quiz=buildQuiz(cur); quiz.k=0; renderQuiz(body); speakIfListen(); };
+  const nx=$("#rNext"); if(nx) nx.onclick=()=>openIsland(cur+1);
+  const ex=$("#rExp"); if(ex) ex.onclick=()=>{ tab="explore"; quiz=null; renderPanel(); };
+}
+
+/* ============================== list & settings ============================== */
+function openSide(kind){
+  panel.hidden=true; cur=-1;
+  if(kind==="list"){
+    side.innerHTML=`<div class="d-head"><button class="d-close" type="button" id="sClose" aria-label="关闭">${X_SVG}</button><div class="chip">地点清单 · 9 Modules</div><h2 class="d-title">群岛航线</h2><p class="d-sub">一座岛 = 一个 Module。按顺序闯关，云雾会一座一座散开。</p></div>
+      <div class="d-body">${HAS3D?"":`<p class="notice">这台设备无法显示 3D 地图，不过可以直接从清单进入每座岛学习和闯关。</p>`}<div class="list">${ISLANDS.map((d,i)=>{ const un=isUnlocked(i); return `<button class="li ${un?"":"locked"}" type="button" data-i="${i}"><span class="n">${d.no}</span><span><span class="nm">${d.name}</span><span class="ds">${d.module} · ${weeksTxt(d.weeks)}${i===NOW_IDX?" · 本周":""}</span></span><span class="rt">${un?`<span class="lbl-stars" style="display:flex">${stars3(starsOf(i))}</span>`:LOCK+"未解锁"}</span></button>`; }).join("")}</div></div>`;
+    side.querySelectorAll(".li").forEach(b=>b.onclick=()=>openIsland(+b.dataset.i));
+  } else {
+    side.innerHTML=`<div class="d-head"><button class="d-close" type="button" id="sClose" aria-label="关闭">${X_SVG}</button><div class="chip">设置</div><h2 class="d-title">设置</h2><p class="d-sub">进度只保存在这台设备的浏览器里。</p></div>
+      <div class="d-body"><div class="set">
+        <button class="switch" type="button" role="switch" id="swT" aria-checked="${state.teacher}"><span><b>教师模式：解锁全部岛屿</b><small>上课演示用。学生的星星不会改变。</small></span><span class="tr"></span></button>
+        <button class="switch" type="button" role="switch" id="swM" aria-checked="${animOn}"><span><b>动态效果</b><small>海浪、灯塔、巴士等动画。</small></span><span class="tr"></span></button>
+        <div class="row"><button class="btn ghost" type="button" id="rst">重置全部进度</button></div>
+        <p style="margin:0;color:var(--muted);font-size:12.5px">内容来源：LEM-1401 / LM-1403 全学期教学大纲、Week 7 与 Week 8 Online Notes。课本：《轻松学中文 1》。</p>
+      </div></div>`;
+    $("#swT").onclick=e=>{ state.teacher=!state.teacher; save(); e.currentTarget.setAttribute("aria-checked",state.teacher); refreshLabels(); toast(state.teacher?"已解锁全部岛屿（教师模式）":"已关闭教师模式"); };
+    $("#swM").onclick=e=>{ setAnim(!animOn); e.currentTarget.setAttribute("aria-checked",animOn); };
+    let armed=false; $("#rst").onclick=e=>{ if(!armed){ armed=true; e.currentTarget.textContent="再点一次确认重置"; e.currentTarget.style.borderColor="var(--bad)"; e.currentTarget.style.color="var(--bad)"; return; } state={stars:{},teacher:false}; save(); refreshLabels(); openSide("settings"); toast("进度已重置"); };
+  }
+  $("#sClose").onclick=()=>{ side.hidden=true; updateOffsetGoal(); };
+  side.hidden=false; updateOffsetGoal();
+}
+function setAnim(on){ animOn=on; const b=$("#bMotion"); b.setAttribute("aria-pressed",!on); b.querySelector("span").textContent=on?"暂停动态":"恢复动态"; b.querySelector("svg").innerHTML=on?'<path d="M10 5v14M14 5v14"/>':'<path d="M8 5v14l11-7z"/>'; }
+
+$("#bList").onclick=()=>openSide("list");
+$("#bSet").onclick=()=>openSide("settings");
+$("#bHome").onclick=()=>{ closePanel(); side.hidden=true; updateOffsetGoal(); if(scene) setOverview(false); };
+$("#bMotion").onclick=()=>setAnim(!animOn);
+addEventListener("keydown",e=>{ if(e.key==="Escape"){ if(!panel.hidden) closePanel(); else if(!side.hidden){ side.hidden=true; updateOffsetGoal(); } } });
+addEventListener("resize",()=>{ resize(); updateOffsetGoal(); });
+
+/* ============================== boot ============================== */
+setAnim(animOn);
+if(HAS3D){ buildLabels(); initScene(); }
+else { $("#hint").hidden=true; refreshLabels(); openSide("list"); }
+</script>
+
+</body>
+</html>
