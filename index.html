@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>华语一知识群岛</title>
+<title>Mandarin 1的知识群岛</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Sans+SC:wght@400;500;700&display=swap">
@@ -96,6 +96,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .tab{flex:1;border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:9px 10px;font-weight:700;font-size:14px;display:flex;justify-content:center;align-items:center;gap:8px}
 .tab[aria-selected="true"]{background:var(--red);color:var(--red-ink);border-color:var(--red)}
 .tab[aria-selected="true"] .star.on{fill:var(--red-ink)} .tab[aria-selected="true"] .star.off{stroke:var(--red-ink)}
+.d-body>*{flex-shrink:0}
 .d-body{flex:1;overflow-y:auto;padding:16px 20px 28px;display:flex;flex-direction:column;gap:18px;overscroll-behavior:contain}
 
 /* explore */
@@ -179,6 +180,10 @@ ruby{ruby-position:over;ruby-align:center}
 rt{font-family:var(--f-body);font-size:max(.5em,9px);font-weight:400;letter-spacing:0;color:var(--red);line-height:1.15;text-transform:none}
 .tab[aria-selected="true"] rt,.btn rt,.lbl-no rt,.play rt,.opt.ok rt,.opt.no rt{color:inherit}
 body.nopy rt{display:none}
+.enbtn{display:inline-flex;align-items:center;margin-left:6px;vertical-align:middle;border:1px solid var(--gold);color:var(--gold);background:transparent;border-radius:999px;padding:0 8px;font-size:11px;font-weight:700;line-height:18px;letter-spacing:.04em}
+.enbtn[aria-expanded="true"]{background:var(--gold);color:var(--panel)}
+.enx{display:block;margin-top:6px;padding:6px 10px;border-left:3px solid var(--gold);background:var(--panel);border-radius:6px;font-size:13px;line-height:1.5;color:var(--ink)}
+.btn.sm{padding:6px 12px;font-size:13px}
 .ui-en{font-family:var(--f-body);font-size:.8em;font-weight:400;letter-spacing:0;text-transform:none;opacity:.78;margin-left:.4em}
 .ui-en[data-b]{display:block;margin-left:0}
 body.noen .ui-en{display:none}
@@ -258,6 +263,29 @@ button.gcard:hover{border-color:var(--gold)}
 .item{border:1.5px solid var(--line);background:var(--panel);border-radius:12px;padding:10px;display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left}
 .item:hover:not(:disabled){border-color:var(--gold)}.item:disabled{opacity:.45;cursor:not-allowed}
 .price{display:flex;align-items:center;gap:4px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:4px}
+/* build map + sea farm */
+.subtabs{display:flex;gap:6px}.subtab{flex:1;border:1.5px solid var(--line);background:var(--panel);border-radius:12px;padding:8px;font-weight:700}
+.subtab[aria-selected="true"]{border-color:var(--gold);background:var(--gold-soft)}
+.subtab .ui-en{display:block;margin:0}
+.imap-wrap{position:sticky;top:-16px;z-index:3;background:var(--panel);padding:8px 0;display:flex;flex-direction:column;gap:6px;box-shadow:0 10px 12px -10px rgba(0,0,0,.25)}
+.imap{position:relative;width:min(100%,300px,34vh);aspect-ratio:1;margin:0 auto;border-radius:50%;background:radial-gradient(circle,#2fe0cf 0 58%,#1aa8c8 72%,transparent 73%)}
+.iland{position:absolute;inset:16%;border-radius:47% 53% 50% 50%/52% 48% 52% 48%;background:radial-gradient(circle at 45% 40%,#79cf5a 0 55%,#f4dca0 68%)}
+.icore{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:var(--f-display);font-size:18px;color:#24401c;opacity:.7;pointer-events:none;text-align:center}
+.plot{position:absolute;transform:translate(-50%,-50%);width:27%;min-height:52px;border-radius:14px;border:2px dashed rgba(255,255,255,.85);background:rgba(255,255,255,.28);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:4px;color:#24301f;font-size:13px;touch-action:none}
+.plot i{font-style:normal;font-weight:800;font-size:11px;background:#24301f;color:#fff;border-radius:999px;padding:0 6px}
+.plot.on{border-style:solid;border-color:var(--ok);background:rgba(255,255,255,.92)}
+.plot.sel,.item.sel{box-shadow:0 0 0 3px var(--gold)}
+.plot.over{border-color:var(--gold);background:var(--gold-soft);transform:translate(-50%,-50%) scale(1.08)}
+.plot .ph{font-size:12px;opacity:.85}
+.item.off{opacity:.45}
+.item{cursor:grab;user-select:none;-webkit-user-select:none}
+.dragging{opacity:.35}
+.drag-ghost{position:fixed;z-index:50;pointer-events:none;opacity:.92;transform:rotate(-3deg) scale(1.05);box-shadow:var(--shadow)}
+.item .py{font-size:12px;color:var(--red)}
+.mysea{display:flex;flex-wrap:wrap;gap:6px}
+.seachip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:3px 4px 3px 10px;background:var(--panel)}
+.seachip .say{border:0;background:transparent;font-size:17px;padding:0}.seachip .en{font-size:12px;color:var(--muted)}
+.seachip .rmc{border:0;width:24px;height:24px;border-radius:50%;background:var(--panel-2);font-weight:800}
 /* my progress */
 .sum{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
 .sum div{display:flex;flex-direction:column;align-items:center;padding:10px 4px;border-radius:12px;background:var(--panel-2)}
@@ -301,12 +329,12 @@ textarea{resize:vertical;font-size:12px;font-family:ui-monospace,Menlo,monospace
     <div class="brand">
       <div class="seal" aria-hidden="true">华</div>
       <div style="min-width:0">
-        <h1>华语一知识群岛</h1>
-        <p>Mandarin 1 Knowledge Isles · LEM-1401 / LM-1403 · AY 2026/27 S1 · 郑国俊老师 Mr Tay</p>
+        <h1>Mandarin 1的知识群岛</h1>
+        <p>Mandarin 1 Knowledge Isles</p>
       </div>
       <div class="prog" title="已获得的星星">
         <svg class="star on" viewBox="0 0 24 24" style="width:20px;height:20px"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6L2.5 9.4l6.6-.8z"/></svg>
-        <div><span id="starCount">0</span>/27<small id="weekNow"></small></div>
+        <div><span id="starCount">0</span>/27<small>星星<span class=ui-en>stars</span></small></div>
         <span class="coin" aria-hidden="true" style="margin-left:8px"></span><div><span id="coinCount">0</span><small>椰子币<span class=ui-en>coins</span></small></div>
       </div>
     </div>
@@ -321,7 +349,7 @@ textarea{resize:vertical;font-size:12px;font-family:ui-monospace,Menlo,monospace
     </nav>
   </header>
 
-  <div class="zoomer" id="zoomer" aria-label="缩放 Zoom">
+  <div class="zoomer" id="zoomer" aria-label="缩放 Zoom" hidden>
     <button type="button" id="zIn" title="放大 Zoom in" aria-label="放大 Zoom in"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
     <button type="button" id="zOut" title="缩小 Zoom out" aria-label="缩小 Zoom out"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
     <button type="button" id="zAll" title="看全部岛屿 See all islands" aria-label="看全部岛屿 See all islands"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
@@ -333,7 +361,7 @@ textarea{resize:vertical;font-size:12px;font-family:ui-monospace,Menlo,monospace
   <div id="toast" hidden role="status"></div>
   <div id="welcome" hidden><div class="wcard" role="dialog" aria-modal="true" aria-labelledby="wTitle">
     <div class="seal" aria-hidden="true" data-nopy>华</div>
-    <h2 id="wTitle">欢迎来到华语一知识群岛<span class=ui-en data-b>Welcome to the Mandarin 1 Knowledge Isles</span></h2>
+    <h2 id="wTitle">欢迎来到 Mandarin 1的知识群岛<span class=ui-en data-b>Welcome to the Mandarin 1 Knowledge Isles</span></h2>
     <p>九座南洋小岛，一座岛就是一个 Module。登岛学习、闯关拿星星、玩游戏赚椰子币，再用椰子币建设你自己的南洋岛。<span class=ui-en data-b>Nine Nanyang islands, one per Module. Study, win stars in quizzes, earn coconut coins in games, then build your own island.</span></p>
     <label for="nickIn">你的昵称 Nickname</label>
     <input id="nickIn" maxlength="16" autocomplete="nickname" placeholder="例如 Ali、小明">
@@ -342,10 +370,24 @@ textarea{resize:vertical;font-size:12px;font-family:ui-monospace,Menlo,monospace
   </div></div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/pinyin-pro@3.26.0/dist/index.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.7.2/dist/hanzi-writer.min.js"></script>
+<script type="importmap">{"imports":{"three":"./lib/three/build/three.module.js","three/addons/":"./lib/three/examples/jsm/"}}</script>
+<script type="module">
+import * as T from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { Sky } from "three/addons/objects/Sky.js";
+import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
+import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
+import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
+import { SimplexNoise } from "three/addons/math/SimplexNoise.js";
+import * as BGU from "three/addons/utils/BufferGeometryUtils.js";
+window.THREE = Object.assign({}, T, { OrbitControls, Sky, EffectComposer, RenderPass, UnrealBloomPass, ShaderPass, OutputPass, RoundedBoxGeometry, SimplexNoise, BGU });
+window.dispatchEvent(new Event("three-ready"));
+</script>
+<script src="lib/pinyin-pro.js"></script>
+<script src="lib/hanzi-writer.min.js"></script>
 <script>
 "use strict";
 /* ============================================================
@@ -371,7 +413,7 @@ const ISLANDS = [
   quiz:[
    {q:"“mǎ” 是第几声？", a:"第三声 3rd tone", d:["第一声 1st tone","第二声 2nd tone","第四声 4th tone"]},
    {q:"“hao” 的声调符号应标在哪个字母上？", a:"a", d:["h","o"], x:"有 a 标 a：hǎo。"},
-   {q:"“qu”（去）里的 u 实际读作？", a:"ü", d:["u","i","o"], x:"j、q、x 后的 u 都读 ü，只是省略了两点。"},
+   {q:"“qu”（去）里的 u 实际读作？", np:1, a:"ü", d:["u","i","o"], x:"j、q、x 后的 u 都读 ü，只是省略了两点。"},
    {q:"“你好” 实际读作？", a:"ní hǎo", d:["nǐ háo","nì hǎo","nī hǎo"], x:"两个三声相连，前一个变二声。", np:1},
    {q:"“不是” 里的 “不” 读？", a:"bú", d:["bù","bǔ","bū"], x:"“不”在四声前变二声：bú shì。", np:1},
    {q:"“人” 的笔顺是？", a:"撇、捺", d:["捺、撇","竖、横","横、撇"], x:"先撇后捺。"},
@@ -399,7 +441,7 @@ const ISLANDS = [
    {q:"“不客气” 的意思是？", a:"You're welcome", d:["Thank you","Sorry","Goodbye"]},
    {q:"别人对你说 “谢谢！”，你回答？", a:"不客气！", d:["没关系！","再见！","对不起！"]},
    {q:"听一听，你听到的是哪一个？", au:"再见", apy:"zàijiàn", a:"再见", d:["谢谢","你好","老师"]},
-   {q:"“他” 和 “她” 的读音？", a:"一样，都读 tā", d:["“她”读 tà","“他”读 tǎ","完全不一样"]} ] },
+   {q:"“他” 和 “她” 的读音？", np:1, a:"一样，都读 tā", d:["“她”读 tà","“他”读 tǎ","完全不一样"]} ] },
 
 { no:"M3", name:"日历钟楼", py:"Rìlì Zhōnglóu", en:"Calendar Clock Tower", module:"数字系统、日期与年龄", moduleEn:"Numbers, Calendar Dates & Age",
   weeks:[4], lesson:"Unit 2 Lesson 4《数字与日期》", assess:"生日与年龄日历调查",
@@ -420,7 +462,7 @@ const ISLANDS = [
    {q:"“37” 怎么说？", a:"三十七", d:["七十三","三七","三十和七"]},
    {q:"“星期六” 是？", a:"Saturday", d:["Sunday","Friday","Monday"]},
    {q:"哪一句是对的？", a:"我今年二十岁。", d:["我是二十岁。","我二十岁是。","我岁二十。"], x:"年龄不用“是”。"},
-   {q:"“2005年” 怎么读？", a:"èr líng líng wǔ nián", d:["èrshí líng wǔ nián","èr wǔ nián","wǔ líng líng èr nián"], x:"年份一个数字一个数字读。"},
+   {q:"“2005年” 怎么读？", np:1, a:"èr líng líng wǔ nián", d:["èrshí líng wǔ nián","èr wǔ nián","wǔ líng líng èr nián"], x:"年份一个数字一个数字读。"},
    {q:"中文日期的顺序是？", a:"年 → 月 → 日", d:["日 → 月 → 年","月 → 日 → 年","月 → 年 → 日"], x:"由大到小。"},
    {q:"问同学的年龄，哪一句最得体？", a:"你今年多大？", d:["你是几岁吗？","你多大岁？","你岁多大？"]},
    {q:"星期五的明天是？", a:"星期六", d:["星期四","星期天","星期一"]},
@@ -563,6 +605,8 @@ const ISLANDS = [
    {q:"“多少钱？” 问的是？", a:"价钱（price）", d:["时间（time）","年龄（age）","名字（name）"]},
    {q:"一___面", a:"碗", d:["杯","件","口"]} ] }
 ];
+const QUIZ_EN = {"哪一句是对的？": "Which sentence is correct?", "听一听，你听到的是？": "Listen. What did you hear?", "听一听，你听到的是哪一个？": "Listen. Which one did you hear?", "问职业：“你爸爸___？”": "Asking about jobs: complete the question about Dad.", "问电话号码，用哪个词？": "Which word do you use to ask for a phone number?", "问同学的年龄，哪一句最得体？": "Which is the most natural way to ask a classmate's age?", "问 “which” 用哪一个字？": "Which character means \"which\"?", "郑国俊老师姓什么？": "What is Mr Tay's surname?", "课本里，问家庭人数用哪个量词：你家有几___人？": "Which measure word does the textbook use when asking how many people are in a family?", "见到老师，最礼貌的问候是？": "What is the most polite greeting for a teacher?", "笔画 “丿” 叫什么？": "What is this stroke called?", "电话号码里的 “1” 读？": "How is \"1\" read in a phone number?", "爷爷奶奶以前工作，现在不工作了，可以说？": "Your grandparents used to work but don't any more. What can you say?", "注册表上的出生日期，规范写法是？": "What is the correct way to write a date of birth on a form?", "注册表 “性别” 一栏，男生写？": "In the gender box of the form, what does a male student write?", "星期五的明天是？": "Which day comes after Friday?", "在文莱，哪个颜色代表王室？": "Which colour stands for the royal family in Brunei?", "哪一句语序是对的？": "Which sentence has the right word order?", "哪一句是错的？": "Which sentence is wrong?", "听一听，你听到的日期是？": "Listen. What date did you hear?", "听一听，你听到的号码是？": "Listen. What number did you hear?", "别人对你说 “谢谢！”，你回答？": "Someone thanks you. How do you reply?", "写 “国” 字，最后一笔是？": "When writing this character, which stroke comes last?", "中文日期的顺序是？": "What order do Chinese dates use?", "中文地址的顺序是？": "What order do Chinese addresses use?", "一___面": "Fill in the measure word: a bowl of noodles.", "一___裤子": "Fill in the measure word: a pair of trousers.", "一___衬衫": "Fill in the measure word: a shirt.", "一___茶": "Fill in the measure word: a cup of tea.", "“黄色” 是？": "What does this word mean?", "“马来奕” 是文莱的哪个地方？": "Which place in Brunei is this?", "“要二十分钟” 的意思是？": "What does this phrase mean?", "“裙子” 是？": "What does this word mean?", "“船” 是？": "What does this word mean?", "“星期六” 是？": "What does this word mean?", "“新加坡” 是？": "What does this word mean?", "“护士” 是？": "What does this word mean?", "“妹妹” 是？": "What does this word mean?", "“出租车” 是？": "What does this word mean?", "“我是___。”（I am Bruneian.）": "Fill in the blank.", "“我住在加东。” 的意思是？": "What does this sentence mean?", "“我会说马来语和英语，___会说一点儿华语。”": "Fill in the blank: I speak Malay and English, and ___ a little Mandarin.", "“我___哥哥。”（I don't have an elder brother.）": "Fill in the blank.", "“多少钱？” 问的是？": "What does this question ask about?", "“你穿什么颜色的衣服？” 怎么回答？": "How do you answer this question?", "“你每天怎么来大学？” 问的是？": "What does this question ask about?", "“你好” 实际读作？": "How is this greeting actually pronounced?", "“你叫什么名字？” 怎么回答？": "How do you answer this question?", "“他” 和 “她” 的读音？": "How do these two characters sound?", "“人” 的笔顺是？": "What is the stroke order of this character?", "“不是” 里的 “不” 读？": "How is the first character pronounced here?", "“不客气” 的意思是？": "What does this phrase mean?", "“qu”（去）里的 u 实际读作？": "In \"qu\", what sound is the u really?", "“mǎ” 是第几声？": "Which tone is this syllable?", "“hao” 的声调符号应标在哪个字母上？": "Which letter takes the tone mark in \"hao\"?", "“___飞机”": "Which verb goes with \"plane\"?", "“___自行车”": "Which verb goes with \"bicycle\"?", "“37” 怎么说？": "How do you say 37?", "“2005年” 怎么读？": "How do you read the year 2005?", "___帽子": "Which verb goes with \"hat\"?"};
+const EXPLAIN_EN = {"标调顺序：有 a 标 a；没有 a，找 o 或 e；i 和 u 在一起，标在后面那个：guì、liù。": "Where the tone mark goes: on a if there is one; otherwise on o or e; when i and u are together, mark the second one: guì, liù.", "j、q、x 后面的 u 其实是 ü：ju = jü，qu = qü，xu = xü。": "After j, q and x, the letter u is really ü (the dots are just dropped): ju = jü, qu = qü, xu = xü.", "n、l 后面要保留两点：nǚ（女）、lǜ（绿）。": "After n and l you must keep the two dots, because nu/lu also exist: nǚ (female), lǜ (green).", "先横后竖：十　·　先撇后捺：人　·　从上到下：三　·　从左到右：你": "Stroke-order rules: horizontal before vertical (十) · left-falling before right-falling (人) · top to bottom (三) · left to right (你).", "全包围的字“先进人，后关门”：国 —— 先写里面的“玉”，最后一横封口。": "For enclosed characters, \"let people in, then close the door\": in 国, write the outer frame, then the inside 玉, and seal it with the bottom stroke last.", "对老师、长辈用“您 nín”，更礼貌。": "Use 您 nín (polite \"you\") for teachers and elders; it is more respectful than 你.", "中文姓名：姓在前，名在后。郑国俊 = 姓“郑” + 名“国俊”。": "Chinese names put the surname first and the given name after: 郑国俊 = surname 郑 + given name 国俊.", "有“什么”的问句，句末不再加“吗”。": "A question that already has 什么 (what) never takes 吗 at the end — the question word does the job.", "两位数 = 几十几：37 = 三十七，73 = 七十三。": "Two-digit numbers are \"tens + ones\": 37 = 三十七 (three-ten-seven), 73 = 七十三.", "日期由大到小：2026年11月4日，星期三。": "Dates go from big to small: year → month → day → weekday: 2026年11月4日，星期三.", "说年龄不用“是”。": "Don't use 是 with age: say 我今年二十岁, not 我是二十岁.", "电话号码一个数字一个数字读，“1” 读 yāo，免得和 “七 qī” 听混。": "Read phone numbers digit by digit, and say \"1\" as yāo so it isn't confused with 七 qī (7).", "地址由大到小：文莱 → 文莱-摩拉县 → 加东。": "Addresses go from big to small: country → district → area, e.g. Brunei → Brunei-Muara → Gadong.", "“住在 + 地方”。": "The pattern is 住在 + place (\"live at + place\"): 我住在加东.", "“有”的否定永远是“没有”。": "The negative of 有 (have) is always 没有, never 不有.", "“在 + 地方”放在动词前面。": "The place phrase 在 + place comes before the verb: 他在医院工作 (literally \"he at hospital works\").", "“也”是副词，后面要有动词“是”。": "也 (also) is an adverb, so it needs a verb after it: 我妈妈也是老师, not 也老师.", "“也”不能放在句末。": "也 can't go at the end like English \"too\"; it sits before the verb.", "国家 + 人 = 国籍：文莱人、中国人、英国人。": "Country + 人 = nationality: 文莱人 Bruneian, 中国人 Chinese, 英国人 British.", "漏了“人”，意思变成“我就是文莱这个国家”。": "Without 人 the sentence means \"I am the country Brunei\" — always add 人 for nationality.", "有“哪”的问句不加“吗”。": "A question with 哪 (which) already asks something, so don't add 吗.", "哪 nǎ（which，有口字旁） ≠ 那 nà（that）。": "哪 nǎ means \"which\" (it has the mouth radical 口 and a 3rd tone); 那 nà means \"that\" (no 口, 4th tone).", "“一点儿”在动词后、语言前。": "一点儿 (a little) goes after the verb and before the language: 我会说一点儿汉语.", "初学阶段，“会”后面加动词“说”。": "At beginner level, put the verb 说 after 会: 我会说英语 (\"I can speak English\").", "“-语”多指口头说的，“-文”多指书面写的：英语 / 英文，马来语 / 马来文。": "Words ending in -语 usually mean the spoken language, -文 the written language: 英语 / 英文, 马来语 / 马来文.", "表格上的日期用“日”：八月十五日（口语才说“号”）。": "On forms, write dates with 日: 八月十五日. In speech people say 号.", "年龄栏只写“二十一岁”，不写“是”。": "In the age box, just write 二十一岁 — no 是.", "地址由大到小填写。": "Fill in the address from big to small (country first).", "文莱特色：去水村 (Kampong Ayer) 或淡布隆，可以坐船。": "In Brunei you can take a boat (water taxi) to Kampong Ayer or Temburong.", "坐 + 巴士 / 飞机 / 船　·　开 + 车　·　骑 + 自行车 / 摩托车": "Verb + vehicle: 坐 (sit/ride in) bus, plane, boat · 开 (drive) a car · 骑 (ride, astride) a bicycle or motorbike.", "语序：谁 + 什么时候 + 怎么去 + 去 / 来 + 哪儿": "Word order: who + when + how + 去/来 + where: 我每天坐巴士来大学.", "时间词“每天”放在动词前面。": "Time words like 每天 (every day) go before the verb, not at the end.", "在文莱，黄色是王室的颜色。": "In Brunei, yellow is the royal colour.", "帽子、眼镜用“戴”，衣服、裤子用“穿”。": "Use 戴 for things you put on like hats and glasses; use 穿 for clothes and trousers.", "件：衬衫、衣服　·　条：裤子、裙子": "Measure words: 件 for shirts and tops · 条 for trousers and skirts (long, narrow things).", "开斋节等正式场合，大家常穿传统服装。": "On formal occasions such as Hari Raya, people often wear traditional clothes.", "杯：茶、咖啡、水　·　碗：米饭、面": "Measure words: 杯 (cup) for tea, coffee and water · 碗 (bowl) for rice and noodles.", "j、q、x 后的 u 都读 ü，只是省略了两点。": "After j, q and x, u is pronounced ü — the dots are just left out.", "“不”在四声前变二声：bú shì。": "不 changes to 2nd tone before a 4th tone: bú shì.", "“也”在动词“是”前面。": "也 goes right before the verb 是.", "“有”的否定是“没有”。": "The negative of 有 is 没有.", "两个三声相连，前一个变二声。": "When two 3rd tones are together, the first becomes a 2nd tone.", "先撇后捺。": "Left-falling stroke first, then right-falling.", "先进人，后关门。": "Let people in first, then close the door: fill the inside, then seal the bottom.", "国家 + 人 = 国籍。": "Country + 人 = nationality.", "在 + 地方 + 工作。": "在 + place + 工作 (work).", "姓在前，名在后。": "Surname first, given name after.", "年份一个数字一个数字读。": "Read years digit by digit: 二〇〇五年.", "年龄不用“是”。": "No 是 with age.", "有 a 标 a：hǎo。": "If there's an a, the tone mark goes on it: hǎo.", "有“什么”就不加“吗”。": "With 什么 in the question, don't add 吗.", "由大到小。": "From big to small: year → month → day."};
 /* Mini-game content per island.
    hz: 8 characters for 笔顺描红 · sb: [sentence tokens separated by spaces, English] for 句子积木 */
 const EXTRA = {
@@ -592,7 +636,7 @@ const SEM = { w1:Date.UTC(2026,7,31), brk:Date.UTC(2026,9,19), w8:Date.UTC(2026,
 
 /* ============================== state ============================== */
 const KEY = "m1-knowledge-isles-v1";
-const freshState = () => ({stars:{}, teacher:false, nick:"", py:true, en:true, coins:0, quiz:{}, games:{}, build:{}, last:null});
+const freshState = () => ({stars:{}, teacher:false, nick:"", py:true, en:true, coins:0, quiz:{}, games:{}, build:{}, farm:{}, last:null});
 let state = (()=>{ try{ const s=JSON.parse(localStorage.getItem(KEY)); if(s && s.stars) return Object.assign(freshState(), s); }catch(e){} return freshState(); })();
 const save = ()=>{ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} };
 const starsOf = i => state.stars[i]||0;
@@ -606,7 +650,7 @@ function semesterWeek(){
   const w=Math.floor((t-SEM.w8)/day/7)+8; return w<=14?w:null;
 }
 const WEEK = semesterWeek();
-const NOW_IDX = typeof WEEK==="number" ? ISLANDS.findIndex(d=>d.weeks.includes(WEEK)) : -1;
+const NOW_IDX = -1;   // no "this week" badges
 
 /* ============================== helpers ============================== */
 const $ = s => document.querySelector(s);
@@ -627,45 +671,79 @@ let zhVoice=null;
 function pickVoice(){ if(!hasTTS) return; const vs=speechSynthesis.getVoices(); zhVoice = vs.find(v=>/zh[-_]CN/i.test(v.lang)) || vs.find(v=>/^zh/i.test(v.lang)) || null; }
 if(hasTTS){ pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
 let warnedVoice=false;
+/* 0.7 overall; short words with a first tone are read slower so the high level tone is held a little longer */
+const SPEECH_RATE=0.7;
+function speechRate(text){
+  const hz=Array.from(text).filter(c=>/[㐀-鿿]/.test(c));
+  if(!hz.length || hz.length>3 || typeof pyOf!=="function" || typeof HAS_PY==="undefined" || !HAS_PY) return SPEECH_RATE;
+  const first=pyOf(hz.join("")).filter(p=>/[āēīōūǖ]/.test(p)).length;
+  if(!first) return SPEECH_RATE;
+  return hz.length===1 ? 0.56 : first===hz.length ? 0.58 : 0.62;
+}
 function speak(text){
   if(!hasTTS){ toast("这个浏览器不支持朗读，请看拼音。"); return; }
   try{
     speechSynthesis.cancel();
     const u=new SpeechSynthesisUtterance(text.replace(/——/g,"，"));
-    u.lang="zh-CN"; u.rate=0.82; if(zhVoice) u.voice=zhVoice;
+    u.lang="zh-CN"; u.rate=speechRate(text); if(zhVoice) u.voice=zhVoice;
     speechSynthesis.speak(u);
     if(!zhVoice && speechSynthesis.getVoices().length && !warnedVoice){ warnedVoice=true; toast("这台设备可能没有中文语音包，发音仅供参考。"); }
   }catch(e){}
 }
 
-/* ============================== 3D scene ============================== */
-const HAS3D = !!(window.THREE && THREE.OrbitControls) && (()=>{ try{ const c=document.createElement("canvas"); return !!(c.getContext("webgl")||c.getContext("experimental-webgl")); }catch(e){ return false; } })();
-let renderer, scene, camera, controls, ocean, oceanBase, sun, hemi;
+/* ============================== 3D scene (three.js r160, modern stylized renderer) ============================== */
+let HAS3D = false;
+function webglOK(){ try{ const c=document.createElement("canvas"); return !!(c.getContext("webgl2")||c.getContext("webgl")); }catch(e){ return false; } }
+let renderer, scene, camera, controls, ocean, sun, hemi, sky, composer, bloomPass, tiltH, tiltV, gradePass, pmrem, SN;
 const CENTER = {x:-6, z:-2};
-const isles = [];            // per island: {group, clouds, cloudK, anim:[]}
+const isles = [];            // per island: {group, clouds, cloudK, anim:[], r, shape}
 let routeDots = [];
 const seaBoats = [];
+const swayers = [];          // palm crowns etc.
+const grassMats = [];        // materials with a wind uniform
 let animOn = !matchMedia("(prefers-reduced-motion: reduce)").matches;
 let simT = 0, lastNow = performance.now();
 let fly = null, viewOff = {x:0,y:0}, viewOffGoal = {x:0,y:0};
+const HIGH = () => state.gfx ? state.gfx==="high" : !matchMedia("(max-width:720px)").matches && (navigator.hardwareConcurrency||4)>=4;
 
 const matCache = {};
-function M(color, opts){ const k=color+(opts?JSON.stringify(opts):""); if(!matCache[k]) matCache[k]=new THREE.MeshStandardMaterial(Object.assign({color, roughness:.85, metalness:0, flatShading:true}, opts||{})); return matCache[k]; }
+function M(color, opts){ const k=color+(opts?JSON.stringify(opts):""); if(!matCache[k]) matCache[k]=new THREE.MeshStandardMaterial(Object.assign({color, roughness:.72, metalness:0}, opts||{})); return matCache[k]; }
 function mesh(geo, color, x=0,y=0,z=0, opts){ const m=new THREE.Mesh(geo, typeof color==="number"?M(color,opts):color); m.position.set(x,y,z); m.castShadow=true; m.receiveShadow=true; return m; }
-const box = (w,h,d,c,x,y,z,o)=>mesh(new THREE.BoxGeometry(w,h,d),c,x,y,z,o);
-const cyl = (rt,rb,h,seg,c,x,y,z,o)=>mesh(new THREE.CylinderGeometry(rt,rb,h,seg),c,x,y,z,o);
-const cone= (r,h,seg,c,x,y,z,o)=>mesh(new THREE.ConeGeometry(r,h,seg),c,x,y,z,o);
-const ball= (r,c,x,y,z,o)=>mesh(new THREE.IcosahedronGeometry(r,0),c,x,y,z,o);
+const rbox = (w,h,d) => { const r=Math.min(.12, Math.min(w,h,d)*.22); return r>.012 ? new THREE.RoundedBoxGeometry(w,h,d,2,r) : new THREE.BoxGeometry(w,h,d); };
+const box = (w,h,d,c,x,y,z,o)=>mesh(rbox(w,h,d),c,x,y,z,o);
+const cyl = (rt,rb,h,seg,c,x,y,z,o)=>mesh(new THREE.CylinderGeometry(rt,rb,h,seg<=4?seg:Math.max(seg,14)),c,x,y,z,seg<=4?Object.assign({flatShading:true},o||{}):o);
+const cone= (r,h,seg,c,x,y,z,o)=>mesh(new THREE.ConeGeometry(r,h,seg<=6?seg:Math.max(seg,18)),c,x,y,z,seg<=6?Object.assign({flatShading:true},o||{}):o);
+const ball= (r,c,x,y,z,o)=>mesh(new THREE.IcosahedronGeometry(r,3),c,x,y,z,o);
 const C = {red:0xc0141d, gold:0xd9a521, white:0xf7f2ea, cream:0xf0e2c4, wood:0x8a5a35, dark:0x3a2f2a, stone:0xbcb3a5, roof:0xa3341f, blue:0x2f6fb5, teal:0x2a9d8f, leaf:0x3f8f3a, leaf2:0x56a845};
+const smooth = (a,b,x) => { const t=Math.min(1,Math.max(0,(x-a)/(b-a))); return t*t*(3-2*t); };
 
 function rng(seed){ return ()=>{ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
-function wobble(geo, s1, s2){ const p=geo.attributes.position; for(let i=0;i<p.count;i++){ const x=p.getX(i), z=p.getZ(i), a=Math.atan2(z,x); const f=1+.09*Math.sin(3*a+s1)+.05*Math.sin(7*a+s2); p.setX(i,x*f); p.setZ(i,z*f);} geo.computeVertexNormals(); return geo; }
 
-function person(color, h){ const g=new THREE.Group(); g.add(cyl(h*.16,h*.22,h*.62,7,color,0,h*.31,0)); g.add(ball(h*.16,0xf1c9a5,0,h*.74,0)); return g; }
-function palm(g, x, z, s, r){ const p=new THREE.Group(); p.position.set(x,0,z); const lean=(r()-.5)*.5;
-  const tr=cyl(.18*s,.3*s,4.2*s,6,0x9a7046,0,2.1*s,0); tr.rotation.z=lean; p.add(tr);
-  const top=new THREE.Group(); top.position.set(-Math.sin(lean)*4.2*s, 4.2*s*Math.cos(lean), 0); p.add(top);
-  for(let k=0;k<6;k++){ const lf=cone(.5*s,3*s,4,k%2?C.leaf:C.leaf2); lf.scale.set(1,1,.25); lf.position.set(0,0,0); const a=k/6*Math.PI*2; lf.rotation.set(0,a,1.9); lf.position.set(Math.cos(a)*1.2*s,-.3*s,-Math.sin(a)*1.2*s); lf.rotation.order="YZX"; top.add(lf);}
+// chibi figure: capsule body, big round head, hair cap, tiny eyes
+function person(color, h){ const g=new THREE.Group();
+  g.add(mesh(new THREE.CapsuleGeometry(h*.17,h*.3,6,16),color,0,h*.34,0));
+  g.add(mesh(new THREE.SphereGeometry(h*.21,28,18),0xf3cfae,0,h*.8,0));
+  g.add(mesh(new THREE.SphereGeometry(h*.222,28,14,0,Math.PI*2,0,Math.PI*.52),0x2b1d16,0,h*.82,-h*.01));
+  [-1,1].forEach(s=>g.add(mesh(new THREE.SphereGeometry(h*.03,10,8),0x1d1410,s*h*.075,h*.8,h*.195)));
+  return g; }
+// curved, tapered palm frond (extends along +x, droops, V-fold)
+let _frond=null;
+function frondGeo(){ if(_frond) return _frond; const g=new THREE.PlaneGeometry(1,1,1,16), p=g.attributes.position;
+  for(let i=0;i<p.count;i++){ const u=p.getY(i)+.5, side=p.getX(i)*2; const w=(Math.sin(Math.PI*Math.min(1,u*1.1))*.5+.05)*(1-u*.3);
+    p.setXYZ(i, u*3.2, -u*u*1.6 + Math.abs(side)*w*.38, side*w); }
+  g.computeVertexNormals(); _frond=g; return g; }
+const leafMat = c => M(c,{side:THREE.DoubleSide, roughness:.62});
+function palm(g, x, z, s, r){ const p=new THREE.Group(); p.position.set(x,0,z); p.rotation.y=r()*Math.PI*2;
+  const H=4.8*s, lean=.4+r()*.6, segs=9; let top=new THREE.Vector3();
+  const bx=t=>lean*t*t*H*.42;
+  for(let k=0;k<segs;k++){ const u=k/segs, u2=(k+1)/segs, p0=new THREE.Vector3(bx(u),u*H,0), p1=new THREE.Vector3(bx(u2),u2*H,0);
+    const rad=.2*s*(1-u*.38); const c=cyl(rad*.92,rad*1.08,p0.distanceTo(p1)*1.04,14,k%2?0x9b7550:0x86623f);
+    c.position.copy(p0).lerp(p1,.5); c.rotation.z=-Math.atan2(p1.x-p0.x,p1.y-p0.y); p.add(c); top=p1; }
+  const crown=new THREE.Group(); crown.position.copy(top); p.add(crown);
+  for(let k=0;k<8;k++){ const f=new THREE.Mesh(frondGeo(), leafMat(k%2?0x3e9a3c:0x5bb34a)); f.castShadow=true; f.receiveShadow=true;
+    f.rotation.order="YZX"; f.rotation.set(0, k/8*Math.PI*2+r()*.35, .25-r()*.5); f.scale.setScalar(s*(.85+r()*.3)); crown.add(f); }
+  [0,2.1,4.2].forEach(a=>crown.add(mesh(new THREE.SphereGeometry(.2*s,14,10),0x6b4a2a,Math.cos(a)*.22*s,-.25*s,Math.sin(a)*.22*s)));
+  swayers.push({o:crown, ph:r()*6, amp:.05});
   g.add(p); }
 
 /* ---------- 南洋 Nanyang building kit ---------- */
@@ -692,15 +770,16 @@ function stiltHouse(wall, roof, postH=2.2, w=3.4, d=2.6){ const g=new THREE.Grou
   [-w/4,w/4].forEach(x=>g.add(box(.7,.75,.06,NY.teak,x,postH+1.05,d/2+.03)));
   g.add(prism(w+.7,d*.85,roof,0,postH+1.8+d*.85*.31,0,.85));
   return g; }
-function banana(g,x,z,s=1){ const b=new THREE.Group(); b.position.set(x,0,z); b.add(cyl(.18*s,.24*s,2.6*s,6,0x7c8c3c,0,1.3*s,0));
-  for(let k=0;k<5;k++){ const lf=box(.05,.75*s,2.3*s,k%2?0x4f9e3a:0x6cb848,0,0,0); const a=k/5*Math.PI*2; const p=new THREE.Group(); p.position.y=2.5*s; p.rotation.y=a; lf.position.z=1*s; lf.rotation.x=.55; p.add(lf); b.add(p); }
-  g.add(b); }
+function banana(g,x,z,s=1){ const b=new THREE.Group(); b.position.set(x,0,z); b.add(cyl(.2*s,.28*s,2.6*s,14,0x7c8c3c,0,1.3*s,0));
+  const crown=new THREE.Group(); crown.position.y=2.5*s; b.add(crown);
+  for(let k=0;k<6;k++){ const f=new THREE.Mesh(frondGeo(), leafMat(k%2?0x4f9e3a:0x74c052)); f.castShadow=true; f.receiveShadow=true; f.rotation.order="YZX"; f.rotation.set(0,k/6*6.28+.3,.45); f.scale.set(.72*s,.75*s,2.2*s); crown.add(f); }
+  swayers.push({o:crown, ph:x+z, amp:.06}); g.add(b); }
 function frangipani(g,x,z){ const f=new THREE.Group(); f.position.set(x,0,z); f.add(cyl(.12,.16,1.2,5,0x8a6a4a,0,.6,0)); f.add(ball(1.05,0x4c9a3e,0,1.6,0));
   for(let k=0;k<6;k++){ const a=k*1.05; f.add(ball(.2,0xfff6e0,Math.cos(a)*.8,1.75+Math.sin(k*2)*.35,Math.sin(a)*.8,{emissive:0x5a4a20,emissiveIntensity:.25})); } g.add(f); }
 // string of red lanterns between two points
 function lanterns(g, x1,z1, x2,z2, h=3.2, n=5){ [[x1,z1],[x2,z2]].forEach(([x,z])=>g.add(cyl(.08,.1,h+.4,6,NY.teak,x,(h+.4)/2,z)));
   for(let k=1;k<=n;k++){ const u=k/(n+1), x=x1+(x2-x1)*u, z=z1+(z2-z1)*u, y=h-Math.sin(u*Math.PI)*.55;
-    const l=mesh(new THREE.SphereGeometry(.3,8,6),NY.lantern,x,y-.25,z,{emissive:0xb0101a,emissiveIntensity:.55}); l.scale.y=1.25; g.add(l); g.add(cyl(.12,.12,.08,6,C.gold,x,y+.1,z)); } }
+    const l=mesh(new THREE.SphereGeometry(.3,8,6),NY.lantern,x,y-.25,z,{emissive:0xff2a1a,emissiveIntensity:1.6}); l.scale.y=1.25; g.add(l); g.add(cyl(.12,.12,.08,6,C.gold,x,y+.1,z)); } }
 // perahu / water-taxi
 function perahu(colA=NY.lantern, colB=C.gold, canopy=true){ const b=new THREE.Group();
   b.add(box(1.2,.55,3.6,0x2b5f8a,0,0,0)); b.add(box(1.25,.16,3.65,colA,0,.32,0));
@@ -844,61 +923,198 @@ const LM = {
     return g; }
 };
 
+/* ---------- island terrain: plateau for landmarks, rolling grass, beach, shallows ---------- */
+function islandEdge(sh, a){ return sh.r*(1.06 + .09*SN.noise(Math.cos(a)*1.2+sh.s, Math.sin(a)*1.2) + .04*SN.noise(Math.cos(a)*3.1+sh.s*2, Math.sin(a)*3.1)); }
+function terrainH(sh, x, z){
+  const d=Math.hypot(x,z), t=d/islandEdge(sh, Math.atan2(z,x));
+  const roll=.22*SN.noise(x*.13+sh.s, z*.13-sh.s)*smooth(.42,.7,t);
+  const grass=2.2+roll;
+  if(t<.76) return grass;
+  if(t<.88) return grass+(1.05-grass)*smooth(.76,.88,t);
+  if(t<1.0) return 1.05+(.12-1.05)*smooth(.88,1.0,t);
+  return .12+(-4.6-.12)*smooth(1.0,1.42,t);
+}
+function buildTerrain(sh, tint){
+  const S=sh.r*2.9, N=HIGH()?110:70, g=new THREE.PlaneGeometry(S,S,N,N); g.rotateX(-Math.PI/2);
+  const p=g.attributes.position, col=new Float32Array(p.count*3), c=new THREE.Color();
+  const G1=new THREE.Color(tint).offsetHSL(0,.06,-.03), G2=new THREE.Color(0x3fb53a), SAND=new THREE.Color(0xf7dd9c), WET=new THREE.Color(0xd8b878), DEEP=new THREE.Color(0x6fb9a4);
+  for(let i=0;i<p.count;i++){ const x=p.getX(i), z=p.getZ(i), h=terrainH(sh,x,z); p.setY(i,h);
+    const n=SN.noise(x*.32+sh.s, z*.32)*.5+.5;
+    if(h>1.5) c.copy(G1).lerp(G2, n*.55);
+    else if(h>1.1) c.copy(SAND).lerp(G1, smooth(1.1,1.5,h));
+    else if(h>.3) c.copy(SAND).lerp(WET, (1-smooth(.3,1.1,h))*.5);
+    else c.copy(WET).lerp(DEEP, smooth(.3,-2.2,h));
+    col[i*3]=c.r; col[i*3+1]=c.g; col[i*3+2]=c.b; }
+  g.setAttribute("color", new THREE.BufferAttribute(col,3)); g.computeVertexNormals();
+  const m=new THREE.Mesh(g, new THREE.MeshStandardMaterial({vertexColors:true, roughness:.92})); m.receiveShadow=true; m.castShadow=true;
+  return m;
+}
+// wind sway for instanced grass / flowers
+function windMat(base){ base.onBeforeCompile=sh=>{ sh.uniforms.uTime={value:0}; base.userData.u=sh.uniforms;
+  sh.vertexShader="uniform float uTime;\n"+sh.vertexShader.replace("#include <begin_vertex>",
+   "#include <begin_vertex>\n vec4 wp=instanceMatrix*vec4(0.,0.,0.,1.); float k=position.y; transformed.x+=sin(uTime*1.8+wp.x*.4+wp.z*.3)*.12*k; transformed.z+=cos(uTime*1.5+wp.z*.4)*.08*k;"); };
+  grassMats.push(base); return base; }
+let _tuft=null;
+function tuftGeo(){ if(_tuft) return _tuft; const parts=[]; for(let k=0;k<3;k++){ const b=new THREE.ConeGeometry(.07,.55,3,1); b.translate(0,.27,0); b.rotateZ((k-1)*.35); b.rotateY(k*2.1); parts.push(b); }
+  _tuft=THREE.BGU.mergeGeometries(parts); return _tuft; }
+function scatter(g, sh, count, minT, maxT, geo, mat, colors, scaleR, rr){
+  const im=new THREE.InstancedMesh(geo, mat, count), m4=new THREE.Matrix4(), q=new THREE.Quaternion(), e=new THREE.Euler(), v=new THREE.Vector3(), s=new THREE.Vector3(), c=new THREE.Color();
+  let n=0, guard=0;
+  while(n<count && guard++<count*8){ const a=rr()*Math.PI*2, d=Math.sqrt(rr())*sh.r*1.05, x=Math.cos(a)*d, z=Math.sin(a)*d, t=d/islandEdge(sh,a);
+    if(t<minT||t>maxT) continue; const h=terrainH(sh,x,z); if(h<1.4) continue;
+    e.set(0,rr()*6.28,0); q.setFromEuler(e); const k=scaleR[0]+rr()*(scaleR[1]-scaleR[0]); s.set(k,k*(.8+rr()*.5),k);
+    m4.compose(v.set(x,h-.02,z),q,s); im.setMatrixAt(n,m4); c.set(colors[Math.floor(rr()*colors.length)]).offsetHSL(0,0,(rr()-.5)*.08); im.setColorAt(n,c); n++; }
+  im.count=n; im.receiveShadow=true; g.add(im); return im;
+}
+function softCloud(rr, scale){ const g=new THREE.Group(), cm=M(0xffffff,{roughness:1, emissive:0xffffff, emissiveIntensity:.12, transparent:true, opacity:.97});
+  const n=6+Math.floor(rr()*4); for(let k=0;k<n;k++){ const r=(1.6+rr()*2.2)*scale; const b=new THREE.Mesh(new THREE.IcosahedronGeometry(r,3),cm); b.position.set((rr()-.5)*7*scale,(rr()-.2)*1.6*scale,(rr()-.5)*4*scale); b.scale.y=.72; g.add(b); }
+  return g; }
+
 function buildIsland(d, i){
-  const r=d.r||10.5, rr=rng(i*97+13);
+  const r=d.r||10.5, rr=rng(i*97+13), sh={r, s:i*7.31+1.7};
   const g=new THREE.Group(); g.position.set(d.pos[0],0,d.pos[1]); g.userData.idx=i;
-  g.add(mesh(new THREE.CylinderGeometry(r*1.25,r*1.7,6,22),0xc8b07a,0,-3.2,0));
-  g.add(mesh(wobble(new THREE.CylinderGeometry(r*1.12,r*1.26,1.4,22),i,i*2),0xead6a1,0,.45,0));
-  g.add(mesh(wobble(new THREE.CylinderGeometry(r,r*1.06,1.4,22),i,i*2),new THREE.Color(d.grass).multiplyScalar(.78).getHex(),0,1.5,0));
-  for(let k=0;k<5;k++){ const a=rr()*Math.PI*2; if(Math.abs(Math.sin(a)-1)<.5) continue; const x=Math.cos(a)*r*.84, z=Math.sin(a)*r*.84; const kind=k%3; if(kind===2) frangipani(g,x,z); else if(kind===1) banana(g,x,z,.85); else palm(g, x, z, .8+rr()*.35, rr); }
+  g.add(buildTerrain(sh, d.grass));
+  // rocks along the shore
+  for(let k=0;k<7;k++){ const a=rr()*6.28, e=islandEdge(sh,a)*(.93+rr()*.1), x=Math.cos(a)*e, z=Math.sin(a)*e; const rk=mesh(new THREE.DodecahedronGeometry(.45+rr()*.6,1),0x9c968c,x,terrainH(sh,x,z)+.1,z); rk.scale.y=.6; rk.rotation.y=rr()*3; g.add(rk); }
+  // trees on the outer ring (skip the front so the landmark stays visible)
+  for(let k=0;k<6;k++){ const a=rr()*Math.PI*2; if(Math.abs(Math.sin(a)-1)<.45) continue; const R=sh.r*(.68+rr()*.08), x=Math.cos(a)*R, z=Math.sin(a)*R, h=terrainH(sh,x,z);
+    const t=new THREE.Group(); t.position.y=h; g.add(t); const kind=k%3; if(kind===2) frangipani(t,x,z); else if(kind===1) banana(t,x,z,.85); else palm(t, x, z, .8+rr()*.35, rr); }
+  // grass tufts + flowers
+  const hi=HIGH();
+  scatter(g, sh, hi?700:220, .45, .84, tuftGeo(), windMat(new THREE.MeshStandardMaterial({roughness:.85})), [0x45b23a,0x5cc244,0x3aa332,0x72cf4c], [.45,.85], rr);
+  scatter(g, sh, hi?110:40, .4, .82, new THREE.IcosahedronGeometry(.11,1), new THREE.MeshStandardMaterial({roughness:.6, emissive:0x221a10, emissiveIntensity:.2}), [0xfff3e6,0xffc6d9,0xffd84d,0xf7a072], [.8,1.3], rr);
   const A=[]; const lm=LM[d.lm](A,r); lm.position.y=2.2; g.add(lm);
-  // number post (gold flag pole with module colour)
-  // clouds over locked islands
-  const clouds=new THREE.Group(); const cm=new THREE.MeshStandardMaterial({color:0xffffff,roughness:1,flatShading:true,transparent:true,opacity:.96});
-  for(let k=0;k<9;k++){ const a=k/9*Math.PI*2+rr(); const s=3+rr()*2.8; const c=new THREE.Mesh(new THREE.IcosahedronGeometry(s,1),cm); c.position.set(Math.cos(a)*r*.55,8+rr()*4,Math.sin(a)*r*.55); clouds.add(c); }
-  { const top=new THREE.Mesh(new THREE.IcosahedronGeometry(6,1),cm); top.position.set(0,11,0); clouds.add(top); }
-  g.add(clouds);
-  scene.add(g);
+  // soft clouds over locked islands
+  const clouds=new THREE.Group();
+  for(let k=0;k<4;k++){ const c=softCloud(rr,1.15); const a=k/4*6.28; c.position.set(Math.cos(a)*r*.38,9+rr()*3,Math.sin(a)*r*.38); clouds.add(c); }
+  const top=softCloud(rr,1.6); top.position.set(0,12.5,0); clouds.add(top);
+  clouds.traverse(o=>{ o.castShadow=false; o.receiveShadow=false; });
+  g.add(clouds); scene.add(g);
   const k0=isUnlocked(i)?0:1; clouds.scale.setScalar(k0||.001); clouds.visible=!!k0;
-  isles[i]={group:g, clouds, cloudK:k0, anim:A, r};
+  isles[i]={group:g, clouds, cloudK:k0, anim:A, r, sh};
 }
 
 function buildRoute(){
-  const pts=ISLANDS.map(d=>new THREE.Vector3(d.pos[0],.4,d.pos[1]));
+  const pts=ISLANDS.map(d=>new THREE.Vector3(d.pos[0],.35,d.pos[1]));
   const curve=new THREE.CatmullRomCurve3(pts,false,"catmullrom",.4);
-  const N=150, geo=new THREE.SphereGeometry(.42,6,4);
+  const N=170, geo=new THREE.CylinderGeometry(.32,.42,.5,16);
   routeDots=[];
   for(let k=0;k<=N;k++){ const u=k/N, p=curve.getPointAt(u);
-    // skip dots inside islands
-    if(ISLANDS.some(d=>Math.hypot(p.x-d.pos[0],p.z-d.pos[1])<(d.r||10.5)*1.3)) continue;
+    if(ISLANDS.some(d=>Math.hypot(p.x-d.pos[0],p.z-d.pos[1])<(d.r||10.5)*1.42)) continue;
     const seg=Math.min(ISLANDS.length-2, Math.floor(u*(ISLANDS.length-1)));
-    const m=new THREE.Mesh(geo, new THREE.MeshStandardMaterial({color:0xffffff,roughness:.6})); m.position.copy(p); scene.add(m); routeDots.push({m,seg}); }
+    const m=new THREE.Mesh(geo, new THREE.MeshStandardMaterial({color:0xffffff,roughness:.4})); m.position.copy(p); scene.add(m); routeDots.push({m,seg,ph:k*.4}); }
 }
-function refreshRoute(){ routeDots.forEach(({m,seg})=>{ m.material.color.setHex(starsOf(seg)>=1||state.teacher ? 0xf2c14e : 0xffffff); m.material.emissive=new THREE.Color(starsOf(seg)>=1?0x7a5200:0x000000); }); }
+function refreshRoute(){ routeDots.forEach(({m,seg})=>{ const on=starsOf(seg)>=1||state.teacher; m.material.color.setHex(on?0xf2c14e:0xf4f1ea); m.material.emissive.setHex(on?0xb07a00:0x000000); m.material.emissiveIntensity=on?1.2:0; }); }
 
-function readTheme(){ const cs=getComputedStyle(document.documentElement); return {sky:cs.getPropertyValue("--sky").trim()||"#bfe2ec", fog:cs.getPropertyValue("--fog").trim()||"#cfe8ef", sea:cs.getPropertyValue("--sea").trim()||"#2a8ea6"}; }
-function applyTheme(){ if(!scene) return; const t=readTheme(); scene.background=new THREE.Color(t.sky); scene.fog=new THREE.Fog(t.fog,220,640); ocean.material.color.set(t.sea);
-  const dark=document.documentElement.dataset.theme==="dark"||(document.documentElement.dataset.theme!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);
-  hemi.intensity=dark?.45:.8; sun.intensity=dark?.55:.95; sun.color.set(dark?0xc9d6ff:0xfff1dc); }
+/* ---------- stylized water: waves, depth tint near islands, shore foam, sun glints ---------- */
+function makeWater(){
+  const seg=HIGH()?220:120, geo=new THREE.PlaneGeometry(2000,2000,seg,seg); geo.rotateX(-Math.PI/2);
+  const isl=ISLANDS.map(d=>new THREE.Vector3(d.pos[0], d.pos[1], (d.r||10.5)*1.08));
+  const mat=new THREE.ShaderMaterial({ fog:true, lights:false, transparent:true, depthWrite:false,
+    uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib.fog, {
+      uTime:{value:0}, uSun:{value:new THREE.Vector3(0,1,0)}, uSunCol:{value:new THREE.Color(0xfff0d0)},
+      uDeep:{value:new THREE.Color(0x0f5f86)}, uMid:{value:new THREE.Color(0x1d8fae)}, uShallow:{value:new THREE.Color(0x48d1c8)},
+      uSky:{value:new THREE.Color(0xbfe4f2)}, uIsl:{value:isl} }]),
+    vertexShader:`
+      uniform float uTime; varying vec3 vW; varying vec3 vN;
+      #include <fog_pars_vertex>
+      float wv(vec2 p){ return sin(p.x*.06+uTime*.9)*.35 + cos(p.y*.05+uTime*.7)*.3 + sin((p.x+p.y)*.11+uTime*1.6)*.12; }
+      void main(){ vec3 p=position; vec4 w=modelMatrix*vec4(p,1.); float h=wv(w.xz); w.y+=h;
+        float e=.6; float hx=wv(w.xz+vec2(e,0.))-h, hz=wv(w.xz+vec2(0.,e))-h; vN=normalize(vec3(-hx/e,1.,-hz/e)); vW=w.xyz;
+        vec4 mvPosition=viewMatrix*w; gl_Position=projectionMatrix*mvPosition;
+        #include <fog_vertex>
+      }`,
+    fragmentShader:`
+      uniform float uTime; uniform vec3 uSun, uSunCol, uDeep, uMid, uShallow, uSky; uniform vec3 uIsl[${isl.length}];
+      varying vec3 vW; varying vec3 vN;
+      #include <fog_pars_fragment>
+      float h21(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
+      float vn(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f); return mix(mix(h21(i),h21(i+vec2(1,0)),f.x),mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x),f.y); }
+      void main(){
+        float d=1e4; for(int i=0;i<${isl.length};i++){ d=min(d, length(vW.xz-uIsl[i].xy)-uIsl[i].z); }
+        vec3 col=mix(uDeep, uMid, smoothstep(60.,8.,d)); col=mix(col, uShallow, smoothstep(9.,0.,d));
+        // ripples for detail
+        float rip=vn(vW.xz*.35+uTime*.25)*.5+vn(vW.xz*.9-uTime*.4)*.5;
+        vec3 N=normalize(vN+vec3((rip-.5)*.16,0.,(vn(vW.zx*.4+uTime*.3)-.5)*.16));
+        vec3 V=normalize(cameraPosition-vW); vec3 L=normalize(uSun); vec3 H=normalize(L+V);
+        float fres=pow(1.-max(dot(N,V),0.),4.);
+        col=mix(col, uSky, fres*.3);
+        col+=uSunCol*pow(max(dot(N,H),0.),600.)*1.6;            // sun glints (bloom picks these up)
+        col*=.86+.14*max(dot(N,L),0.);
+        // shore foam: a solid edge plus animated rings
+        float n=vn(vW.xz*.8+uTime*.2);
+        float ring=smoothstep(.5,.0,abs(fract(d*.3-uTime*.18)-.5)*2.-.25)*smoothstep(5.,.4,d);
+        float edge=smoothstep(.9+n*.9,0.,d);
+        float foam=clamp(max(edge, ring*.55*step(.45,n)),0.,1.);
+        col=mix(col, vec3(.96,.98,1.), foam*.8);
+        float alpha=mix(.5, 1., smoothstep(2.,16.,d)); alpha=max(alpha, foam); gl_FragColor=vec4(col,alpha);
+        #include <tonemapping_fragment>
+        #include <colorspace_fragment>
+        #include <fog_fragment>
+      }` });
+  const m=new THREE.Mesh(geo, mat); m.receiveShadow=false; m.renderOrder=1; return m;
+}
+
+/* ---------- post: bloom + tilt-shift (miniature diorama focus) ---------- */
+const TiltShader=()=>({ uniforms:{tDiffuse:{value:null}, uDir:{value:new THREE.Vector2()}, uAmt:{value:1.5}, uFocus:{value:.5}},
+  vertexShader:"varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }",
+  fragmentShader:"uniform sampler2D tDiffuse; uniform vec2 uDir; uniform float uAmt, uFocus; varying vec2 vUv;\n void main(){ float f=smoothstep(.24,.62,abs(vUv.y-uFocus)); float r=uAmt*f; vec4 c=vec4(0.); float t=0.; for(int i=-4;i<=4;i++){ float w=exp(-float(i*i)/8.); c+=texture2D(tDiffuse, vUv+uDir*float(i)*r)*w; t+=w; } gl_FragColor=c/t; }" });
+
+const GradeShader=()=>({ uniforms:{tDiffuse:{value:null}, uSat:{value:1.26}, uCon:{value:1.07}, uVig:{value:.18}},
+  vertexShader:"varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }",
+  fragmentShader:"uniform sampler2D tDiffuse; uniform float uSat,uCon,uVig; varying vec2 vUv; void main(){ vec4 c=texture2D(tDiffuse,vUv); float l=dot(c.rgb,vec3(.2126,.7152,.0722)); vec3 s=mix(vec3(l),c.rgb,uSat); s=(s-.18)*uCon+.18; float v=1.-uVig*smoothstep(.45,.95,length(vUv-.5)*1.25); gl_FragColor=vec4(max(s,0.)*v,c.a); }" });
+function themeDark(){ return document.documentElement.dataset.theme==="dark"||(document.documentElement.dataset.theme!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches); }
+function applyTheme(){ if(!scene) return; const dark=themeDark();
+  const elev=dark?2.2:24, azim=dark?248:205, phi=THREE.MathUtils.degToRad(90-elev), th=THREE.MathUtils.degToRad(azim);
+  const sunDir=new THREE.Vector3().setFromSphericalCoords(1,phi,th);
+  const u=sky.material.uniforms; u.sunPosition.value.copy(sunDir); u.turbidity.value=dark?9:5.5; u.rayleigh.value=dark?2.6:1.3; u.mieCoefficient.value=dark?.012:.004; u.mieDirectionalG.value=.82;
+  sun.position.copy(sunDir).multiplyScalar(160); sun.color.set(dark?0xff9a5c:0xfff0d6); sun.intensity=dark?1.3:2.6;
+  hemi.color.set(dark?0x8fa3d9:0xdff1ff); hemi.groundColor.set(dark?0x3a2f3a:0x7f9a6a); hemi.intensity=dark?.35:.55;
+  renderer.toneMappingExposure=dark?.55:.78;
+  const fogC=dark?0x2b3550:0xcfe6ef; scene.fog=new THREE.Fog(fogC, 260, 950);
+  const wu=ocean.material.uniforms; wu.uSun.value.copy(sunDir); wu.uSunCol.value.set(dark?0xffa060:0xfff2d8);
+  wu.uDeep.value.set(dark?0x0b2a45:0x0565a8); wu.uMid.value.set(dark?0x14466a:0x0aa2cf); wu.uShallow.value.set(dark?0x2a8f95:0x2fe6d2); wu.uSky.value.set(dark?0x8a6f86:0xbfe4f2);
+  // environment lighting from the sky
+  if(pmrem){ const envScene=new THREE.Scene(); const s2=new THREE.Sky(); s2.scale.setScalar(1000); Object.keys(u).forEach(k=>{ if(s2.material.uniforms[k]) s2.material.uniforms[k].value=u[k].value.clone?u[k].value.clone():u[k].value; }); envScene.add(s2);
+    if(scene.environment) scene.environment.dispose(); scene.environment=pmrem.fromScene(envScene,0.04).texture; }
+  if(bloomPass){ bloomPass.strength=dark?.7:.18; bloomPass.threshold=dark?.82:.97; } if(gradePass) gradePass.uniforms.uSat.value=dark?1.15:1.26;
+}
 
 function initScene(){
-  const canvas=$("#scene");
-  renderer=new THREE.WebGLRenderer({canvas, antialias:true});
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+  const canvas=$("#scene"), hi=HIGH();
+  SN=new THREE.SimplexNoise({ random: rng(42) });
+  renderer=new THREE.WebGLRenderer({canvas, antialias:!hi, powerPreference:"high-performance"});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, hi?2:1.5));
+  renderer.outputColorSpace=THREE.SRGBColorSpace; renderer.toneMapping=THREE.ACESFilmicToneMapping;
   renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
   scene=new THREE.Scene();
-  camera=new THREE.PerspectiveCamera(42,1,.5,1000);
+  camera=new THREE.PerspectiveCamera(40,1,.5,4000);
   controls=new THREE.OrbitControls(camera, canvas);
-  controls.enableDamping=true; controls.dampingFactor=.08; controls.maxPolarAngle=1.32; controls.minDistance=14; controls.maxDistance=420; controls.screenSpacePanning=false;
-  hemi=new THREE.HemisphereLight(0xffffff,0x6f8f5c,.8); scene.add(hemi);
-  sun=new THREE.DirectionalLight(0xfff1dc,.95); sun.position.set(-70,110,60); sun.castShadow=true; sun.shadow.mapSize.set(2048,2048);
-  Object.assign(sun.shadow.camera,{left:-120,right:120,top:120,bottom:-120,near:10,far:320}); sun.shadow.bias=-.0008; scene.add(sun);
-  const og=new THREE.PlaneGeometry(800,800,96,96); og.rotateX(-Math.PI/2);
-  ocean=new THREE.Mesh(og,new THREE.MeshStandardMaterial({color:0x2a8ea6,roughness:.55,metalness:.05,flatShading:true})); ocean.receiveShadow=true; scene.add(ocean);
-  oceanBase=Float32Array.from(og.attributes.position.array);
-  ISLANDS.forEach(buildIsland); buildRoute(); refreshRoute(); applyTheme();
-  [[-12,30,6,.16,NY.lantern,C.gold],[20,-2,5,-.2,C.gold,NY.shutter],[-28,-12,5,.18,NY.shutter,NY.lantern]].forEach(([cx,cz,R,sp,a,b])=>{ const bt=perahu(a,b); bt.scale.setScalar(1.1); scene.add(bt);
-    seaBoats.push(t=>{ const ang=t*sp; bt.position.set(cx+Math.cos(ang)*R,.2+Math.sin(t*1.5+cx)*.15,cz+Math.sin(ang)*R); bt.rotation.y=-ang+(sp>0?Math.PI:0); bt.rotation.z=Math.sin(t*1.2+cz)*.06; }); });
+  controls.enableDamping=true; controls.dampingFactor=.08; controls.maxPolarAngle=1.3; controls.minDistance=14; controls.maxDistance=420; controls.screenSpacePanning=false;
+  pv=new THREE.Vector3();
+  hemi=new THREE.HemisphereLight(0xdff1ff,0x7f9a6a,1); scene.add(hemi);
+  sun=new THREE.DirectionalLight(0xfff0d6,2.9); sun.castShadow=true; sun.shadow.mapSize.set(hi?4096:1536, hi?4096:1536);
+  Object.assign(sun.shadow.camera,{left:-95,right:95,top:95,bottom:-95,near:10,far:420}); sun.shadow.bias=-.0004; sun.shadow.normalBias=.03; sun.shadow.radius=3;
+  sun.target.position.set(CENTER.x,0,CENTER.z); scene.add(sun); scene.add(sun.target);
+  sky=new THREE.Sky(); sky.scale.setScalar(3000); scene.add(sky);
+  pmrem=new THREE.PMREMGenerator(renderer);
+  ocean=makeWater(); scene.add(ocean);
+  { const fl=new THREE.Mesh(new THREE.PlaneGeometry(2000,2000), new THREE.MeshStandardMaterial({color:0x6fb9a4, roughness:1})); fl.rotation.x=-Math.PI/2; fl.position.y=-3.0; fl.receiveShadow=true; scene.add(fl); }
+  ISLANDS.forEach(buildIsland); buildRoute(); refreshRoute();
+  // perahu traffic + high drifting clouds
+  [[-12,30,6,.16,NY.lantern,C.gold],[20,-2,5,-.2,C.gold,NY.shutter],[-28,-12,5,.18,NY.shutter,NY.lantern],[30,52,9,.1,NY.lantern,NY.shutter]].forEach(([cx,cz,R,sp,a,b])=>{ const bt=perahu(a,b); bt.scale.setScalar(1.1); scene.add(bt);
+    seaBoats.push(t=>{ const ang=t*sp; bt.position.set(cx+Math.cos(ang)*R,.25+Math.sin(t*1.5+cx)*.15,cz+Math.sin(ang)*R); bt.rotation.y=-ang+(sp>0?Math.PI:0); bt.rotation.z=Math.sin(t*1.2+cz)*.06; }); });
+  const crr=rng(7); for(let k=0;k<9;k++){ const c=softCloud(crr,2.4+crr()*1.6); c.position.set((crr()-.5)*420,55+crr()*35,(crr()-.5)*320-60); c.traverse(o=>o.castShadow=false); scene.add(c); seaBoats.push(t=>{ c.position.x+=.012; if(c.position.x>230) c.position.x=-230; }); }
+  if(hi){
+    const rt=new THREE.WebGLRenderTarget(1,1,{type:THREE.HalfFloatType, samples:4});
+    composer=new THREE.EffectComposer(renderer, rt);
+    composer.addPass(new THREE.RenderPass(scene,camera));
+    bloomPass=new THREE.UnrealBloomPass(new THREE.Vector2(256,256), .32, .55, .88); composer.addPass(bloomPass);
+    tiltH=new THREE.ShaderPass(TiltShader()); tiltV=new THREE.ShaderPass(TiltShader()); composer.addPass(tiltH); composer.addPass(tiltV);
+    gradePass=new THREE.ShaderPass(GradeShader()); composer.addPass(gradePass);
+    composer.addPass(new THREE.OutputPass());
+  }
+  applyTheme();
   matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change",applyTheme);
   new MutationObserver(applyTheme).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
   resize(); setOverview(true);
@@ -916,16 +1132,18 @@ function aspect(){ return innerWidth/Math.max(1,innerHeight); }
 function setOverview(instant){
   const a=aspect(), fov=camera.fov*Math.PI/180, hf=2*Math.atan(Math.tan(fov/2)*a);
   let dir, half;
-  if(a<1){ dir=new THREE.Vector3(1,1.3,.2).normalize(); half=60; } else { dir=new THREE.Vector3(0,.9,1).normalize(); half=90; }
+  if(a<1){ dir=new THREE.Vector3(1,1.15,.25).normalize(); half=60; } else { dir=new THREE.Vector3(0,.78,1).normalize(); half=90; }
   const dist=Math.min(400, Math.max(half/Math.tan(hf/2), (a<1?66:44)/Math.tan(fov/2)));
   const tgt=new THREE.Vector3(CENTER.x,0,CENTER.z), pos=tgt.clone().add(dir.multiplyScalar(dist));
   go(pos,tgt,instant?0:1100);
 }
-function focusIsland(i){ const d=ISLANDS[i], a=aspect(); const tgt=new THREE.Vector3(d.pos[0],3.5,d.pos[1]); const f=a<.8?1.55:1; const pos=tgt.clone().add(new THREE.Vector3(12*f,22*f,30*f)); go(pos,tgt,1100); }
+function focusIsland(i){ const d=ISLANDS[i], a=aspect(); const tgt=new THREE.Vector3(d.pos[0],3.5,d.pos[1]); const f=a<.8?1.5:1.05; const pos=tgt.clone().add(new THREE.Vector3(12*f,18*f,30*f)); go(pos,tgt,1100); }
 function go(pos,tgt,dur){ if(!dur){ camera.position.copy(pos); controls.target.copy(tgt); controls.update(); return; } fly={p0:camera.position.clone(),t0:controls.target.clone(),p1:pos,t1:tgt,s:performance.now(),dur}; controls.enabled=false; }
 const ease = k => k<.5 ? 4*k*k*k : 1-Math.pow(-2*k+2,3)/2;
 
-function resize(){ if(!renderer) return; const w=innerWidth, h=innerHeight; renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); applyOffset(); }
+function resize(){ if(!renderer) return; const w=innerWidth, h=innerHeight; renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix();
+  if(composer){ composer.setPixelRatio(renderer.getPixelRatio()); composer.setSize(w,h); const pr=renderer.getPixelRatio(); tiltH.uniforms.uDir.value.set(1/(w*pr),0); tiltV.uniforms.uDir.value.set(0,1/(h*pr)); }
+  applyOffset(); }
 function applyOffset(){ const w=innerWidth, h=innerHeight; if(Math.abs(viewOff.x)<.5 && Math.abs(viewOff.y)<.5){ camera.clearViewOffset(); } else camera.setViewOffset(w,h,viewOff.x,viewOff.y,w,h); }
 const SHEET_MQ = matchMedia("(max-width:720px), (max-width:1100px) and (orientation:portrait)");
 function updateOffsetGoal(){ const p=$("#panel"), s=$("#side"); const el=!p.hidden?p:(!s.hidden?s:null); document.body.classList.toggle("drawer-open", !!el); if(!el){ viewOffGoal={x:0,y:0}; return; }
@@ -936,13 +1154,16 @@ function loop(now){
   if(document.hidden) return;
   const dt=Math.min(.05,(now-lastNow)/1000); lastNow=now; if(animOn) simT+=dt;
   if(fly){ const k=Math.min(1,(now-fly.s)/fly.dur), e=ease(k); camera.position.lerpVectors(fly.p0,fly.p1,e); controls.target.lerpVectors(fly.t0,fly.t1,e); if(k>=1){ fly=null; controls.enabled=true; } }
-  // view offset easing
   viewOff.x+=(viewOffGoal.x-viewOff.x)*Math.min(1,dt*7); viewOff.y+=(viewOffGoal.y-viewOff.y)*Math.min(1,dt*7); applyOffset();
   controls.update();
-  if(animOn){ const p=ocean.geometry.attributes.position, b=oceanBase, t=simT; for(let i=0;i<p.count;i++){ const x=b[i*3], z=b[i*3+2]; p.array[i*3+1]=Math.sin(x*.07+t*.9)*.38+Math.cos(z*.06+t*.7)*.32; } p.needsUpdate=true; }
+  ocean.material.uniforms.uTime.value=simT;
+  grassMats.forEach(m=>{ if(m.userData.u) m.userData.u.uTime.value=simT; });
+  swayers.forEach(s=>{ s.o.rotation.z=Math.sin(simT*1.1+s.ph)*s.amp; s.o.rotation.x=Math.cos(simT*.9+s.ph)*s.amp*.6; });
+  routeDots.forEach(r=>{ r.m.position.y=.3+Math.sin(simT*1.6+r.ph)*.12; });
   seaBoats.forEach(f=>f(simT));
-  isles.forEach((o,i)=>{ o.anim.forEach(f=>f(simT)); const goal=isUnlocked(i)?0:1; if(Math.abs(o.cloudK-goal)>.001){ o.cloudK+=(goal-o.cloudK)*Math.min(1,dt*2.2); if(Math.abs(o.cloudK-goal)<.01) o.cloudK=goal; } o.clouds.visible=o.cloudK>.01; o.clouds.scale.setScalar(Math.max(.001,o.cloudK)); o.clouds.rotation.y=simT*.05; });
-  renderer.render(scene,camera);
+  isles.forEach((o,i)=>{ o.anim.forEach(f=>f(simT)); if(o.fanim) o.fanim.forEach(f=>f(simT)); const goal=isUnlocked(i)?0:1; if(Math.abs(o.cloudK-goal)>.001){ o.cloudK+=(goal-o.cloudK)*Math.min(1,dt*2.2); if(Math.abs(o.cloudK-goal)<.01) o.cloudK=goal; } o.clouds.visible=o.cloudK>.01; o.clouds.scale.setScalar(Math.max(.001,o.cloudK)); o.clouds.rotation.y=simT*.04; });
+  if(composer){ const f=.5+viewOff.y/Math.max(1,innerHeight); tiltH.uniforms.uFocus.value=f; tiltV.uniforms.uFocus.value=f; composer.render(); }
+  else renderer.render(scene,camera);
   placeLabels();
 }
 
@@ -953,9 +1174,8 @@ function refreshLabels(){ ISLANDS.forEach((d,i)=>{ const un=isUnlocked(i), b=lbl
   b.setAttribute("aria-label",`${d.no} ${d.name}${un?"":"（未解锁）"}，${starsOf(i)} 颗星`);
   b.innerHTML=`<span class="lbl-no">${d.no}</span><span class="lbl-name">${d.name}</span>${un?`<span class="lbl-stars">${stars3(starsOf(i))}</span>`:LOCK}${i===NOW_IDX?'<span class="now">本周 This week</span>':""}`; rubify(b); });
   $("#starCount").textContent=Object.values(state.stars).reduce((a,b)=>a+b,0);
-  $("#weekNow").textContent = WEEK==="break" ? "期中假" : (typeof WEEK==="number" ? `本周 Week ${WEEK}` : "");
   if(scene) refreshRoute(); }
-const pv = window.THREE ? new THREE.Vector3() : null;
+let pv = null;
 function placeLabels(){ const w=innerWidth,h=innerHeight; ISLANDS.forEach((d,i)=>{ const b=lbls[i]; pv.set(d.pos[0], isUnlocked(i)?17:19, d.pos[1]).project(camera);
   if(i===cur||pv.z>1||pv.x<-1.2||pv.x>1.2||pv.y<-1.2||pv.y>1.2){ b.style.display="none"; return; } b.style.display=""; b.style.transform=`translate(${(pv.x*.5+.5)*w}px,${(-pv.y*.5+.5)*h}px) translate(-50%,-100%)`; }); }
 
@@ -1038,10 +1258,10 @@ function renderPanel(){
   setHTML(panel, `
    <div class="d-head">
      <button class="d-close" type="button" id="pClose" aria-label="关闭">${X_SVG}</button>
-     <div class="chip"><b>${d.no}</b> Module ${cur+1} · ${weeksTxt(d.weeks)}${cur===NOW_IDX?" · 本周 This week":""}</div>
+     <div class="chip"><b>${d.no}</b> Module ${cur+1}</div>
      <h2 class="d-title">${d.name}</h2>
      <p class="d-sub"><span class="py">${d.py}</span> · ${d.en}</p>
-     <dl class="meta"><dt>主题<span class=ui-en>Topic</span></dt><dd>${d.module} <span style="color:var(--muted)">${d.moduleEn}</span></dd><dt>课本<span class=ui-en>Textbook</span></dt><dd>${d.lesson}</dd><dt>评估<span class=ui-en>Assessment</span></dt><dd>${d.assess}</dd></dl>
+     <dl class="meta"><dt>主题<span class=ui-en>Topic</span></dt><dd>${d.module} <span style="color:var(--muted)">${d.moduleEn}</span></dd><dt>课本<span class=ui-en>Textbook</span></dt><dd>${d.lesson}</dd></dl>
      <div class="tabs" role="tablist">
        <button class="tab" role="tab" data-t="explore" aria-selected="${tab==="explore"}" type="button">探索<span class=ui-en data-b>Explore</span></button>
        <button class="tab" role="tab" data-t="quiz" aria-selected="${tab==="quiz"}" type="button">闯关<span class=ui-en>Quiz</span> <span class="lbl-stars" style="display:flex">${stars3(st)}</span></button>
@@ -1060,13 +1280,16 @@ function renderPanel(){
 }
 function refreshTabs(){ const t=panel.querySelector('[data-t="games"] small'); if(t) t.textContent=`${gamesDone(cur)}/4`; }
 
+function enX(zh){ const en=EXPLAIN_EN[zh]; return en?`<button class="enbtn" type="button" aria-expanded="false" data-nopy>EN</button><span class="enx" hidden data-nopy>${esc(en)}</span>`:""; }
+document.addEventListener("click",e=>{ const b=e.target.closest&&e.target.closest(".enbtn"); if(b){ const x=b.nextElementSibling; const open=x.hidden; x.hidden=!open; b.setAttribute("aria-expanded",String(open)); b.textContent=open?"EN ▴":"EN"; return; }
+  if(e.target.closest&&e.target.closest("#enAll")){ const all=[...document.querySelectorAll("#pBody .enbtn")]; const open=all.some(x=>x.nextElementSibling.hidden); all.forEach(x=>{ x.nextElementSibling.hidden=!open; x.setAttribute("aria-expanded",String(open)); x.textContent=open?"EN ▴":"EN"; }); } });
 function exploreHTML(d){
-  return d.spots.map(s=>`
+  return `<div class="row" style="justify-content:flex-end"><button class="btn ghost sm" type="button" id="enAll">全部英文解释<span class=ui-en>Show all English</span></button></div>` + d.spots.map(s=>`
    <section class="spot">
      <h3 class="spot-h"><span class="tag">地标<span class=ui-en>Spot</span></span>${esc(s.h)}<span class="en">${esc(s.en)}</span></h3>
      ${s.v?`<div class="vocab">${s.v.map(([hz,py,en])=>`<button class="v" type="button" data-say="${esc(hz.split(" / ")[0])}">${SPK}<span class="hz" data-nopy>${esc(hz)}</span><span class="py">${esc(py)}</span><span class="en">${esc(en)}</span></button>`).join("")}</div>`:""}
      ${s.p?`<div class="pats">${s.p.map(([zh,py,en])=>`<button class="pat" type="button" data-say="${esc(zh)}">${SPK}<span class="zh" data-nopy>${esc(zh)}</span><span class="py">${esc(py)}</span><span class="en">${esc(en)}</span></button>`).join("")}</div>`:""}
-     ${s.tips?`<ul class="tips">${s.tips.map(t=>t.r?`<li>${esc(t.r)}</li>`:`<li class="err"><span class="wrong">${esc(t.w)}</span> → <span class="right">${esc(t.ok)}</span><span class="why">${esc(t.why)}</span></li>`).join("")}</ul>`:""}
+     ${s.tips?`<ul class="tips">${s.tips.map(t=>t.r?`<li>${esc(t.r)}${enX(t.r)}</li>`:`<li class="err"><span class="wrong">${esc(t.w)}</span> → <span class="right">${esc(t.ok)}</span><span class="why">${esc(t.why)}${enX(t.why)}</span></li>`).join("")}</ul>`:""}
    </section>`).join("") + `<div class="row"><button class="btn" type="button" onclick="tab='quiz';setLast('quiz');renderPanel()">去闯关<span class=ui-en>Take the quiz</span></button><button class="btn ghost" type="button" onclick="tab='games';setLast('games');renderPanel()">去玩游戏<span class=ui-en>Play games</span></button></div>`;
 }
 
@@ -1091,9 +1314,9 @@ function renderQuiz(body){
   const q=quiz.qs[quiz.k], n=quiz.qs.length;
   setHTML(body, `
     <div class="q-top"><span>第 ${quiz.k+1} / ${n} 题<span class=ui-en>Q${quiz.k+1}/${n}</span>${q.from?` · 来自 ${q.from}<span class=ui-en>from ${q.from}</span>`:""}</span><span class="dots">${quiz.qs.map((_,j)=>`<i class="${j<quiz.k?(quiz.res[j]?"ok":"no"):(j===quiz.k?"cur":"")}"></i>`).join("")}</span></div>
-    <p class="q-text"${q.np?" data-nopy":""}>${esc(q.q)}</p>
-    ${q.au?`<button class="play" type="button" id="qPlay"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>播放 Play</button>${hasTTS?"":`<span class="apy">（此设备不能朗读，拼音：${esc(q.apy)}）<span class=ui-en>No speech on this device — read the pinyin.</span></span>`}`:""}
-    <div class="opts">${q.opts.map((o,j)=>`<button class="opt" type="button" data-j="${j}"><span class="k">${"ABCD"[j]}</span><span>${esc(o)}</span></button>`).join("")}</div>
+    <p class="q-text"><span${q.np?" data-nopy":""}>${esc(q.q)}</span>${QUIZ_EN[q.q]?`<span class=ui-en data-b>${esc(QUIZ_EN[q.q])}</span>`:""}</p>
+    ${q.au?`<button class="play" type="button" id="qPlay"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>播放<span class=ui-en>Play</span></button>${hasTTS?"":`<span class="apy">（此设备不能朗读，拼音：${esc(q.apy)}）<span class=ui-en>No speech on this device — read the pinyin.</span></span>`}`:""}
+    <div class="opts">${q.opts.map((o,j)=>`<button class="opt" type="button" data-j="${j}"><span class="k">${"ABCD"[j]}</span><span${(q.au||q.np)?" data-nopy":""}>${esc(o)}</span></button>`).join("")}</div>
     <div id="qAfter"></div>`);
   if(q.au) $("#qPlay").onclick=()=>speak(q.au);
   body.querySelectorAll(".opt").forEach(b=>b.addEventListener("click",()=>answer(+b.dataset.j, body)));
@@ -1104,7 +1327,7 @@ function answer(j, body){
   const ok=q.opts[j]===q.a; quiz.res.push(ok); if(ok) quiz.score++;
   body.querySelectorAll(".opt").forEach((b,k)=>{ b.disabled=true; if(q.opts[k]===q.a) b.classList.add("ok"); else if(k===j) b.classList.add("no"); });
   const last=quiz.k===quiz.qs.length-1;
-  setHTML($("#qAfter"), `<div class="explain"><b style="color:${ok?"var(--ok)":"var(--bad)"}">${ok?"答对了！<span class=ui-en>Correct!</span>":"再想想：<span class=ui-en>Not quite.</span>"}</b> 正确答案是<span class=ui-en>Answer</span>「${esc(q.a)}」。${q.x?esc(q.x):""}${q.au?` <span class="apy">（${esc(q.au)} · ${esc(q.apy)}）</span>`:""}</div>
+  setHTML($("#qAfter"), `<div class="explain"><b style="color:${ok?"var(--ok)":"var(--bad)"}">${ok?"答对了！<span class=ui-en>Correct!</span>":"再想想：<span class=ui-en>Not quite.</span>"}</b> 正确答案是<span class=ui-en>Answer</span>「${esc(q.a)}」。${q.x?esc(q.x)+enX(q.x):""}${q.au?` <span class="apy">（${esc(q.au)} · ${esc(q.apy)}）</span>`:""}</div>
     <div class="row" style="margin-top:12px"><button class="btn" type="button" id="qNext">${last?"看成绩<span class=ui-en>Results</span>":"下一题<span class=ui-en>Next</span>"}</button></div>`);
   body.querySelectorAll(".dots i")[quiz.k].className=ok?"ok":"no";
   $("#qNext").onclick=()=>{ quiz.k++; renderQuiz(body); speakIfListen(); };
@@ -1260,6 +1483,7 @@ function swRender(body){
   const size=Math.max(200, Math.min(280, body.clientWidth-60));
   const hw=$("#hw"); hw.style.width=hw.style.height=size+"px";
   writer=HanziWriter.create("hw", c, { width:size, height:size, padding:14, showCharacter:false, showOutline:true, strokeColor:col("--red"), outlineColor:col("--outline"), drawingColor:col("--ink"), highlightColor:col("--gold"), drawingWidth:Math.round(size/13), showHintAfterMisses:2, strokeAnimationSpeed:1.2, delayBetweenStrokes:180,
+    charDataLoader:(ch,onLoad,onErr)=>{ fetch(`lib/hanzi-data/${encodeURIComponent(ch)}.json`).then(r=>{ if(!r.ok) throw 0; return r.json(); }).catch(()=>fetch(`https://cdn.jsdelivr.net/npm/hanzi-writer-data@2.0.1/${encodeURIComponent(ch)}.json`).then(r=>r.json())).then(onLoad,onErr); },
     onLoadCharDataError:()=>setHTML($("#swMsg"),"这个字的笔顺资料载入失败，请检查网络。<span class=ui-en data-b>Could not load this character. Check your connection.</span>") });
   const startQuiz=()=>writer.quiz({ leniency:1.4,
     onMistake:()=>{ const m=$("#swMsg"); if(m) setHTML(m,"这一笔不对，再试试。<span class=ui-en data-b>Not that stroke — try again.</span>"); },
@@ -1278,49 +1502,221 @@ function swRender(body){
 
 /* ============================== 建设南洋岛 Build your Nanyang island ============================== */
 const BUILD = [
-  {id:"palm",   name:"椰子树", en:"coconut palm", cost:10},
-  {id:"frang",  name:"鸡蛋花", en:"frangipani",   cost:10},
-  {id:"banana", name:"香蕉树", en:"banana tree",  cost:10},
-  {id:"lantern",name:"红灯笼", en:"red lanterns", cost:15},
-  {id:"perahu", name:"小船",   en:"perahu boat",  cost:20},
-  {id:"shop",   name:"店屋",   en:"shophouse",    cost:30},
-  {id:"stilt",  name:"高脚屋", en:"stilt house",  cost:30}
+  {id:"palm",     name:"椰子树", en:"coconut palm",  cost:10},
+  {id:"frang",    name:"鸡蛋花", en:"frangipani",    cost:10},
+  {id:"banana",   name:"香蕉树", en:"banana tree",   cost:10},
+  {id:"flowers",  name:"花坛",   en:"flower bed",    cost:8},
+  {id:"bench",    name:"长椅",   en:"bench",         cost:8},
+  {id:"durian",   name:"榴莲树", en:"durian tree",   cost:15},
+  {id:"rambutan", name:"红毛丹树", en:"rambutan tree", cost:15},
+  {id:"lantern",  name:"红灯笼", en:"red lanterns",  cost:15},
+  {id:"swing",    name:"秋千",   en:"swing",         cost:12},
+  {id:"kite",     name:"风筝",   en:"wau kite",      cost:12},
+  {id:"trishaw",  name:"三轮车", en:"trishaw",       cost:20},
+  {id:"perahu",   name:"小船",   en:"perahu boat",   cost:20},
+  {id:"gazebo",   name:"凉亭",   en:"pavilion",      cost:25},
+  {id:"kopi",     name:"咖啡摊", en:"kopi stall",    cost:25},
+  {id:"shop",     name:"店屋",   en:"shophouse",     cost:30},
+  {id:"stilt",    name:"高脚屋", en:"stilt house",   cost:30}
 ];
 const SLOT_ANG=[.45,1.3,2.15,3.35,4.55,5.5];
 const SHOP_COL=()=>[NY.pink,NY.mint,NY.butter,NY.sky,NY.peach,NY.lilac];
 function buildsOf(i){ return state.build[i] || (state.build[i]=Array(SLOT_ANG.length).fill(null)); }
+
+/* --- extra decoration models --- */
+function fruitTree(g, leaf, fruit, spiky){ const t=new THREE.Group(); g.add(t);
+  t.add(cyl(.22,.32,2.4,14,0x7a5232,0,1.2,0));
+  [[0,3,0,1.5],[.9,2.7,.4,1.05],[-.8,2.8,-.3,1.1],[.1,3.7,-.2,1.05]].forEach(([x,y,z,r])=>t.add(ball(r,leaf,x,y,z)));
+  const rr=rng(Math.floor(leaf/7)); for(let k=0;k<9;k++){ const a=rr()*6.28, y=2.4+rr()*1.6; const f=spiky? mesh(new THREE.IcosahedronGeometry(.26,0),fruit,Math.cos(a)*1.35,y,Math.sin(a)*1.35,{flatShading:true}) : ball(.17,fruit,Math.cos(a)*1.4,y,Math.sin(a)*1.4); t.add(f); }
+  swayers.push({o:t, ph:leaf%7, amp:.015}); }
+function flowerBed(g){ g.add(cyl(1.3,1.4,.45,24,0xc8a27a,0,.22,0)); g.add(cyl(1.18,1.18,.08,24,0x5a3c24,0,.46,0));
+  const cols=[0xff5f8a,0xffd23f,0xffffff,0xff8c42,0xc77dff]; for(let k=0;k<16;k++){ const a=k*2.4, d=.25+(k%4)*.24; g.add(cyl(.03,.03,.4,4,0x3f8f3a,Math.cos(a)*d,.68,Math.sin(a)*d)); g.add(ball(.13,cols[k%5],Math.cos(a)*d,.92,Math.sin(a)*d,{emissive:cols[k%5],emissiveIntensity:.08})); } }
+function bench(g){ g.add(box(2.2,.14,.7,0x9a6a3e,0,.6,0)); g.add(box(2.2,.5,.1,0x9a6a3e,0,.95,-.32)); [-.9,.9].forEach(x=>[-.25,.25].forEach(z=>g.add(box(.1,.6,.1,0x3a2f2a,x,.3,z)))); }
+function swing(g){ [-1.2,1.2].forEach(x=>{ const l=cyl(.08,.1,3.2,10,0x6e4426,x,1.55,0); g.add(l); }); g.add(cyl(.07,.07,2.6,10,0x6e4426,0,3.1,0)).rotation.z=Math.PI/2;
+  const piv=new THREE.Group(); piv.position.y=3.05; g.add(piv); [-.4,.4].forEach(x=>piv.add(cyl(.02,.02,2.2,4,0x2b1d16,x,-1.1,0))); piv.add(box(1,.1,.4,C.red,0,-2.2,0));
+  swayers.push({o:piv, ph:1, amp:.0, swing:true}); seaBoats.push(t=>{ piv.rotation.x=Math.sin(t*1.8)*.45; }); }
+function kite(g){ g.add(cyl(.05,.07,1.2,8,0x6e4426,0,.6,0));
+  const sh=new THREE.Shape(); sh.moveTo(0,1.2); sh.quadraticCurveTo(.9,.8,.5,.1); sh.lineTo(1.1,-.2); sh.quadraticCurveTo(.4,-.6,0,-1.1); sh.quadraticCurveTo(-.4,-.6,-1.1,-.2); sh.lineTo(-.5,.1); sh.quadraticCurveTo(-.9,.8,0,1.2);
+  const k=new THREE.Mesh(new THREE.ShapeGeometry(sh), new THREE.MeshStandardMaterial({color:0xe63946, side:THREE.DoubleSide, roughness:.6, emissive:0x400000})); k.scale.setScalar(.9);
+  const trim=new THREE.Mesh(new THREE.ShapeGeometry(sh), new THREE.MeshStandardMaterial({color:0xffd23f, side:THREE.DoubleSide})); trim.scale.setScalar(.55); trim.position.z=.01; k.add(trim);
+  const fly=new THREE.Group(); fly.position.set(1.5,7,0); fly.add(k); g.add(fly);
+  const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,1.2,0), new THREE.Vector3(1.5,6.2,0)]), new THREE.LineBasicMaterial({color:0xffffff})); g.add(line);
+  seaBoats.push(t=>{ fly.position.y=7+Math.sin(t*1.3)*.4; fly.rotation.z=Math.sin(t*.9)*.2; fly.rotation.y=Math.sin(t*.5)*.3; }); }
+function gazebo(g){ for(let k=0;k<6;k++){ const a=k/6*6.28; g.add(cyl(.12,.14,2.6,12,C.red,Math.cos(a)*1.6,1.3,Math.sin(a)*1.6)); }
+  g.add(cyl(2,2.1,.3,6,0xd9c7a3,0,.15,0)); const rf=cone(2.6,1.6,6,NY.tile,0,3.4,0); g.add(rf); g.add(ball(.25,C.gold,0,4.35,0)); g.add(cyl(2.05,2.05,.2,6,NY.teak,0,2.65,0)); }
+function trishaw(g){ [[-.55,.6],[.55,.6],[0,-.9]].forEach(([x,z])=>{ const w=new THREE.Mesh(new THREE.TorusGeometry(.38,.06,8,20),M(C.dark)); w.position.set(x,.4,z); w.rotation.y=Math.PI/2; g.add(w); });
+  g.add(box(1.3,.5,.8,NY.lantern,0,.85,.5)); g.add(box(1.3,.12,.8,C.gold,0,1.15,.5)); const can=new THREE.Mesh(new THREE.SphereGeometry(.75,20,10,0,Math.PI*2,0,Math.PI/2),M(0x2a9d8f,{side:THREE.DoubleSide})); can.position.set(0,1.4,.45); can.scale.set(1,.7,.7); g.add(can);
+  g.add(cyl(.04,.04,1.3,6,C.dark,0,.75,-.25)).rotation.x=.5; g.add(box(.3,.08,.3,C.dark,0,1.25,-.75)); }
+function kopiStall(g){ g.add(box(2,1,1.1,0x2a9d8f,0,.6,0)); g.add(box(2.1,.1,1.2,NY.cream,0,1.12,0)); [[-.8,.62],[.8,.62]].forEach(([x,z])=>{ const w=new THREE.Mesh(new THREE.TorusGeometry(.25,.06,8,16),M(C.dark)); w.position.set(x,.25,z); g.add(w); });
+  g.add(cyl(.04,.04,2.2,6,C.white,0,2,0)); const u=cone(1.6,.6,16,0xffd23f,0,3.1,0); g.add(u); for(let k=0;k<8;k+=2){ const a=k/8*6.28; g.add(cone(.62,.6,4,NY.lantern,Math.cos(a)*.6,3.08,Math.sin(a)*.6)).visible=false; }
+  g.add(cyl(.3,.3,.06,16,C.white,-.5,1.2,0)); g.add(cyl(.12,.1,.2,12,0xffffff,-.5,1.3,0)); g.add(cyl(.12,.1,.2,12,0x6b3a1f,.3,1.25,0));
+  [[1.6,.8],[1.6,-.6]].forEach(([x,z])=>{ g.add(cyl(.35,.35,.06,16,0xe9e1d4,x,.75,z)); g.add(cyl(.05,.05,.75,6,C.dark,x,.37,z)); }); }
+
+function makeDecor(id, k, r){ const g=new THREE.Group(), rr=rng(k*13+id.length);
+  ({ palm:()=>palm(g,0,0,1,rr), frang:()=>frangipani(g,0,0), banana:()=>banana(g,0,0,.95), flowers:()=>flowerBed(g), bench:()=>bench(g),
+     durian:()=>fruitTree(g,0x3f8f3a,0x9db83a,true), rambutan:()=>fruitTree(g,0x4a9e3f,0xd62839,false), lantern:()=>lanterns(g,-1.6,0,1.6,0,3,4),
+     swing:()=>swing(g), kite:()=>kite(g), trishaw:()=>trishaw(g), gazebo:()=>gazebo(g), kopi:()=>kopiStall(g),
+     shop:()=>{ const s=shophouse(SHOP_COL()[k%6],2.4,2.6); s.scale.setScalar(.85); g.add(s); },
+     stilt:()=>{ const s=stiltHouse(NY.cream,NY.tile,1.3,2.8,2.2); s.scale.setScalar(.8); g.add(s); },
+     perahu:()=>{ const b=perahu(k%2?C.gold:NY.lantern, k%2?NY.lantern:C.gold); g.add(b); } })[id]();
+  return g; }
 function render3DBuild(i){
   if(!scene || !isles[i]) return; const o=isles[i];
-  if(!o.bgrp){ o.bgrp=new THREE.Group(); o.bgrp.position.y=2.2; o.group.add(o.bgrp); }
+  if(!o.bgrp){ o.bgrp=new THREE.Group(); o.group.add(o.bgrp); }
   while(o.bgrp.children.length) o.bgrp.remove(o.bgrp.children[0]);
-  const r=o.r, rr=rng(i*31+7);
-  buildsOf(i).forEach((id,k)=>{ if(!id) return; const a=SLOT_ANG[k], R=r*.74, x=Math.cos(a)*R, z=Math.sin(a)*R; const g=new THREE.Group();
-    if(id==="palm") palm(g,0,0,1,rr);
-    else if(id==="frang") frangipani(g,0,0);
-    else if(id==="banana") banana(g,0,0,.95);
-    else if(id==="lantern") lanterns(g,-1.6,0,1.6,0,3,4);
-    else if(id==="shop"){ const s=shophouse(SHOP_COL()[k%6],2.4,2.6); s.scale.setScalar(.85); g.add(s); }
-    else if(id==="stilt"){ const s=stiltHouse(NY.cream,NY.tile,1.3,2.8,2.2); s.scale.setScalar(.8); g.add(s); }
-    else if(id==="perahu"){ const b=perahu(k%2?C.gold:NY.lantern, k%2?NY.lantern:C.gold); b.position.y=-2; g.add(b); const RR=r*1.45; g.position.set(Math.cos(a)*RR,0,Math.sin(a)*RR); g.rotation.y=-a; o.bgrp.add(g); return; }
-    g.position.set(x,0,z); g.rotation.y=-a+Math.PI/2; o.bgrp.add(g); });
+  buildsOf(i).forEach((id,k)=>{ if(!id) return; const a=SLOT_ANG[k];
+    const g=makeDecor(id,k,o.r);
+    if(id==="perahu"){ const RR=o.r*1.5; g.position.set(Math.cos(a)*RR,.25,Math.sin(a)*RR); g.rotation.y=-a; }
+    else { const R=o.r*.72, x=Math.cos(a)*R, z=Math.sin(a)*R; g.position.set(x, o.sh?terrainH(o.sh,x,z):2.2, z); g.rotation.y=-a+Math.PI/2; }
+    o.bgrp.add(g); });
   o.bgrp.traverse(m=>{ if(m.isMesh){ m.castShadow=true; m.receiveShadow=true; } });
 }
+
+/* ============================== 海洋养殖 Sea farm ============================== */
+const SEA = [
+  {id:"fish",     zh:"鱼",     en:"fish",       cost:5},
+  {id:"shrimp",   zh:"虾",     en:"shrimp",     cost:5},
+  {id:"starfish", zh:"海星",   en:"starfish",   cost:6},
+  {id:"crab",     zh:"螃蟹",   en:"crab",       cost:8},
+  {id:"clown",    zh:"小丑鱼", en:"clownfish",  cost:8},
+  {id:"jelly",    zh:"水母",   en:"jellyfish",  cost:10},
+  {id:"seahorse", zh:"海马",   en:"seahorse",   cost:10},
+  {id:"octopus",  zh:"章鱼",   en:"octopus",    cost:12},
+  {id:"turtle",   zh:"海龟",   en:"sea turtle", cost:15},
+  {id:"dolphin",  zh:"海豚",   en:"dolphin",    cost:20},
+  {id:"shark",    zh:"鲨鱼",   en:"shark",      cost:20},
+  {id:"whale",    zh:"鲸鱼",   en:"whale",      cost:30}
+];
+const FARM_MAX=10;
+const farmOpen = () => state.teacher || ISLANDS.filter((_,i)=>isUnlocked(i)).length>=4;
+function farmOf(i){ return state.farm[i] || (state.farm[i]=[]); }
+
+function creature(id){ const g=new THREE.Group();
+  const eye=(x,y,z,r=.06)=>{ g.add(mesh(new THREE.SphereGeometry(r,10,8),0x111111,x,y,z)); };
+  const fishBody=(col,len,h)=>{ const b=mesh(new THREE.SphereGeometry(.5,24,16),col); b.scale.set(len,h,h*.62); g.add(b);
+    const t=mesh(new THREE.ConeGeometry(h*.42,len*.5,4),col,-len*.62,0,0,{flatShading:true}); t.rotation.z=Math.PI/2; t.scale.z=.3; g.add(t); eye(len*.32,h*.12,h*.2); eye(len*.32,h*.12,-h*.2); return b; };
+  if(id==="fish"){ fishBody(0x3fa7ff,1.1,.55); }
+  else if(id==="clown"){ fishBody(0xff7a1a,.9,.5); [-.05,.22].forEach(x=>{ const s=mesh(new THREE.CylinderGeometry(.27,.27,.07,20),0xffffff,x,0,0); s.rotation.z=Math.PI/2; s.scale.set(1,1,.65); g.add(s); }); }
+  else if(id==="shrimp"){ for(let k=0;k<6;k++){ const a=k/5*2.2; g.add(mesh(new THREE.SphereGeometry(.17-.018*k,14,10),0xff8f8f,Math.cos(a)*.35-.1,Math.sin(a)*.35,0)); } g.add(cyl(.01,.01,.8,4,0xff8f8f,.45,.15,0)).rotation.z=-.9; eye(.28,.12,.08,.04); }
+  else if(id==="crab"){ const b=mesh(new THREE.SphereGeometry(.5,22,14),0xe63946); b.scale.set(1,.45,.8); b.position.y=.3; g.add(b);
+    [-1,1].forEach(s=>{ for(let k=0;k<3;k++){ const l=cyl(.04,.04,.6,6,0xc1121f,(k-1)*.28,.2,s*.42); l.rotation.x=s*1.1; g.add(l); } const c=mesh(new THREE.SphereGeometry(.17,12,10),0xe63946,.55,.38,s*.32); c.scale.set(1.2,.8,.8); g.add(c); });
+    eye(.25,.55,.12); eye(.25,.55,-.12); }
+  else if(id==="starfish"){ const sh=new THREE.Shape(); for(let k=0;k<10;k++){ const a=k/10*6.283+Math.PI/2, r=k%2?.22:.6; const x=Math.cos(a)*r, y=Math.sin(a)*r; k?sh.lineTo(x,y):sh.moveTo(x,y); }
+    const s=mesh(new THREE.ExtrudeGeometry(sh,{depth:.12,bevelEnabled:true,bevelSize:.06,bevelThickness:.06,bevelSegments:2}),0xff9f1c); s.rotation.x=-Math.PI/2; g.add(s); }
+  else if(id==="jelly"){ const d=new THREE.Mesh(new THREE.SphereGeometry(.55,24,14,0,Math.PI*2,0,Math.PI/2), new THREE.MeshStandardMaterial({color:0xff9ad5, transparent:true, opacity:.75, emissive:0xff6fc0, emissiveIntensity:.5, roughness:.2})); g.add(d);
+    for(let k=0;k<6;k++){ const a=k/6*6.28; const t=new THREE.Mesh(new THREE.CylinderGeometry(.025,.01,1,5), d.material); t.position.set(Math.cos(a)*.3,-.5,Math.sin(a)*.3); g.add(t); } }
+  else if(id==="seahorse"){ for(let k=0;k<7;k++){ const y=k*.17, x=Math.sin(k*.7)*.12; g.add(mesh(new THREE.SphereGeometry(.15-.012*Math.abs(k-4),12,10),0xffc93c,x,y,0)); }
+    const sn=cyl(.05,.07,.3,8,0xffc93c,.22,1.08,0); sn.rotation.z=Math.PI/2; g.add(sn); eye(.08,1.12,.1,.04); }
+  else if(id==="octopus"){ const h=mesh(new THREE.SphereGeometry(.55,24,16),0x9b5de5,0,.75,0); h.scale.y=1.15; g.add(h); eye(.35,.8,.2,.08); eye(.35,.8,-.2,.08);
+    for(let k=0;k<8;k++){ const a=k/8*6.28, pts=[]; for(let j=0;j<6;j++){ const u=j/5; pts.push(new THREE.Vector3(Math.cos(a)*(.3+u*.9), .35-u*.35+Math.sin(u*3)*.1, Math.sin(a)*(.3+u*.9))); }
+      g.add(mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),12,.09,8),0x9b5de5)); } }
+  else if(id==="turtle"){ const s=mesh(new THREE.SphereGeometry(.7,24,14,0,Math.PI*2,0,Math.PI/2),0x2d6a4f); s.scale.set(1.1,.6,.9); g.add(s); g.add(mesh(new THREE.CylinderGeometry(.72,.72,.08,24),0xb5c99a,0,0,0)).scale.set(1.05,1,.85);
+    const hd=mesh(new THREE.SphereGeometry(.22,14,10),0x95d5b2,.85,.05,0); g.add(hd); eye(1,.12,.1,.04); eye(1,.12,-.1,.04);
+    const fl=[]; [[.4,.55],[.4,-.55],[-.45,.45],[-.45,-.45]].forEach(([x,z])=>{ const f=mesh(new THREE.SphereGeometry(.25,12,8),0x95d5b2,x,-.02,z); f.scale.set(1.3,.25,.6); g.add(f); fl.push(f); }); g.userData.fl=fl; }
+  else if(id==="dolphin"){ const b=mesh(new THREE.CapsuleGeometry(.32,1.4,8,16),0x6c9bd2); b.rotation.z=Math.PI/2; g.add(b); const sn=cyl(.08,.14,.4,10,0x6c9bd2,1.1,-.04,0); sn.rotation.z=Math.PI/2; g.add(sn);
+    const df=cone(.22,.5,4,0x5a86ba,0,.42,0); df.scale.z=.3; df.rotation.z=-.4; g.add(df); const tl=mesh(new THREE.SphereGeometry(.3,12,8),0x5a86ba,-1.1,0,0); tl.scale.set(.3,.15,1.1); g.add(tl); eye(.85,.1,.2,.05); eye(.85,.1,-.2,.05); }
+  else if(id==="shark"){ const b=mesh(new THREE.CapsuleGeometry(.4,1.8,8,16),0x8d99ae); b.rotation.z=Math.PI/2; g.add(b); const df=cone(.4,.9,4,0x6c757d,.1,.75,0); df.scale.z=.25; df.rotation.z=-.35; g.add(df);
+    const tl=cone(.35,.8,4,0x6c757d,-1.45,.15,0); tl.scale.z=.25; tl.rotation.z=.9; g.add(tl); eye(1,.12,.28,.05); eye(1,.12,-.28,.05); }
+  else if(id==="whale"){ const b=mesh(new THREE.SphereGeometry(1,28,18),0x3a6ea5); b.scale.set(2.6,1,1.2); g.add(b); const belly=mesh(new THREE.SphereGeometry(1,24,14),0xdfe7f2,.2,-.25,0); belly.scale.set(2.2,.7,.95); g.add(belly);
+    const tl=mesh(new THREE.SphereGeometry(.6,14,8),0x3a6ea5,-2.7,.3,0); tl.scale.set(.35,.18,1.6); g.add(tl); eye(1.9,.15,.75,.08); eye(1.9,.15,-.75,.08);
+    const sp=new THREE.Mesh(new THREE.ConeGeometry(.35,1.6,12,1,true), new THREE.MeshStandardMaterial({color:0xffffff, transparent:true, opacity:.7, side:THREE.DoubleSide})); sp.position.set(1,1.6,0); sp.rotation.z=Math.PI; g.add(sp); g.userData.spout=sp; }
+  g.traverse(m=>{ if(m.isMesh){ m.castShadow=false; m.receiveShadow=false; } });
+  return g; }
+
+function render3DFarm(i){
+  if(!scene || !isles[i]) return; const o=isles[i];
+  if(!o.fgrp){ o.fgrp=new THREE.Group(); o.group.add(o.fgrp); o.fanim=[]; }
+  while(o.fgrp.children.length) o.fgrp.remove(o.fgrp.children[0]); o.fanim=[];
+  const r=o.r;
+  farmOf(i).forEach((id,k)=>{ const c=creature(id), rr=rng(i*53+k*7+id.length); o.fgrp.add(c);
+    const a0=rr()*6.28, sp=(.15+rr()*.15)*(k%2?1:-1), R=r*(1.22+rr()*.25), ph=rr()*6;
+    const ring=(t,y,RR=R,s=sp)=>{ const a=a0+t*s; c.position.set(Math.cos(a)*RR,y,Math.sin(a)*RR); c.rotation.y=-a+(s>0?-Math.PI/2:Math.PI/2); };
+    const beachSpot=()=>{ const a=a0, e=islandEdge(o.sh,a)*.97; return [Math.cos(a)*e, Math.sin(a)*e]; };
+    let f;
+    if(id==="fish"||id==="clown") f=t=>{ ring(t,-.75+Math.sin(t*2+ph)*.1); c.rotation.z=Math.sin(t*6+ph)*.08; };
+    else if(id==="shrimp") f=t=>{ ring(t*.6,-1.3+Math.sin(t*1.5+ph)*.08,R*.95); };
+    else if(id==="jelly") f=t=>{ ring(t*.25,-.9+Math.sin(t*1.2+ph)*.35,R*.9); c.scale.y=1+Math.sin(t*2.4+ph)*.12; };
+    else if(id==="seahorse") f=t=>{ ring(t*.15,-1.4+Math.sin(t*1.6+ph)*.2,R*.9); };
+    else if(id==="octopus") f=t=>{ ring(t*.1,-1.9,R*.95); c.rotation.x=Math.sin(t*1.2+ph)*.08; };
+    else if(id==="turtle") f=t=>{ ring(t*.5,-.5+Math.max(0,Math.sin(t*.4+ph))*.42,R*1.05); (c.userData.fl||[]).forEach((fl,j)=>fl.rotation.x=Math.sin(t*3+j)*.4); };
+    else if(id==="dolphin") f=t=>{ const a=a0+t*sp*1.6, RR=R*1.15; const j=Math.sin(t*1.3+ph); const y=j>.6 ? -.4+(j-.6)*7 : -.6; c.position.set(Math.cos(a)*RR,y,Math.sin(a)*RR); c.rotation.y=-a+(sp>0?-Math.PI/2:Math.PI/2); c.rotation.z=j>.6?Math.cos(t*1.3+ph)*1.2*(sp>0?1:1):0; };
+    else if(id==="shark") f=t=>{ ring(t*.7,-.35,R*1.35); };
+    else if(id==="whale") f=t=>{ ring(t*.12,-.55,r*2.3); const sp2=c.userData.spout; if(sp2){ const s=Math.max(0,Math.sin(t*.6+ph)); sp2.scale.set(s,.2+s,s); sp2.visible=s>.05; } };
+    else if(id==="crab"){ const [x,z]=beachSpot(); f=t=>{ const w=Math.sin(t*.8+ph)*.8; c.position.set(x+Math.sin(a0)*w, terrainH(o.sh,x,z)+.02, z-Math.cos(a0)*w); c.rotation.y=-a0; }; }
+    else if(id==="starfish"){ const a=a0, e=islandEdge(o.sh,a)*1.04, x=Math.cos(a)*e, z=Math.sin(a)*e; f=t=>{ c.position.set(x, Math.max(terrainH(o.sh,x,z), -1.5)+.05, z); c.rotation.y=ph; }; }
+    o.fanim.push(f); });
+}
+
+/* ---------- build UI: island map with plots 1–6, drag & drop + tap ---------- */
+let bSel=null;   // {kind:"shop", id} | {kind:"plot", k}
+let buildTab="decor";
+function placeItem(k, id, body){ const slots=buildsOf(cur), free=state.teacher, it=BUILD.find(x=>x.id===id), old=slots[k] && BUILD.find(x=>x.id===slots[k]);
+  if(!free && state.coins<it.cost){ toast("椰子币不够","Not enough coins"); return false; }
+  if(!free){ state.coins-=it.cost; if(old) state.coins+=Math.floor(old.cost/2); }
+  slots[k]=id; save(); updateCoins(); render3DBuild(cur); toast(`建好了：${it.name}（${k+1} 号空地）`, `Built: ${it.en} on plot ${k+1}`); return true; }
+function moveItem(from, to){ const slots=buildsOf(cur); [slots[from], slots[to]]=[slots[to], slots[from]]; save(); render3DBuild(cur); }
 function renderBuild(body){
-  const slots=buildsOf(cur), free=state.teacher;
+  const free=state.teacher, open=farmOpen();
   setHTML(body, `<div class="coinbar"><span class="coin" aria-hidden="true"></span><b>${state.coins}</b> 椰子币<span class=ui-en>coins</span> ${free?'<small>（教师模式：免费建设 Teacher mode: free）</small>':""}</div>
-    <p class="notice">怎么赚椰子币：闯关每多 1 颗星 +10；每个游戏第一次完成 +15，再玩 +2；每学会写 1 个字 +2。<span class=ui-en data-b>Earn coins: +10 per new quiz star · +15 first finish of a game, +2 replay · +2 per character learnt.</span></p>
-    <h3 class="spot-h" style="margin:0">我的岛<span class=ui-en>My island</span> <span class="en">6 块空地 · 点已建好的东西可以拆掉 · 6 plots, tap a build to remove it</span></h3>
-    <div class="slots">${slots.map((id,k)=>{ const it=BUILD.find(x=>x.id===id); return `<button class="slot ${it?"on":""}" type="button" data-s="${k}">${it?`<b>${it.name}</b><span class="en">${it.en}</span>`:'<span class="ph">空地<span class=ui-en>Empty</span></span>'}</button>`; }).join("")}</div>
-    <h3 class="spot-h" style="margin:0">南洋商店<span class=ui-en>Nanyang shop</span> <span class="en">点一下就建在下一块空地上 · tap to build on the next plot</span></h3>
-    <div class="shop">${BUILD.map(it=>{ const can=free||state.coins>=it.cost; return `<button class="item" type="button" data-b="${it.id}" ${can&&slots.includes(null)?"":"disabled"}><b>${it.name}</b><span class="en">${it.en}</span><span class="price"><span class="coin sm" aria-hidden="true"></span>${it.cost}</span></button>`; }).join("")}</div>
-    <p id="bMsg" class="sw-msg"></p>`);
-  body.querySelectorAll("[data-b]").forEach(b=>b.onclick=()=>{ const it=BUILD.find(x=>x.id===b.dataset.b), k=slots.indexOf(null); if(k<0) return;
-    if(!free){ if(state.coins<it.cost) return; state.coins-=it.cost; }
-    slots[k]=it.id; save(); updateCoins(); render3DBuild(cur); renderBuild(body); toast(`建好了：${it.name}`, `Built: ${it.en}`); });
-  let armed=-1;
-  body.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{ const k=+b.dataset.s, id=slots[k]; if(!id) return; const it=BUILD.find(x=>x.id===id);
-    if(armed!==k){ armed=k; setHTML($("#bMsg"), `再点一次「${it.name}」就会拆掉，退回 ${Math.floor(it.cost/2)} 椰子币。<span class=ui-en data-b>Tap again to remove it and get ${Math.floor(it.cost/2)} coins back.</span>`); return; }
-    slots[k]=null; if(!free) state.coins+=Math.floor(it.cost/2); save(); updateCoins(); render3DBuild(cur); renderBuild(body); toast(`已拆掉：${it.name}`, `Removed: ${it.en}`); });
+    <div class="subtabs" role="tablist"><button type="button" class="subtab" data-bt="decor" aria-selected="${buildTab==="decor"}">摆设<span class=ui-en>Decorate</span></button><button type="button" class="subtab" data-bt="farm" aria-selected="${buildTab==="farm"}">海洋养殖<span class=ui-en>Sea farm</span>${open?"":" 🔒"}</button></div>
+    <div id="bView"></div>`);
+  body.querySelectorAll("[data-bt]").forEach(b=>b.onclick=()=>{ buildTab=b.dataset.bt; bSel=null; renderBuild(body); });
+  if(buildTab==="farm") renderFarm($("#bView"), body); else renderDecor($("#bView"), body);
+}
+function renderDecor(view, body){
+  const slots=buildsOf(cur), free=state.teacher;
+  const plotHTML=slots.map((id,k)=>{ const a=SLOT_ANG[k], it=id&&BUILD.find(x=>x.id===id), x=50+Math.cos(a)*36, y=50+Math.sin(a)*36, sel=bSel&&bSel.kind==="plot"&&bSel.k===k;
+    return `<button class="plot ${it?"on":""} ${sel?"sel":""}" type="button" data-plot="${k}" style="left:${x}%;top:${y}%"><i>${k+1}</i>${it?`<b>${it.name}</b>`:'<span class="ph">空地<span class=ui-en>Empty</span></span>'}</button>`; }).join("");
+  setHTML(view, `<p class="notice">把商店里的东西<b>拖</b>到 1–6 号空地上，或者先点东西、再点空地。已经建好的东西也可以拖到别的空地，互相交换位置。<span class=ui-en data-b>Drag an item from the shop onto plots 1–6, or tap an item then tap a plot. Drag built items between plots to move or swap them.</span></p>
+    <div class="imap-wrap"><div class="imap" aria-label="我的岛 My island"><div class="iland"></div><div class="icore">${esc(ISLANDS[cur].name)}</div>${plotHTML}</div>
+    <div class="row" id="selBar">${bSel&&bSel.kind==="plot"&&slots[bSel.k]?`<span class="sw-msg">已选 ${bSel.k+1} 号：${BUILD.find(x=>x.id===slots[bSel.k]).name} · 点另一块空地移动<span class=ui-en>Selected — tap another plot to move</span></span><button class="btn ghost sm" type="button" id="rmSel">拆除<span class=ui-en>Remove</span></button>`: bSel&&bSel.kind==="shop"?`<span class="sw-msg">已选「${BUILD.find(x=>x.id===bSel.id).name}」· 点一块空地放下<span class=ui-en>Selected — tap a plot to place it</span></span>`:""}</div></div>
+    <h3 class="spot-h" style="margin:0">南洋商店<span class=ui-en>Nanyang shop</span> <span class="en">${BUILD.length} 种摆设 · ${BUILD.length} items</span></h3>
+    <div class="shop">${BUILD.map(it=>{ const can=free||state.coins>=it.cost, sel=bSel&&bSel.kind==="shop"&&bSel.id===it.id; return `<div class="item ${can?"":"off"} ${sel?"sel":""}" role="button" tabindex="0" data-b="${it.id}" aria-disabled="${!can}"><b>${it.name}</b><span class="en">${it.en}</span><span class="price"><span class="coin sm" aria-hidden="true"></span>${it.cost}</span></div>`; }).join("")}</div>`);
+  const rerender=()=>renderDecor(view, body);
+  // tap behaviour
+  view.querySelectorAll("[data-b]").forEach(el=>{ el.addEventListener("click",()=>{ if(el.dataset.dragged){ delete el.dataset.dragged; return; } const id=el.dataset.b, it=BUILD.find(x=>x.id===id); if(!free && state.coins<it.cost){ toast("椰子币不够","Not enough coins"); return; } bSel={kind:"shop", id}; rerender(); }); el.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); el.click(); } }); });
+  view.querySelectorAll("[data-plot]").forEach(el=>el.addEventListener("click",()=>{ if(el.dataset.dragged){ delete el.dataset.dragged; return; } const k=+el.dataset.plot;
+    if(bSel&&bSel.kind==="shop"){ if(placeItem(k,bSel.id,body)) bSel=null; rerender(); return; }
+    if(bSel&&bSel.kind==="plot"&&bSel.k!==k){ moveItem(bSel.k,k); bSel=null; rerender(); return; }
+    bSel = slots[k] ? {kind:"plot", k} : null; rerender(); }));
+  const rm=$("#rmSel"); if(rm) rm.onclick=()=>{ const k=bSel.k, it=BUILD.find(x=>x.id===slots[k]); slots[k]=null; if(!free) state.coins+=Math.floor(it.cost/2); save(); updateCoins(); render3DBuild(cur); bSel=null; toast(`已拆掉：${it.name}，退回 ${Math.floor(it.cost/2)} 椰子币`, `Removed: ${it.en}`); rerender(); };
+  // drag & drop (mouse: move 5px; touch: hold 200 ms)
+  enableDrag(view, "[data-b],[data-plot].on", (src, plotEl)=>{ const k=+plotEl.dataset.plot;
+    if(src.dataset.b){ placeItem(k, src.dataset.b, body); } else { const from=+src.dataset.plot; if(from!==k) moveItem(from,k); }
+    bSel=null; rerender(); });
+}
+function enableDrag(root, sel, onDrop){
+  root.querySelectorAll(sel).forEach(el=>{
+    el.addEventListener("pointerdown",e=>{ if(e.button>0) return; if(el.classList.contains("off")) return;
+      const sx=e.clientX, sy=e.clientY, touch=e.pointerType!=="mouse"; let ghost=null, timer=null, live=!touch, over=null;
+      const start=()=>{ ghost=el.cloneNode(true); ghost.className+=" drag-ghost"; ghost.style.width=el.offsetWidth+"px"; document.body.appendChild(ghost); el.classList.add("dragging"); move(lastX,lastY); if(navigator.vibrate) try{ navigator.vibrate(15); }catch(_){} };
+      let lastX=sx, lastY=sy;
+      const scroller=root.closest(".d-body"); const move=(x,y)=>{ if(!ghost) return; if(scroller){ const r=scroller.getBoundingClientRect(); if(y>r.bottom-50) scroller.scrollTop+=14; else if(y<r.top+40) scroller.scrollTop-=14; } ghost.style.left=(x-el.offsetWidth/2)+"px"; ghost.style.top=(y-24)+"px"; ghost.style.display="none"; const t=document.elementFromPoint(x,y); ghost.style.display=""; const p=t&&t.closest("[data-plot]"); if(over&&over!==p) over.classList.remove("over"); over=p; if(p) p.classList.add("over"); };
+      if(touch) timer=setTimeout(()=>{ live=true; start(); },200);
+      const onMove=ev=>{ lastX=ev.clientX; lastY=ev.clientY; const d=Math.hypot(ev.clientX-sx,ev.clientY-sy);
+        if(!live){ if(d>10){ clearTimeout(timer); cleanup(); } return; }
+        if(!ghost){ if(d>5) start(); else return; }
+        move(ev.clientX, ev.clientY); };
+      const blockScroll=ev=>{ if(ghost) ev.preventDefault(); };
+      const onUp=()=>{ clearTimeout(timer); if(ghost){ el.dataset.dragged="1"; setTimeout(()=>delete el.dataset.dragged,350); if(over){ over.classList.remove("over"); onDrop(el, over); } } cleanup(); };
+      const cleanup=()=>{ if(ghost) ghost.remove(); ghost=null; el.classList.remove("dragging"); removeEventListener("pointermove",onMove); removeEventListener("pointerup",onUp); removeEventListener("pointercancel",onUp); removeEventListener("touchmove",blockScroll); };
+      addEventListener("pointermove",onMove); addEventListener("pointerup",onUp); addEventListener("pointercancel",onUp); addEventListener("touchmove",blockScroll,{passive:false});
+    });
+  });
+}
+function renderFarm(view, body){
+  if(!farmOpen()){ const n=ISLANDS.filter((_,i)=>isUnlocked(i)).length;
+    setHTML(view, `<div class="result"><div class="big">🔒</div><p style="margin:0">解锁 4 座岛之后，就可以在岛的周围养殖海洋生物。现在已解锁 ${n}/4 座。<span class=ui-en data-b>Unlock 4 islands to start a sea farm around your islands. Unlocked so far: ${n}/4.</span></p></div>`); return; }
+  const list=farmOf(cur), free=state.teacher;
+  const counts={}; list.forEach(id=>counts[id]=(counts[id]||0)+1);
+  setHTML(view, `<p class="notice">买一种海洋生物，它就会在这座岛的周围游来游去。点名字可以听读音。每座岛最多 ${FARM_MAX} 只。<span class=ui-en data-b>Buy a sea creature and it will swim around this island. Tap a name to hear it. Up to ${FARM_MAX} per island.</span></p>
+    <h3 class="spot-h" style="margin:0">我的海洋<span class=ui-en>My sea</span> <span class="en">${list.length}/${FARM_MAX}</span></h3>
+    <div class="mysea">${list.length?Object.keys(counts).map(id=>{ const c=SEA.find(x=>x.id===id); return `<span class="seachip"><button type="button" class="say" data-say="${c.zh}">${c.zh}</button><span class="en">${c.en} ×${counts[id]}</span><button type="button" class="rmc" data-rm="${id}" aria-label="放走一只 ${c.en}">－</button></span>`; }).join(""):'<span class="sw-msg">还没有养海洋生物。<span class=ui-en>No sea creatures yet.</span></span>'}</div>
+    <h3 class="spot-h" style="margin:0">海洋生物<span class=ui-en>Sea creatures</span> <span class="en">${SEA.length} 种 · ${SEA.length} kinds</span></h3>
+    <div class="shop">${SEA.map(c=>{ const can=(free||state.coins>=c.cost)&&list.length<FARM_MAX; return `<button class="item" type="button" data-sea="${c.id}" ${can?"":"disabled"}><b>${c.zh}</b><span class="en">${c.en}</span><span class="price"><span class="coin sm" aria-hidden="true"></span>${c.cost}</span></button>`; }).join("")}</div>`);
+  view.querySelectorAll("[data-sea]").forEach(b=>b.onclick=()=>{ const c=SEA.find(x=>x.id===b.dataset.sea); if(list.length>=FARM_MAX) return; if(!free){ if(state.coins<c.cost) return; state.coins-=c.cost; }
+    list.push(c.id); save(); updateCoins(); render3DFarm(cur); speak(c.zh); toast(`养了一只${c.zh}！`, `You now have a ${c.en}!`); renderFarm(view, body); });
+  view.querySelectorAll("[data-rm]").forEach(b=>b.onclick=()=>{ const id=b.dataset.rm, j=list.lastIndexOf(id); if(j<0) return; list.splice(j,1); const c=SEA.find(x=>x.id===id); if(!free) state.coins+=Math.floor(c.cost/2); save(); updateCoins(); render3DFarm(cur); toast(`放走了一只${c.zh}`, `Released a ${c.en}`); renderFarm(view, body); });
 }
 
 /* ============================== 我的成绩 · list · settings ============================== */
@@ -1363,11 +1759,11 @@ function openSide(kind){
     let armed=false; $("#ld").onclick=e=>{ const v=$("#codeIn").value; if(!v.trim()){ setHTML($("#codeMsg"),"请先贴上进度码。<span class=ui-en>Paste a code first.</span>"); return; }
       let ns; try{ ns=decodeProgress(v); }catch(err){ setHTML($("#codeMsg"),"进度码不正确，请检查有没有复制完整。<span class=ui-en>That code isn't valid — check it was copied in full.</span>"); return; }
       if(!armed){ armed=true; setHTML(e.currentTarget,"再点一次确认（会取代这台设备的进度）<span class=ui-en>Tap again to confirm — replaces this device's progress</span>"); return; }
-      state=ns; save(); applyPy(); applyEn(); updateCoins(); refreshLabels(); ISLANDS.forEach((_,i)=>render3DBuild(i)); openSide("me"); toast(`已读取 ${state.nick||"同学"} 的进度`, "Progress loaded"); };
+      state=ns; save(); applyPy(); applyEn(); updateCoins(); refreshLabels(); ISLANDS.forEach((_,i)=>{ render3DBuild(i); render3DFarm(i); }); openSide("me"); toast(`已读取 ${state.nick||"同学"} 的进度`, "Progress loaded"); };
     $("#nkSave").onclick=()=>{ const v=$("#nick2").value.trim(); if(!v) return; state.nick=v.slice(0,16); save(); openSide("me"); toast("昵称已保存","Nickname saved"); };
   } else if(kind==="list"){
     setHTML(side, `<div class="d-head"><button class="d-close" type="button" id="sClose" aria-label="关闭">${X_SVG}</button><div class="chip">地点清单 · 9 Modules</div><h2 class="d-title">群岛航线<span class=ui-en data-b>Island route</span></h2><p class="d-sub">一座岛 = 一个 Module。按顺序闯关，云雾会一座一座散开。<span class=ui-en data-b>One island = one Module. Pass each quiz in order and the clouds clear one by one.</span></p></div>
-      <div class="d-body">${HAS3D?"":`<p class="notice">这台设备无法显示 3D 地图，不过可以直接从清单进入每座岛学习和闯关。<span class=ui-en data-b>This device can't show the 3D map, but you can open every island from this list.</span></p>`}<div class="list">${ISLANDS.map((d,i)=>{ const un=isUnlocked(i); return `<button class="li ${un?"":"locked"}" type="button" data-i="${i}"><span class="n">${d.no}</span><span><span class="nm">${d.name}</span><span class="ds">${d.module} · ${weeksTxt(d.weeks)}${i===NOW_IDX?" · 本周 This week":""}</span></span><span class="rt">${un?`<span class="lbl-stars" style="display:flex">${stars3(starsOf(i))}</span>`:LOCK+"未解锁 Locked"}</span></button>`; }).join("")}</div></div>`);
+      <div class="d-body">${HAS3D?"":`<p class="notice">这台设备无法显示 3D 地图，不过可以直接从清单进入每座岛学习和闯关。<span class=ui-en data-b>This device can't show the 3D map, but you can open every island from this list.</span></p>`}<div class="list">${ISLANDS.map((d,i)=>{ const un=isUnlocked(i); return `<button class="li ${un?"":"locked"}" type="button" data-i="${i}"><span class="n">${d.no}</span><span><span class="nm">${d.name}</span><span class="ds">${d.module}</span></span><span class="rt">${un?`<span class="lbl-stars" style="display:flex">${stars3(starsOf(i))}</span>`:LOCK+"未解锁 Locked"}</span></button>`; }).join("")}</div></div>`);
     side.querySelectorAll(".li").forEach(b=>b.onclick=()=>openIsland(+b.dataset.i));
   } else {
     setHTML(side, `<div class="d-head"><button class="d-close" type="button" id="sClose" aria-label="关闭">${X_SVG}</button><div class="chip">设置 Settings</div><h2 class="d-title">设置<span class=ui-en data-b>Settings</span></h2><p class="d-sub">进度只保存在这台设备的浏览器里。<span class=ui-en data-b>Progress is saved in this browser only.</span></p></div>
@@ -1375,16 +1771,18 @@ function openSide(kind){
         <button class="switch" type="button" role="switch" id="swP" aria-checked="${state.py}"><span><b>显示拼音<span class=ui-en>Show pinyin</span></b><small>关掉可以练习 Week 13 的无拼音阅读。<span class=ui-en data-b>Turn off to practise the Week 13 reading test.</span></small></span><span class="tr"></span></button>
         <button class="switch" type="button" role="switch" id="swE" aria-checked="${state.en}"><span><b>显示英文<span class=ui-en>Show English</span></b><small>按钮和说明旁边的英文。<span class=ui-en data-b>English next to buttons and instructions.</span></small></span><span class="tr"></span></button>
         <button class="switch" type="button" role="switch" id="swT" aria-checked="${state.teacher}"><span><b>教师模式：解锁全部岛屿<span class=ui-en>Teacher mode: unlock all</span></b><small>上课演示用。不会获得椰子币，建设免费。<span class=ui-en data-b>For class demos. No coins are earned; building is free.</span></small></span><span class="tr"></span></button>
+        <button class="switch" type="button" role="switch" id="swG" aria-checked="${HIGH()}"><span><b>高画质<span class=ui-en>High quality</span></b><small>光晕、移轴景深、更多花草。旧手机可以关掉，会重新载入。<span class=ui-en data-b>Bloom, tilt-shift and denser plants. Turn off on older phones (reloads the page).</span></small></span><span class="tr"></span></button>
         <button class="switch" type="button" role="switch" id="swM" aria-checked="${animOn}"><span><b>动态效果<span class=ui-en>Motion</span></b><small>海浪、灯塔、巴士等动画。<span class=ui-en data-b>Waves, lighthouse beam, bus and boats.</span></small></span><span class="tr"></span></button>
         <div class="row"><button class="btn ghost" type="button" id="rst">重置全部进度<span class=ui-en>Reset all progress</span></button></div>
-        <p style="margin:0;color:var(--muted);font-size:12.5px">内容来源：LEM-1401 / LM-1403 全学期教学大纲、Week 7 与 Week 8 Online Notes。课本：《轻松学中文 1》。<span class=ui-en data-b>Sources: LEM-1401 / LM-1403 syllabus, Week 7 & 8 Online Notes; textbook Easy Steps to Chinese 1.</span></p>
+        <p style="margin:0;color:var(--muted);font-size:12.5px">课本：《轻松学中文 1》。<span class=ui-en data-b>Textbook: Easy Steps to Chinese 1.</span></p>
       </div></div>`);
     $("#swP").onclick=e=>{ state.py=!state.py; save(); applyPy(); e.currentTarget.setAttribute("aria-checked",state.py); };
     $("#swE").onclick=e=>{ state.en=!state.en; save(); applyEn(); e.currentTarget.setAttribute("aria-checked",state.en); };
     $("#swT").onclick=e=>{ state.teacher=!state.teacher; save(); e.currentTarget.setAttribute("aria-checked",state.teacher); refreshLabels(); toast(state.teacher?"已解锁全部岛屿（教师模式）":"已关闭教师模式", state.teacher?"All islands unlocked (teacher mode)":"Teacher mode off"); };
+    $("#swG").onclick=()=>{ state.gfx=HIGH()?"low":"high"; save(); location.reload(); };
     $("#swM").onclick=e=>{ setAnim(!animOn); e.currentTarget.setAttribute("aria-checked",animOn); };
     let armed=false; $("#rst").onclick=e=>{ if(!armed){ armed=true; setHTML(e.currentTarget,"再点一次确认重置<span class=ui-en>Tap again to reset</span>"); e.currentTarget.style.borderColor="var(--bad)"; e.currentTarget.style.color="var(--bad)"; return; }
-      const nick=state.nick; state=freshState(); state.nick=nick; save(); applyPy(); applyEn(); updateCoins(); refreshLabels(); ISLANDS.forEach((_,i)=>render3DBuild(i)); openSide("settings"); toast("进度已重置","Progress reset"); };
+      const nick=state.nick; state=freshState(); state.nick=nick; save(); applyPy(); applyEn(); updateCoins(); refreshLabels(); ISLANDS.forEach((_,i)=>{ render3DBuild(i); render3DFarm(i); }); openSide("settings"); toast("进度已重置","Progress reset"); };
   }
   $("#sClose").onclick=()=>{ side.hidden=true; updateOffsetGoal(); };
   side.hidden=false; side.querySelector(".d-body").scrollTop=0; updateOffsetGoal();
@@ -1415,11 +1813,14 @@ addEventListener("resize",()=>{ resize(); fitTop(); updateOffsetGoal(); });
 
 /* ============================== boot ============================== */
 document.querySelectorAll(".tbtn").forEach(b=>{ const t=b.querySelector("span"); if(t) b.title=t.textContent.replace(/([^\x00-\x7F])([A-Za-z])/,"$1 $2"); });
-if(!HAS3D) $("#zoomer").hidden=true;
 rubify($(".topbar")); rubify($("#hint"));
 setAnim(animOn); applyPy(); applyEn(); updateCoins(); fitTop();
-if(HAS3D){ buildLabels(); initScene(); ISLANDS.forEach((_,i)=>render3DBuild(i)); }
-else { $("#hint").hidden=true; refreshLabels(); openSide("list"); }
+let started=false;
+function start3D(){ if(started) return; started=true;
+  HAS3D = !!(window.THREE && THREE.OrbitControls) && webglOK();
+  if(HAS3D){ try{ buildLabels(); initScene(); ISLANDS.forEach((_,i)=>{ render3DBuild(i); render3DFarm(i); }); $("#zoomer").hidden=false; return; }catch(err){ console.error(err); HAS3D=false; } }
+  $("#hint").hidden=true; $("#zoomer").hidden=true; refreshLabels(); openSide("list"); }
+if(window.THREE) start3D(); else { addEventListener("three-ready", start3D, {once:true}); setTimeout(start3D, 12000); }
 welcome();
 </script>
 
