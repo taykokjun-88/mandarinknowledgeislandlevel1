@@ -329,6 +329,7 @@ button.gcard:hover{border-color:var(--gold)}
 @keyframes popin{from{transform:scale(0)}to{transform:scale(1)}}
 @keyframes burstOut{to{transform:scale(1.6);opacity:0}}
 @media (prefers-reduced-motion:reduce){.ar-b{animation:none}}
+.okp{color:var(--ok);font-weight:700}.badp{color:var(--bad);font-weight:700;text-decoration:underline}
 /* my progress */
 .sum{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
 .sum div{display:flex;flex-direction:column;align-items:center;padding:10px 4px;border-radius:12px;background:var(--panel-2)}
@@ -1713,16 +1714,49 @@ function mediaError(body, err, kind){ const dev=kind==="cam"?"摄像头":"麦克
   setHTML(body, `${BACK}<div class="result"><p style="margin:0">没办法使用${dev}。<span class=ui-en data-b>Couldn't use the ${devE}.</span></p>${envWarn(kind)}<p class="sw-msg" style="text-align:left">${how}</p><p class="sw-msg">${esc(n)}</p></div>`); bindBack(body); }
 
 /* ---------- 声调冲浪 Tone Surfing: on-device pitch tracking ---------- */
+/* ---------- pitch: YIN (cumulative-mean-normalised difference) ---------- */
+let _yd=null;
 function pitchOf(buf, sr){ const N=1024; let e=0; for(let i=0;i<N;i++) e+=buf[i]*buf[i]; if(Math.sqrt(e/N)<.005) return 0;
-  const minL=Math.floor(sr/480), maxL=Math.min(Math.floor(sr/70), buf.length-N); let best=0, bl=0;
-  for(let L=minL; L<=maxL; L+=2){ let s=0,b=0; for(let i=0;i<N;i++){ s+=buf[i]*buf[i+L]; b+=buf[i+L]*buf[i+L]; } const r=s/Math.sqrt(e*b+1e-9); if(r>best){ best=r; bl=L; } }
-  if(best<.62) return 0; return sr/bl; }
-function classifyTone(hz){ const v=hz.filter(h=>h>0); if(v.length<6) return 0;
-  const srt=[...v].sort((a,b)=>a-b), med=srt[srt.length>>1]; let st=v.map(h=>12*Math.log2(h/med)).filter(x=>Math.abs(x)<7); const cut=Math.floor(st.length*.12); st=st.slice(cut, st.length-cut); if(st.length<5) return 0; st=st.map((x,k)=>(x+(st[k-1]??x)+(st[k+1]??x))/3);
-  const n=st.length, q=Math.max(1,Math.ceil(n*.2)), avg=a=>a.reduce((s,x)=>s+x,0)/a.length;
-  const a=avg(st.slice(0,q)), e=avg(st.slice(-q)), mn=Math.min(...st), mx=Math.max(...st), pos=st.indexOf(mn)/(n-1), rise=e-a, dip=Math.min(a,e)-mn;
-  if(mx-mn<1.8) return 1; if(dip>1.1 && pos>.18 && pos<.85) return 3; if(rise>1.5) return 2; if(rise<-1.6) return 4; return Math.abs(rise)<1?1:(rise>0?2:4); }
-const toneOk=(target, got, hz)=> got===target || (target===3 && got===4 && (()=>{ const v=hz.filter(h=>h>0); return v.length && 12*Math.log2(v[0]/v[v.length-1])<4.5; })());
+  const tMin=Math.floor(sr/500), tMax=Math.min(Math.floor(sr/65), buf.length-N-1); if(!_yd||_yd.length<tMax+2) _yd=new Float32Array(tMax+2); const d=_yd;
+  d[0]=1; let run=0;
+  for(let t=1;t<=tMax;t++){ let s=0; for(let i=0;i<N;i++){ const x=buf[i]-buf[i+t]; s+=x*x; } run+=s; d[t]=run?s*t/run:1; }
+  let tau=-1; for(let t=tMin;t<=tMax;t++){ if(d[t]<.2){ while(t+1<=tMax && d[t+1]<d[t]) t++; tau=t; break; } }
+  if(tau<1) return 0;
+  const a=d[tau-1], b=d[tau], c=d[tau+1]??b, den=2*(2*b-a-c); const better=den?tau+(c-a)/den:tau;
+  return sr/better; }
+/* ---------- tone classification: contour shape + the speaker's own range ---------- */
+const voiceRange={n:0, med:0};   // running estimate of this student's median pitch (semitones re 100 Hz)
+const toSt=h=>12*Math.log2(h/100);
+function cleanContour(hz){ let v=hz.filter(h=>h>0).map(toSt); if(v.length<6) return null;
+  // repair octave jumps against a running median
+  const out=[]; for(let k=0;k<v.length;k++){ const win=v.slice(Math.max(0,k-3),k+4).sort((a,b)=>a-b), m=win[win.length>>1]; let x=v[k]; while(x-m>7) x-=12; while(m-x>7) x+=12; out.push(x); }
+  const cut=Math.floor(out.length*.12); const c=out.slice(cut,out.length-cut); if(c.length<5) return null;
+  const R=20, r=[]; for(let i=0;i<R;i++){ const p=i/(R-1)*(c.length-1), j=Math.floor(p), f=p-j; r.push(c[j]*(1-f)+(c[Math.min(j+1,c.length-1)])*f); }
+  return r.map((x,k)=>(x+(r[k-1]??x)+(r[k+1]??x))/3); }
+function toneFeatures(c){ const n=c.length, xs=c.map((_,k)=>k/(n-1)), mx=xs.reduce((a,b)=>a+b)/n, my=c.reduce((a,b)=>a+b)/n;
+  let sxy=0,sxx=0; xs.forEach((x,k)=>{ sxy+=(x-mx)*(c[k]-my); sxx+=(x-mx)*(x-mx); }); const slope=sxy/sxx;   // semitones across the syllable
+  const q=Math.max(2,Math.round(n*.2)), avg=a=>a.reduce((s,x)=>s+x,0)/a.length, a=avg(c.slice(0,q)), e=avg(c.slice(-q));
+  const mn=Math.min(...c), mi=c.indexOf(mn), range=Math.max(...c)-mn, dip=Math.min(a,e)-mn, pos=mi/(n-1);
+  const h = voiceRange.n>=3 ? my-voiceRange.med : 0;   // height vs the student's usual pitch
+  return {slope, a, e, range, dip, pos, h, mean:my}; }
+function classifyTone(hz){ const c=cleanContour(hz); if(!c) return 0; const f=toneFeatures(c);
+  let t;
+  if(f.dip>1.2 && f.pos>.22 && f.pos<.8 && f.e-f.a>-3) t=3;
+  else if(f.range<2.2) t = f.h<-2.2 ? 3 : 1;
+  else if(f.slope>2) t = (f.h<-2.5 && f.dip>.8) ? 3 : 2;
+  else if(f.slope<-2) t = (f.h<-2 && f.range<4.5) ? 3 : 4;
+  else t = f.range<3 ? 1 : (f.slope>0?2:4);
+  // learn the student's range from every clear syllable
+  voiceRange.med = voiceRange.n ? voiceRange.med+(f.mean-voiceRange.med)/Math.min(voiceRange.n+1,12) : f.mean; voiceRange.n++;
+  classifyTone.last=f; return t; }
+const toneOk=(target, got)=> got===target;
+function toneTip(target, got){ const f=classifyTone.last||{}; const T={
+  1:["保持高而平，不要往上或往下滑。","Keep it high and level — don't slide up or down."],
+  2:["从中间往上扬，像问“啊？”。","Rise from the middle, like asking \"huh?\"."],
+  3:["先往下压低，再稍微回升。","Dip low first, then come back up a little."],
+  4:["从高处干脆地往下降，像说“对！”。","Drop sharply from high, like saying \"right!\"."]}[target];
+  return T; }
+
 function toneTargets(i){ const out=[], seen=new Set(); islandWords(i).forEach(w=>[...w.zh].forEach((c,k)=>{ if(seen.has(c)||!HZ_RE.test(c)) return; const p=pyOf(w.zh)[k]||"", t=toneOf(p); if(t>0){ seen.add(c); out.push({c,p,t}); } })); return out; }
 function toneStart(body){ withConsent("mic", body, async()=>{
   let pool=toneTargets(cur); const byT=[1,2,3,4].map(t=>shuffle(pool.filter(x=>x.t===t)));
@@ -1765,51 +1799,98 @@ function listenTone(body){ const t0=performance.now(); gs.voiced=0; gs.lastVoice
     if(done){ gs.listening=false; Music.hold(false); toneBtn(false); judgeTone(body); return; }
     media.raf=requestAnimationFrame(step); };
   media.raf=requestAnimationFrame(step); }
-function judgeTone(body){ const it=gs.items[gs.k], got=classifyTone(gs.trace), ok=toneOk(it.t,got,gs.trace), m=$("#tMsg");
+function judgeTone(body){ const it=gs.items[gs.k], got=classifyTone(gs.trace), ok=toneOk(it.t,got), m=$("#tMsg"), tip=toneTip(it.t,got);
   if(!got){ if(!gs.frames) setHTML(m, `麦克风没有声音进来。请检查是否允许使用麦克风，然后再点一次“开始说”。<span class=ui-en data-b>No sound is reaching the game. Check the microphone permission and tap Speak again.</span>`); else setHTML(m, `没有听清楚，请靠近一点、拉长一点、大声一点再试。<span class=ui-en data-b>Didn't catch that — move closer, hold the sound a little longer and speak up.</span>`); return; }
   if(ok){ gs.score++; gs.res.push(true); setHTML(m, `<b style="color:var(--ok)">冲浪成功！</b>这是${TONE_NAME[it.t]}。<span class=ui-en data-b>Nice ride! That was the ${TONE_EN[it.t]}.</span>`); setTimeout(()=>{ if(game!=="tone") return; gs.k++; gs.tries=0; toneRender(body); },1400); return; }
   gs.tries++; if(gs.tries>=3){ gs.res.push(false); setHTML(m, `听起来像${TONE_NAME[got]}。3 次机会用完了，下一个。<span class=ui-en data-b>Sounded like the ${TONE_EN[got]}. Out of tries — next one.</span>`); setTimeout(()=>{ if(game!=="tone") return; gs.k++; gs.tries=0; toneRender(body); },1600); return; }
-  setHTML(m, `听起来像${TONE_NAME[got]}，目标是${TONE_NAME[it.t]}。再试一次！<span class=ui-en data-b>Sounded like the ${TONE_EN[got]}; the target is the ${TONE_EN[it.t]}. Try again!</span>`);
+  setHTML(m, `听起来像${TONE_NAME[got]}，目标是${TONE_NAME[it.t]}。${tip[0]}再试一次！<span class=ui-en data-b>Sounded like the ${TONE_EN[got]}; the target is the ${TONE_EN[it.t]}. ${tip[1]} Try again!</span>`);
   const tl=$(".q-top span:last-child"); if(tl){ tl.innerHTML=`机会 ${3-gs.tries}<span class=ui-en>tries left</span>`; rubify(tl); } }
 
-/* ---------- 跟读过关 Read Aloud: browser speech recognition, 3 tries ---------- */
+/* ---------- on-device speech recognition (Whisper) for read-aloud ---------- */
+let asrP=null, asrInfo="";
+function loadASR(onProg){ if(asrP) return asrP; asrP=(async()=>{ const T=await import("./lib/transformers/transformers.min.js");
+    T.env.backends.onnx.wasm.wasmPaths="./lib/transformers/"; T.env.backends.onnx.wasm.numThreads=1; T.env.useBrowserCache=true;
+    const opts={quantized:true, progress_callback:p=>{ if(onProg && p.status==="progress" && p.file && /onnx/.test(p.file)) onProg(Math.round(p.progress||0)); }};
+    try{ T.env.allowLocalModels=false; T.env.allowRemoteModels=true; const a=await T.pipeline("automatic-speech-recognition","Xenova/whisper-tiny",opts); asrInfo="hub"; return a; }
+    catch(e){ T.env.allowLocalModels=true; T.env.allowRemoteModels=false; T.env.localModelPath="./lib/models/"; const a=await T.pipeline("automatic-speech-recognition","Xenova/whisper-tiny",opts); asrInfo="local"; return a; } })();
+  asrP.catch(()=>{ asrP=null; }); return asrP; }
+async function to16k(chunks, sr){ const len=chunks.reduce((n,c)=>n+c.length,0), all=new Float32Array(len); let o=0; chunks.forEach(c=>{ all.set(c,o); o+=c.length; });
+  if(sr===16000) return all; const oc=new OfflineAudioContext(1, Math.ceil(len*16000/sr), 16000), b=oc.createBuffer(1,len,sr); b.copyToChannel(all,0); const s=oc.createBufferSource(); s.buffer=b; s.connect(oc.destination); s.start(); const r=await oc.startRendering(); return r.getChannelData(0); }
+// syllable comparison with tones
+const stripTone=p=>p.normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/ü/g,"v");
+function lcsLen(A,B){ const dp=Array(B.length+1).fill(0); for(const x of A){ let prev=0; for(let j=1;j<=B.length;j++){ const t=dp[j]; dp[j]= x===B[j-1]?prev+1:Math.max(dp[j],dp[j-1]); prev=t; } } return dp[B.length]; }
+function judgeRead(target, heard){ const T=pyOf(normZh(target)).filter(Boolean), H=pyOf(normZh(heard)).filter(Boolean);
+  if(!H.length) return {ok:false, toned:0, plain:0, T, H};
+  const toned=lcsLen(T,H)/T.length, plain=lcsLen(T.map(stripTone),H.map(stripTone))/T.length, extra=Math.max(0,H.length-T.length)/T.length;
+  return {ok:(toned>=.7 || (plain>=.9 && toned>=.5)) && extra<.8, toned, plain, T, H}; }
+function heardHTML(target, heard, J){ const Tset=new Set(J.T); return `听到：「${esc(heard)}」 <span class="py">${J.H.map(p=>`<span class="${Tset.has(p)?"okp":"badp"}">${esc(p)}</span>`).join(" ")}</span>`; }
+
+/* ---------- 跟读过关 Read Aloud v2 ---------- */
 const SRec=window.SpeechRecognition||window.webkitSpeechRecognition;
-const normZh=s=>s.replace(/[^㐀-鿿0-9A-Za-z]/g,"");
-function lcsRatio(a,b){ const A=[...a], B=[...b]; const dp=Array(B.length+1).fill(0); for(const x of A){ let prev=0; for(let j=1;j<=B.length;j++){ const t=dp[j]; dp[j]= x===B[j-1]?prev+1:Math.max(dp[j],dp[j-1]); prev=t; } } return dp[B.length]/Math.max(A.length,B.length,1); }
-function readMatch(target, alts){ const t=normZh(target), tp=pyOf(t).join(" ");
-  for(const a0 of alts){ const a=normZh(a0); if(!a) continue; if(a===t || a.includes(t)) return true; if(HAS_PY && pyOf(a).join(" ")===tp) return true; if(lcsRatio(a,t)>=.85) return true; } return false; }
+const T2S={"妳": "你", "萊": "莱", "汶": "文", "麼": "么", "會": "会", "說": "说", "點": "点", "語": "语", "華": "华", "國": "国", "個": "个", "們": "们", "這": "这", "嗎": "吗", "號": "号", "歲": "岁", "電": "电", "話": "话", "媽": "妈", "馬": "马", "罵": "骂", "學": "学", "師": "师", "醫": "医", "護": "护", "經": "经", "東": "东", "車": "车", "開": "开", "騎": "骑", "來": "来", "漢": "汉", "灣": "湾", "時": "时", "兒": "儿", "爺": "爷", "紅": "红", "黃": "黄", "藍": "蓝", "綠": "绿", "顏": "颜", "褲": "裤", "條": "条", "帶": "带", "錢": "钱", "塊": "块", "飯": "饭", "麵": "面", "謝": "谢", "對": "对", "沒": "没", "關": "关", "見": "见", "現": "现", "幾": "几", "誰": "谁", "職": "职", "業": "业", "務": "务", "員": "员", "從": "从", "給": "给", "請": "请", "問": "问", "貴": "贵", "歡": "欢", "認": "认", "識": "识", "興": "兴", "讀": "读", "書": "书", "寫": "写", "聽": "听", "視": "视", "機": "机", "碼": "码", "鐘": "钟", "課": "课", "島": "岛", "燈": "灯", "樓": "楼", "圖": "图", "館": "馆", "長": "长", "門": "门", "間": "间", "裡": "里", "裏": "里", "邊": "边", "為": "为", "還": "还", "過": "过", "進": "进", "運": "运", "動": "动", "習": "习", "輕": "轻", "鬆": "松", "樂": "乐", "曆": "历", "歷": "历", "節": "节", "齋": "斋", "傳": "传", "統": "统", "裝": "装", "襯": "衬", "雙": "双", "頂": "顶", "錶": "表", "換": "换", "買": "买", "賣": "卖", "價": "价", "貝": "贝", "魚": "鱼", "蝦": "虾", "龜": "龟", "鯊": "鲨", "鯨": "鲸", "雲": "云", "風": "风", "飛": "飞", "計": "计", "鐵": "铁", "橋": "桥", "區": "区", "縣": "县", "週": "周", "氣": "气", "親": "亲", "愛": "爱", "髮": "发", "張": "张", "幫": "帮", "題": "题", "錯": "错", "難": "难", "觀": "观", "蘭": "兰", "亞": "亚", "韓": "韩", "齊": "齐", "爾": "尔", "樣": "样", "頭": "头", "腳": "脚", "臉": "脸", "聞": "闻", "戲": "戏", "鳥": "鸟", "豬": "猪", "貓": "猫", "雞": "鸡", "鴨": "鸭", "專": "专", "廳": "厅", "腦": "脑", "網": "网", "絡": "络", "藝": "艺", "術": "术", "壞": "坏", "療": "疗", "寶": "宝"};
+const normZh=s=>String(s).replace(/[（(\[【][^）)\]】]*[）)\]】]/g,"").replace(/[^㐀-鿿0-9A-Za-z]/g,"").replace(/[㐀-鿿]/g,c=>T2S[c]||c);
+function readEngine(){ if(state.readEngine) return state.readEngine; return (SRec && !IS_IOS && !inAppBrowser()) ? "web" : "ai"; }
 function readStart(body){
-  if(!SRec){ setHTML(body, `${BACK}<div class="result"><p style="margin:0">这个浏览器不支持语音识别，请改用 Chrome、Edge 或 iPad 的 Safari。<span class=ui-en data-b>This browser has no speech recognition. Please use Chrome, Edge or Safari on iPad.</span></p></div>`); bindBack(body); return; }
   withConsent("asr", body, ()=>{
     const words=islandWords(cur).filter(w=>[...w.zh].length>=2).map(w=>({zh:w.zh, en:w.en}));
     const sents=islandSentences(cur).filter(s=>[...s.toks.join("")].length<=9).map(s=>({zh:s.toks.join("")+s.end, en:s.en}));
-    gs={items:shuffle(words).slice(0,3).concat(shuffle(sents).slice(0,2)), k:0, tries:0, score:0, heard:""};
+    gs={items:shuffle(words).slice(0,3).concat(shuffle(sents).slice(0,2)), k:0, tries:0, score:0, heard:"", busy:false};
     if(gs.items.length<3) gs.items=shuffle(words.concat(sents)).slice(0,5);
+    if(readEngine()==="ai") loadASR(p=>{ const m=$("#rMsg"); if(m && !gs.busy) setHTML(m, `正在下载语音识别模型 ${p}%（只需要下载一次）<span class=ui-en data-b>Downloading the speech model ${p}% (one time only)</span>`); }).then(()=>{ const m=$("#rMsg"); if(m && !gs.busy) setHTML(m, `识别模型已就绪，点“开始念”。<span class=ui-en data-b>Speech model ready — tap Read now.</span>`); }).catch(()=>{});
     readRender(body); }); }
 function readRender(body){
   if(gs.k>=gs.items.length){ stopMedia(); const pass=gs.score>=3; if(pass) gameDone("read");
     setHTML(body, `${BACK}<div class="result"><div class="big">${gs.score} / ${gs.items.length}</div><p style="margin:0">${pass?"念得很好！<span class=ui-en data-b>Well read!</span>":"再练练，念对 3 个就完成。<span class=ui-en data-b>Keep practising — 3 correct to finish.</span>"}</p><button class="btn" type="button" id="again">再玩一次<span class=ui-en>Play again</span></button></div>`); bindBack(body); $("#again").onclick=()=>readStart(body); refreshTabs(); return; }
-  const it=gs.items[gs.k];
+  const it=gs.items[gs.k], eng=readEngine();
   setHTML(body, `${BACK}<div class="q-top"><span>跟读过关 · 第 ${gs.k+1}/${gs.items.length} 题<span class=ui-en>Item ${gs.k+1}/${gs.items.length}</span></span><span class="dots">${[0,1,2].map(j=>`<i class="${j<gs.tries?"no":""}"></i>`).join("")}</span></div>
     <div class="read-target">${esc(it.zh)}<span class=ui-en data-b>${esc(it.en)}</span></div>
     <div class="row" style="justify-content:center"><button class="btn ghost" type="button" data-say="${esc(it.zh)}">听示范<span class=ui-en>Listen</span></button><button class="btn" type="button" id="rec">🎤 开始念<span class=ui-en>Read now</span></button></div>
-    <p class="sw-msg" id="rMsg">${gs.heard?`听到：「${esc(gs.heard)}」`:"先听示范，再点“开始念”。每题有 3 次机会。<span class=ui-en data-b>Listen first, then tap Read now. You have 3 tries.</span>"}</p>`);
+    <div class="lvl"><span>🎤</span><div class="lvlbar"><i id="lvlBar"></i></div></div>
+    <p class="sw-msg" id="rMsg">${gs.heard||"先听示范，再点“开始念”，念完停一下就会自动检查。每题有 3 次机会。<span class=ui-en data-b>Listen first, tap Read now, then pause when you finish — it checks automatically. 3 tries each.</span>"}</p>
+    <p class="sw-msg">识别方式：${eng==="ai"?"本机 AI（Whisper）":"浏览器语音识别"} · <a href="#" id="swEng">${eng==="ai"&&SRec?"改用浏览器识别":"改用本机 AI"}</a><span class=ui-en data-b>Recogniser: ${eng==="ai"?"on-device AI (Whisper)":"browser speech recognition"}</span></p>`);
   bindBack(body);
-  $("#rec").onclick=()=>{ const r=new SRec(); media.rec=r; r.lang="zh-CN"; r.interimResults=false; r.maxAlternatives=5; Music.hold(true);
-    const b=$("#rec"); b.disabled=true; b.innerHTML="正在听…<span class=ui-en>Listening…</span>"; rubify(b);
-    let got=false; const msg=h=>{ const m=$("#rMsg"); if(m) setHTML(m,h); };
-    const reset=()=>{ b.disabled=false; b.innerHTML="🎤 开始念<span class=ui-en>Read now</span>"; rubify(b); };
-    const dog=setTimeout(()=>{ if(got) return; got=true; try{ r.abort(); }catch(e){} Music.hold(false); reset();
-      msg(`语音识别没有反应。${inAppBrowser()?"请改用 Safari 打开这个网址。":IS_IOS?"请确认已开启「听写」：设置 → 通用 → 键盘 → 启用听写，然后再试。":"请确认浏览器可以使用麦克风，并已连上网络。"}<span class=ui-en data-b>Speech recognition didn't respond. ${inAppBrowser()?"Please open this link in Safari.":IS_IOS?"Make sure Dictation is on: Settings → General → Keyboard → Enable Dictation.":"Check the microphone permission and your internet connection."}</span>`); }, 9000);
-    r.onstart=()=>msg(`正在听，请念出上面的内容…<span class=ui-en data-b>Listening — read the words above…</span>`);
-    r.onspeechstart=()=>msg(`听到声音了，继续念…<span class=ui-en data-b>Hearing you…</span>`);
-    r.onresult=e=>{ got=true; clearTimeout(dog); const alts=[...e.results[0]].map(a=>a.transcript); gs.heard=alts[0]||""; const ok=readMatch(it.zh, alts);
-      if(ok){ gs.score++; setHTML($("#rMsg"), `<b style="color:var(--ok)">念对了！</b>听到：「${esc(gs.heard)}」<span class=ui-en data-b>Correct!</span>`); setTimeout(()=>{ if(game!=="read") return; gs.k++; gs.tries=0; gs.heard=""; readRender(body); },1300); }
-      else { gs.tries++; if(gs.tries>=3){ setHTML($("#rMsg"), `听到：「${esc(gs.heard)}」。3 次机会用完了，下一题。<span class=ui-en data-b>Out of tries — next one.</span>`); setTimeout(()=>{ if(game!=="read") return; gs.k++; gs.tries=0; gs.heard=""; readRender(body); },1700); } else readRender(body); } };
-    r.onerror=e=>{ got=true; clearTimeout(dog); Music.hold(false); if(e.error==="not-allowed"||e.error==="service-not-allowed"){ mediaError(body,{name:e.error},"mic"); return; } setHTML($("#rMsg"), `没有听到声音，请再试一次。<span class=ui-en data-b>Didn't hear anything — try again.</span>`); b.disabled=false; b.innerHTML="🎤 开始念<span class=ui-en>Read now</span>"; rubify(b); };
-    r.onend=()=>{ Music.hold(false); if(!got && game==="read"){ got=true; clearTimeout(dog); reset(); msg(`没有识别到声音，请靠近一点、清楚地再念一次。<span class=ui-en data-b>Nothing was recognised — move closer and read it clearly again.</span>`); } };
-    try{ r.start(); }catch(err){ clearTimeout(dog); Music.hold(false); reset(); msg(`语音识别启动失败：${esc(err.message||err.name||"")}<span class=ui-en data-b>Speech recognition failed to start.</span>`); } };
+  const sw=$("#swEng"); if(sw) sw.onclick=e=>{ e.preventDefault(); state.readEngine = eng==="ai" ? (SRec?"web":"ai") : "ai"; save(); if(state.readEngine==="ai") loadASR(); readRender(body); };
+  $("#rec").onclick=()=> eng==="ai" ? recordAI(body, it) : recordWeb(body, it);
 }
+function readResult(body, it, heard){ const J=judgeRead(it.zh, heard); gs.heard=heard?heardHTML(it.zh,heard,J):"";
+  const m=$("#rMsg");
+  if(J.ok){ gs.score++; setHTML(m, `<b style="color:var(--ok)">念对了！</b> ${gs.heard}<span class=ui-en data-b>Correct!</span>`); setTimeout(()=>{ if(game!=="read") return; gs.k++; gs.tries=0; gs.heard=""; readRender(body); },1500); return; }
+  gs.tries++; const why = !heard ? `没有识别到内容。<span class=ui-en data-b>Nothing was recognised.</span>` : J.plain>=.9 ? `音节对了，注意声调（红色的是不一样的）。<span class=ui-en data-b>Syllables right — check your tones (red ones differ).</span>` : `和目标不太一样，再听一次示范。<span class=ui-en data-b>Not quite the target — listen to the model again.</span>`;
+  if(gs.tries>=3){ setHTML(m, `${gs.heard} ${why} 3 次机会用完了，下一题。<span class=ui-en data-b>Out of tries — next one.</span>`); setTimeout(()=>{ if(game!=="read") return; gs.k++; gs.tries=0; gs.heard=""; readRender(body); },2200); return; }
+  gs.heard=`${gs.heard} ${why}`; readRender(body); }
+async function recordAI(body, it){ if(gs.busy) return; gs.busy=true; const b=$("#rec"), msg=h=>{ const m=$("#rMsg"); if(m) setHTML(m,h); };
+  b.disabled=true; Music.hold(true);
+  try{ if(!media.stream) media.stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false, noiseSuppression:false, autoGainControl:true}}); }catch(err){ gs.busy=false; Music.hold(false); return mediaError(body,err,"mic"); }
+  if(!media.ac){ media.ac=new (window.AudioContext||window.webkitAudioContext)(); }
+  if(media.ac.state!=="running") await media.ac.resume();
+  const src=media.ac.createMediaStreamSource(media.stream), sp=media.ac.createScriptProcessor(2048,1,1), chunks=[], sr=media.ac.sampleRate; src.connect(sp); sp.connect(media.ac.destination);
+  let speech=false, lastLoud=0, t0=performance.now();
+  b.innerHTML="正在听…<span class=ui-en>Listening…</span>"; rubify(b); msg(`请念出上面的内容，念完停一下。<span class=ui-en data-b>Read it aloud, then pause.</span>`);
+  await new Promise(res=>{ sp.onaudioprocess=e=>{ const x=e.inputBuffer.getChannelData(0); chunks.push(new Float32Array(x)); let s=0; for(let i=0;i<x.length;i+=2) s+=x[i]*x[i]; const rms=Math.sqrt(s/(x.length/2)), now=performance.now();
+      const bar=$("#lvlBar"); if(bar) bar.style.width=Math.min(100,rms*900)+"%";
+      if(rms>.02){ if(!speech) msg(`听到声音了…<span class=ui-en data-b>Hearing you…</span>`); speech=true; lastLoud=now; }
+      if((speech && now-lastLoud>850) || now-t0>7000 || game!=="read"){ sp.onaudioprocess=null; res(); } }; });
+  try{ src.disconnect(); sp.disconnect(); }catch(e){}
+  const bar=$("#lvlBar"); if(bar) bar.style.width="0%"; Music.hold(false);
+  if(game!=="read"){ gs.busy=false; return; }
+  if(!speech){ gs.busy=false; b.disabled=false; b.innerHTML="🎤 开始念<span class=ui-en>Read now</span>"; rubify(b); msg(`没有听到声音。请看绿色音量条有没有跳动，靠近一点再念。<span class=ui-en data-b>No voice detected — watch the green bar and move closer.</span>`); return; }
+  b.innerHTML="正在识别…<span class=ui-en>Checking…</span>"; rubify(b);
+  let asr; try{ msg(`正在准备识别模型…<span class=ui-en data-b>Preparing the speech model…</span>`); asr=await loadASR(p=>msg(`正在下载语音识别模型 ${p}%（只需要下载一次）<span class=ui-en data-b>Downloading the speech model ${p}% (one time only)</span>`)); }
+  catch(err){ gs.busy=false; b.disabled=false; b.innerHTML="🎤 开始念<span class=ui-en>Read now</span>"; rubify(b); msg(`语音识别模型载入失败：${esc(err.message||"")}<span class=ui-en data-b>The speech model failed to load.</span>`); return; }
+  msg(`正在识别…<span class=ui-en data-b>Recognising…</span>`);
+  let text=""; try{ const audio=await to16k(chunks, sr); const out=await asr(audio,{language:"chinese", task:"transcribe", chunk_length_s:10}); text=(out&&out.text||"").trim(); }catch(err){ text=""; }
+  gs.busy=false; if(game!=="read") return; readResult(body, it, text); }
+function recordWeb(body, it){ const r=new SRec(); media.rec=r; r.lang="zh-CN"; r.interimResults=false; r.maxAlternatives=5; Music.hold(true);
+  const b=$("#rec"); b.disabled=true; b.innerHTML="正在听…<span class=ui-en>Listening…</span>"; rubify(b);
+  let got=false; const msg=h=>{ const m=$("#rMsg"); if(m) setHTML(m,h); };
+  const reset=()=>{ b.disabled=false; b.innerHTML="🎤 开始念<span class=ui-en>Read now</span>"; rubify(b); };
+  const dog=setTimeout(()=>{ if(got) return; got=true; try{ r.abort(); }catch(e){} Music.hold(false); reset(); msg(`浏览器语音识别没有反应。可以点下面的“改用本机 AI”。<span class=ui-en data-b>Browser speech recognition didn't respond — try "on-device AI" below.</span>`); }, 9000);
+  r.onstart=()=>msg(`正在听，请念出上面的内容…<span class=ui-en data-b>Listening — read the words above…</span>`);
+  r.onspeechstart=()=>msg(`听到声音了，继续念…<span class=ui-en data-b>Hearing you…</span>`);
+  r.onresult=e=>{ got=true; clearTimeout(dog); Music.hold(false); const alts=[...e.results[0]].map(a=>a.transcript); const best=alts.find(a=>judgeRead(it.zh,a).ok)||alts[0]||""; readResult(body, it, best); };
+  r.onerror=e=>{ got=true; clearTimeout(dog); Music.hold(false); if(e.error==="not-allowed"||e.error==="service-not-allowed"){ state.readEngine="ai"; save(); msg(`浏览器不允许语音识别，已改用本机 AI，请再点一次。<span class=ui-en data-b>The browser blocked speech recognition — switched to on-device AI, tap again.</span>`); readRender(body); return; } reset(); msg(`没有听到声音，请再试一次。<span class=ui-en data-b>Didn't hear anything — try again.</span>`); };
+  r.onend=()=>{ Music.hold(false); if(!got && game==="read"){ got=true; clearTimeout(dog); reset(); msg(`没有识别到声音，请靠近一点、清楚地再念一次。<span class=ui-en data-b>Nothing was recognised — move closer and read it clearly again.</span>`); } };
+  try{ r.start(); }catch(err){ clearTimeout(dog); Music.hold(false); reset(); msg(`语音识别启动失败。<span class=ui-en data-b>Speech recognition failed to start.</span>`); } }
 
 /* ---------- 抓抓泡泡 AR Grab: answers float in the camera's corners; grab with your hand ---------- */
 let handsP=null;
@@ -1917,33 +1998,65 @@ const SHOP_COL=()=>[NY.pink,NY.mint,NY.butter,NY.sky,NY.peach,NY.lilac];
 function buildsOf(i){ return state.build[i] || (state.build[i]=Array(SLOT_ANG.length).fill(null)); }
 
 /* --- extra decoration models --- */
+/* --- decoration models v2 (each built standing on y=0, front facing +z) --- */
+const put=(g,o,f)=>{ if(f) f(o); g.add(o); return o; };
+const rodBetween=(g,a,b,r,col)=>{ const A=new THREE.Vector3(...a), B=new THREE.Vector3(...b), len=A.distanceTo(B); const m=cyl(r,r,len,10,col); m.position.copy(A).lerp(B,.5); m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), B.clone().sub(A).normalize()); g.add(m); return m; };
 function fruitTree(g, leaf, fruit, spiky){ const t=new THREE.Group(); g.add(t);
-  t.add(cyl(.22,.32,2.4,14,0x7a5232,0,1.2,0));
-  [[0,3,0,1.5],[.9,2.7,.4,1.05],[-.8,2.8,-.3,1.1],[.1,3.7,-.2,1.05]].forEach(([x,y,z,r])=>t.add(ball(r,leaf,x,y,z)));
-  const rr=rng(Math.floor(leaf/7)); for(let k=0;k<9;k++){ const a=rr()*6.28, y=2.4+rr()*1.6; const f=spiky? mesh(new THREE.IcosahedronGeometry(.26,0),fruit,Math.cos(a)*1.35,y,Math.sin(a)*1.35,{flatShading:true}) : ball(.17,fruit,Math.cos(a)*1.4,y,Math.sin(a)*1.4); t.add(f); }
-  swayers.push({o:t, ph:leaf%7, amp:.015}); }
-function flowerBed(g){ g.add(cyl(1.3,1.4,.45,24,0xc8a27a,0,.22,0)); g.add(cyl(1.18,1.18,.08,24,0x5a3c24,0,.46,0));
-  const cols=[0xff5f8a,0xffd23f,0xffffff,0xff8c42,0xc77dff]; for(let k=0;k<16;k++){ const a=k*2.4, d=.25+(k%4)*.24; g.add(cyl(.03,.03,.4,4,0x3f8f3a,Math.cos(a)*d,.68,Math.sin(a)*d)); g.add(ball(.13,cols[k%5],Math.cos(a)*d,.92,Math.sin(a)*d,{emissive:cols[k%5],emissiveIntensity:.08})); } }
-function bench(g){ g.add(box(2.2,.14,.7,0x9a6a3e,0,.6,0)); g.add(box(2.2,.5,.1,0x9a6a3e,0,.95,-.32)); [-.9,.9].forEach(x=>[-.25,.25].forEach(z=>g.add(box(.1,.6,.1,0x3a2f2a,x,.3,z)))); }
-function swing(g){ [-1.2,1.2].forEach(x=>{ const l=cyl(.08,.1,3.2,10,0x6e4426,x,1.55,0); g.add(l); }); g.add(cyl(.07,.07,2.6,10,0x6e4426,0,3.1,0)).rotation.z=Math.PI/2;
-  const piv=new THREE.Group(); piv.position.y=3.05; g.add(piv); [-.4,.4].forEach(x=>piv.add(cyl(.02,.02,2.2,4,0x2b1d16,x,-1.1,0))); piv.add(box(1,.1,.4,C.red,0,-2.2,0));
-  swayers.push({o:piv, ph:1, amp:.0, swing:true}); seaBoats.push(t=>{ piv.rotation.x=Math.sin(t*1.8)*.45; }); }
-function kite(g){ g.add(cyl(.05,.07,1.2,8,0x6e4426,0,.6,0));
-  const sh=new THREE.Shape(); sh.moveTo(0,1.2); sh.quadraticCurveTo(.9,.8,.5,.1); sh.lineTo(1.1,-.2); sh.quadraticCurveTo(.4,-.6,0,-1.1); sh.quadraticCurveTo(-.4,-.6,-1.1,-.2); sh.lineTo(-.5,.1); sh.quadraticCurveTo(-.9,.8,0,1.2);
-  const k=new THREE.Mesh(new THREE.ShapeGeometry(sh), new THREE.MeshStandardMaterial({color:0xe63946, side:THREE.DoubleSide, roughness:.6, emissive:0x400000})); k.scale.setScalar(.9);
-  const trim=new THREE.Mesh(new THREE.ShapeGeometry(sh), new THREE.MeshStandardMaterial({color:0xffd23f, side:THREE.DoubleSide})); trim.scale.setScalar(.55); trim.position.z=.01; k.add(trim);
-  const fly=new THREE.Group(); fly.position.set(1.5,7,0); fly.add(k); g.add(fly);
-  const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,1.2,0), new THREE.Vector3(1.5,6.2,0)]), new THREE.LineBasicMaterial({color:0xffffff})); g.add(line);
-  seaBoats.push(t=>{ fly.position.y=7+Math.sin(t*1.3)*.4; fly.rotation.z=Math.sin(t*.9)*.2; fly.rotation.y=Math.sin(t*.5)*.3; }); }
-function gazebo(g){ for(let k=0;k<6;k++){ const a=k/6*6.28; g.add(cyl(.12,.14,2.6,12,C.red,Math.cos(a)*1.6,1.3,Math.sin(a)*1.6)); }
-  g.add(cyl(2,2.1,.3,6,0xd9c7a3,0,.15,0)); const rf=cone(2.6,1.6,6,NY.tile,0,3.4,0); g.add(rf); g.add(ball(.25,C.gold,0,4.35,0)); g.add(cyl(2.05,2.05,.2,6,NY.teak,0,2.65,0)); }
-function trishaw(g){ [[-.55,.6],[.55,.6],[0,-.9]].forEach(([x,z])=>{ const w=new THREE.Mesh(new THREE.TorusGeometry(.38,.06,8,20),M(C.dark)); w.position.set(x,.4,z); w.rotation.y=Math.PI/2; g.add(w); });
-  g.add(box(1.3,.5,.8,NY.lantern,0,.85,.5)); g.add(box(1.3,.12,.8,C.gold,0,1.15,.5)); const can=new THREE.Mesh(new THREE.SphereGeometry(.75,20,10,0,Math.PI*2,0,Math.PI/2),M(0x2a9d8f,{side:THREE.DoubleSide})); can.position.set(0,1.4,.45); can.scale.set(1,.7,.7); g.add(can);
-  g.add(cyl(.04,.04,1.3,6,C.dark,0,.75,-.25)).rotation.x=.5; g.add(box(.3,.08,.3,C.dark,0,1.25,-.75)); }
-function kopiStall(g){ g.add(box(2,1,1.1,0x2a9d8f,0,.6,0)); g.add(box(2.1,.1,1.2,NY.cream,0,1.12,0)); [[-.8,.62],[.8,.62]].forEach(([x,z])=>{ const w=new THREE.Mesh(new THREE.TorusGeometry(.25,.06,8,16),M(C.dark)); w.position.set(x,.25,z); g.add(w); });
-  g.add(cyl(.04,.04,2.2,6,C.white,0,2,0)); const u=cone(1.6,.6,16,0xffd23f,0,3.1,0); g.add(u); for(let k=0;k<8;k+=2){ const a=k/8*6.28; g.add(cone(.62,.6,4,NY.lantern,Math.cos(a)*.6,3.08,Math.sin(a)*.6)).visible=false; }
-  g.add(cyl(.3,.3,.06,16,C.white,-.5,1.2,0)); g.add(cyl(.12,.1,.2,12,0xffffff,-.5,1.3,0)); g.add(cyl(.12,.1,.2,12,0x6b3a1f,.3,1.25,0));
-  [[1.6,.8],[1.6,-.6]].forEach(([x,z])=>{ g.add(cyl(.35,.35,.06,16,0xe9e1d4,x,.75,z)); g.add(cyl(.05,.05,.75,6,C.dark,x,.37,z)); }); }
+  rodBetween(t,[0,0,0],[.15,2.2,0],.26,0x6d4a2d); rodBetween(t,[.15,2,0],[.8,2.8,.2],.12,0x6d4a2d); rodBetween(t,[.1,2,0],[-.7,2.9,-.2],.12,0x6d4a2d);
+  [[0,3.2,0,1.55],[1,2.9,.3,1.1],[-.9,3,-.3,1.15],[.15,4,-.1,1.1],[.2,2.7,.9,.95]].forEach(([x,y,z,r])=>t.add(ball(r,leaf,x,y,z)));
+  const rr=rng(Math.floor(leaf/7)+(spiky?3:7));
+  for(let k=0;k<12;k++){ const a=rr()*6.28, R=1.25+rr()*.25, y=2.25+rr()*.9; const fx=Math.cos(a)*R, fz=Math.sin(a)*R;
+    if(spiky){ const f=mesh(new THREE.IcosahedronGeometry(.28,1),fruit,fx,y,fz,{flatShading:true}); f.scale.y=1.25; t.add(f); rodBetween(t,[fx,y+.28,fz],[fx*.9,y+.6,fz*.9],.025,0x6d4a2d); }
+    else { for(let c=0;c<3;c++) t.add(ball(.14,fruit,fx+(c-1)*.16,y-(c%2)*.12,fz+(c%2)*.1)); } }
+  swayers.push({o:t, ph:leaf%7, amp:.012}); }
+function flowerBed(g){ g.add(cyl(1.35,1.45,.5,28,0xc99d72,0,.25,0)); g.add(cyl(1.38,1.38,.08,28,0xe0c09a,0,.52,0)); g.add(cyl(1.22,1.22,.08,28,0x4b311e,0,.5,0));
+  const cols=[0xff5f8a,0xffd23f,0xffffff,0xff8c42,0xc77dff,0xff3b5c]; for(let k=0;k<26;k++){ const a=k*2.399, d=.15+Math.sqrt(k/26)*1.0, x=Math.cos(a)*d, z=Math.sin(a)*d, h=.35+(k%4)*.08;
+    g.add(cyl(.025,.03,h,5,0x3f8f3a,x,.52+h/2,z)); const l=mesh(new THREE.SphereGeometry(.12,8,6),0x4c9a3e,x+.08,.6,z); l.scale.set(1,.3,.6); g.add(l);
+    const c=cols[k%cols.length]; for(let p=0;p<5;p++){ const pa=p/5*6.28; const pe=mesh(new THREE.SphereGeometry(.07,8,6),c,x+Math.cos(pa)*.07,.52+h+.02,z+Math.sin(pa)*.07,{emissive:c,emissiveIntensity:.06}); pe.scale.y=.45; g.add(pe); } g.add(ball(.045,0xffe066,x,.52+h+.05,z)); } }
+function bench(g){ const W=0x9a6a3e, IR=0x2f5d4f;
+  for(let k=0;k<3;k++) g.add(box(2.3,.07,.17,W,0,.62,-.2+k*.2));
+  for(let k=0;k<2;k++){ const s=box(2.3,.07,.16,W,0,.95+k*.24,-.36-k*.03); s.rotation.x=-.18; g.add(s); }
+  [-1.05,1.05].forEach(x=>{ g.add(box(.07,.62,.07,IR,x,.31,.2)); g.add(box(.07,1.25,.07,IR,x,.62,-.36)); g.add(box(.07,.07,.62,IR,x,.6,-.08)); const arm=box(.1,.06,.62,IR,x,.88,-.06); g.add(arm); rodBetween(g,[x,.62,.2],[x,.86,.2],.035,IR); }); }
+function swing(g){ const F=0xc0141d, W=0x8a5a35;
+  // A-frame at each end, crossbar on top
+  [-1.5,1.5].forEach(x=>{ rodBetween(g,[x,0,-.9],[x,3.3,0],.09,F); rodBetween(g,[x,0,.9],[x,3.3,0],.09,F); rodBetween(g,[x,1.1,-.6],[x,1.1,.6],.05,F); g.add(box(.3,.1,2,0x8f8a80,x,.05,0)); });
+  put(g, cyl(.08,.08,3.2,14,F,0,3.3,0), m=>m.rotation.z=Math.PI/2);
+  // seat on two chains, swinging about the crossbar
+  const piv=new THREE.Group(); piv.position.y=3.3; g.add(piv);
+  [-.42,.42].forEach(x=>{ for(let k=0;k<9;k++){ const l=new THREE.Mesh(new THREE.TorusGeometry(.055,.015,6,10),M(0x9aa0a6,{metalness:.6,roughness:.35})); l.position.set(x,-.15-k*.26,0); l.rotation.y=k%2?Math.PI/2:0; l.rotation.x=Math.PI/2; piv.add(l); } });
+  piv.add(box(1.05,.09,.42,W,0,-2.55,0)); piv.add(box(1.1,.04,.46,0xd9a521,0,-2.5,0));
+  seaBoats.push(t=>{ piv.rotation.x=Math.sin(t*1.7)*.42; }); }
+function kite(g){ g.add(cyl(.05,.07,1.2,8,0x6e4426,0,.6,0)); g.add(box(.5,.12,.5,0x8f8a80,0,.06,0));
+  const sh=new THREE.Shape(); sh.moveTo(0,1.25); sh.quadraticCurveTo(.95,.85,.55,.12); sh.lineTo(1.2,-.15); sh.quadraticCurveTo(.45,-.62,0,-1.15); sh.quadraticCurveTo(-.45,-.62,-1.2,-.15); sh.lineTo(-.55,.12); sh.quadraticCurveTo(-.95,.85,0,1.25);
+  const ex={depth:.04,bevelEnabled:false};
+  const k=new THREE.Mesh(new THREE.ExtrudeGeometry(sh,ex), M(0xe63946,{roughness:.6})); k.scale.setScalar(.9);
+  const trim=new THREE.Mesh(new THREE.ExtrudeGeometry(sh,ex), M(0xffd23f)); trim.scale.setScalar(.6); trim.position.z=.045; k.add(trim);
+  const core=new THREE.Mesh(new THREE.ExtrudeGeometry(sh,ex), M(0x1d4ed8)); core.scale.setScalar(.3); core.position.z=.09; k.add(core);
+  const tail=new THREE.Group(); k.add(tail); for(let s=0;s<6;s++){ const r=box(.12,.22,.02,s%2?0xffd23f:0xe63946,0,-1.3-s*.25,0); tail.add(r); }
+  const fly=new THREE.Group(); fly.position.set(1.6,7.2,0); fly.add(k); g.add(fly);
+  const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,1.2,0), new THREE.Vector3(1.6,6.4,0)]), new THREE.LineBasicMaterial({color:0xffffff})); g.add(line);
+  seaBoats.push(t=>{ fly.position.y=7.2+Math.sin(t*1.3)*.4; fly.rotation.z=Math.sin(t*.9)*.18; fly.rotation.y=Math.sin(t*.5)*.3; tail.rotation.z=Math.sin(t*2.2)*.15; }); }
+function gazebo(g){ const R=1.75;
+  g.add(cyl(2.25,2.4,.35,6,0xd9c7a3,0,.17,0)); put(g, box(1,.18,.5,0xd9c7a3,0,.09,2.3));
+  for(let k=0;k<6;k++){ const a=k/6*6.283+Math.PI/6, x=Math.cos(a)*R, z=Math.sin(a)*R; g.add(cyl(.11,.13,2.5,12,C.red,x,1.6,z)); g.add(box(.3,.14,.3,C.gold,x,2.86,z));
+    const a2=(k+1)/6*6.283+Math.PI/6, x2=Math.cos(a2)*R, z2=Math.sin(a2)*R; if(k!==1){ rodBetween(g,[x,.95,z],[x2,.95,z2],.05,C.red); rodBetween(g,[x,.6,z],[x2,.6,z2],.035,C.red); for(let s=1;s<4;s++){ const u=s/4; rodBetween(g,[x+(x2-x)*u,.35,z+(z2-z)*u],[x+(x2-x)*u,.95,z+(z2-z)*u],.025,C.red); } } }
+  g.add(cyl(2.2,2.2,.18,6,NY.teak,0,2.98,0)); g.add(cone(2.95,1.1,6,NY.tile,0,3.6,0)); g.add(cyl(1.15,1.2,.35,6,C.red,0,4.25,0)); g.add(cone(1.5,.9,6,NY.tile,0,4.85,0)); g.add(ball(.2,C.gold,0,5.4,0)); g.add(cone(.09,.5,8,C.gold,0,5.75,0));
+  for(let k=0;k<6;k++){ const a=k/6*6.283, x=Math.cos(a)*2.9, z=Math.sin(a)*2.9; put(g, cone(.12,.45,6,NY.tile,x,3.25,z), m=>{ m.rotation.z=-Math.cos(a)*.9; m.rotation.x=Math.sin(a)*.9; }); } }
+function trishaw(g){ const FR=0x1d3557, CAN=0xc0141d;
+  const wheel=(x,y,z,r)=>{ const w=new THREE.Group(); w.position.set(x,y,z); w.add(new THREE.Mesh(new THREE.TorusGeometry(r,.05,8,24),M(0x222222))); for(let s=0;s<8;s++){ const sp=cyl(.012,.012,r*2,4,0xbfbfbf); sp.rotation.z=s/8*Math.PI; w.add(sp); } w.add(cyl(.07,.07,.12,10,0x888888,0,0,0)).rotation; w.children[w.children.length-1].rotation.x=Math.PI/2; w.rotation.y=Math.PI/2; g.add(w); return w; };
+  const ws=[wheel(-.62,.42,.55,.42), wheel(.62,.42,.55,.42), wheel(0,.42,-1.25,.42)];
+  g.add(box(1.4,.45,.85,CAN,0,.85,.55)); g.add(box(1.5,.08,.95,0xd9a521,0,1.1,.55)); g.add(box(1.4,.55,.12,CAN,0,1.25,.15));
+  put(g, new THREE.Mesh(new THREE.SphereGeometry(.8,24,12,0,Math.PI,0,Math.PI/2),M(0x2a9d8f,{side:THREE.DoubleSide})), m=>{ m.position.set(0,1.45,.35); m.scale.set(.95,.8,.75); m.rotation.y=Math.PI/2; });
+  rodBetween(g,[0,.55,.2],[0,.6,-1.25],.05,FR); rodBetween(g,[0,.6,-1.25],[0,1.2,-.75],.05,FR); rodBetween(g,[0,.55,.2],[0,1.2,-.75],.05,FR);
+  g.add(box(.3,.08,.45,0x111111,0,1.28,-.75)); rodBetween(g,[0,1.1,-.1],[0,1.5,-.05],.035,FR); rodBetween(g,[-.35,1.5,-.05],[.35,1.5,-.05],.03,FR);
+  seaBoats.push(t=>{ ws.forEach(w=>w.rotation.x=t*1.5); }); }
+function kopiStall(g){ const BODY=0x2a9d8f;
+  g.add(box(2.1,.95,1.1,BODY,0,.75,0)); g.add(box(2.2,.1,1.2,NY.cream,0,1.27,0)); g.add(box(2.1,.25,.04,0xd9a521,0,.95,.56));
+  [-.8,.8].forEach(x=>{ const w=new THREE.Mesh(new THREE.TorusGeometry(.27,.07,8,18),M(0x222222)); w.position.set(x,.27,.62); g.add(w); });
+  [[-1,-.5],[1,-.5],[-1,.5],[1,.5]].forEach(([x,z])=>g.add(cyl(.035,.035,1.4,8,0xdddddd,x,1.95,z)));
+  for(let k=0;k<6;k++){ const st=box(2.4/6,.08,1.5,k%2?0xffffff:0xe63946,-1.2+2.4/12+k*2.4/6,2.7,0); st.rotation.x=.12; g.add(st); }
+  g.add(cyl(.12,.1,.24,14,0xf1f1f1,-.6,1.45,0)); g.add(cyl(.12,.1,.24,14,0xf1f1f1,-.25,1.45,.15)); g.add(cyl(.2,.24,.35,14,0xb5651d,.45,1.5,0)); put(g, cyl(.03,.02,.3,6,0xb5651d,.68,1.62,0), m=>m.rotation.z=-1);
+  [[1.9,.9],[1.9,-.7]].forEach(([x,z])=>{ g.add(cyl(.38,.38,.06,18,0xe9e1d4,x,.78,z)); g.add(cyl(.05,.05,.78,8,0x333333,x,.39,z)); [[.55,0],[-.55,0]].forEach(([dx,dz])=>{ g.add(cyl(.18,.18,.05,14,0xe63946,x+dx,.48,z+dz)); g.add(cyl(.03,.03,.46,6,0x333333,x+dx,.23,z+dz)); }); }); }
 
 function makeDecor(id, k, r){ const g=new THREE.Group(), rr=rng(k*13+id.length);
   ({ palm:()=>palm(g,0,0,1,rr), frang:()=>frangipani(g,0,0), banana:()=>banana(g,0,0,.95), flowers:()=>flowerBed(g), bench:()=>bench(g),
@@ -2052,7 +2165,7 @@ function creature(id){
     const t=mesh(new THREE.ConeGeometry(h*.42,len*.5,4),col,-len*.62,0,0,{flatShading:true}); t.rotation.z=Math.PI/2; t.scale.z=.3; g.add(t); eye(len*.32,h*.12,h*.2); eye(len*.32,h*.12,-h*.2); return b; };
   if(id==="fish"){ fishBody(0x3fa7ff,1.1,.55); }
   else if(id==="clown"){ fishBody(0xff7a1a,.9,.5); [-.05,.22].forEach(x=>{ const s=mesh(new THREE.CylinderGeometry(.27,.27,.07,20),0xffffff,x,0,0); s.rotation.z=Math.PI/2; s.scale.set(1,1,.65); g.add(s); }); }
-  else if(id==="shrimp"){ for(let k=0;k<6;k++){ const a=k/5*2.2; g.add(mesh(new THREE.SphereGeometry(.17-.018*k,14,10),0xff8f8f,Math.cos(a)*.35-.1,Math.sin(a)*.35,0)); } g.add(cyl(.01,.01,.8,4,0xff8f8f,.45,.15,0)).rotation.z=-.9; eye(.28,.12,.08,.04); }
+  else if(id==="shrimp"){ for(let k=0;k<6;k++){ const a=k/5*2.2; g.add(mesh(new THREE.SphereGeometry(.17-.018*k,14,10),0xff8f8f,Math.cos(a)*.35-.1,Math.sin(a)*.35,0)); } put(g, cyl(.01,.01,.8,4,0xff8f8f,.45,.15,0), m=>m.rotation.z=-.9); eye(.28,.12,.08,.04); }
   else if(id==="crab"){ const b=mesh(new THREE.SphereGeometry(.5,22,14),0xe63946); b.scale.set(1,.45,.8); b.position.y=.3; g.add(b);
     [-1,1].forEach(s=>{ for(let k=0;k<3;k++){ const l=cyl(.04,.04,.6,6,0xc1121f,(k-1)*.28,.2,s*.42); l.rotation.x=s*1.1; g.add(l); } const c=mesh(new THREE.SphereGeometry(.17,12,10),0xe63946,.55,.38,s*.32); c.scale.set(1.2,.8,.8); g.add(c); });
     eye(.25,.55,.12); eye(.25,.55,-.12); }
@@ -2065,7 +2178,7 @@ function creature(id){
   else if(id==="octopus"){ const h=mesh(new THREE.SphereGeometry(.55,24,16),0x9b5de5,0,.75,0); h.scale.y=1.15; g.add(h); eye(.35,.8,.2,.08); eye(.35,.8,-.2,.08);
     for(let k=0;k<8;k++){ const a=k/8*6.28, pts=[]; for(let j=0;j<6;j++){ const u=j/5; pts.push(new THREE.Vector3(Math.cos(a)*(.3+u*.9), .35-u*.35+Math.sin(u*3)*.1, Math.sin(a)*(.3+u*.9))); }
       g.add(mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),12,.09,8),0x9b5de5)); } }
-  else if(id==="turtle"){ const s=mesh(new THREE.SphereGeometry(.7,24,14,0,Math.PI*2,0,Math.PI/2),0x2d6a4f); s.scale.set(1.1,.6,.9); g.add(s); g.add(mesh(new THREE.CylinderGeometry(.72,.72,.08,24),0xb5c99a,0,0,0)).scale.set(1.05,1,.85);
+  else if(id==="turtle"){ const s=mesh(new THREE.SphereGeometry(.7,24,14,0,Math.PI*2,0,Math.PI/2),0x2d6a4f); s.scale.set(1.1,.6,.9); g.add(s); put(g, mesh(new THREE.CylinderGeometry(.72,.72,.08,24),0xb5c99a,0,0,0), m=>m.scale.set(1.05,1,.85));
     const hd=mesh(new THREE.SphereGeometry(.22,14,10),0x95d5b2,.85,.05,0); g.add(hd); eye(1,.12,.1,.04); eye(1,.12,-.1,.04);
     const fl=[]; [[.4,.55],[.4,-.55],[-.45,.45],[-.45,-.45]].forEach(([x,z])=>{ const f=mesh(new THREE.SphereGeometry(.25,12,8),0x95d5b2,x,-.02,z); f.scale.set(1.3,.25,.6); g.add(f); fl.push(f); }); g.userData.fl=fl; }
   else if(id==="dolphin"){ const b=mesh(new THREE.CapsuleGeometry(.32,1.4,8,16),0x6c9bd2); b.rotation.z=Math.PI/2; g.add(b); const sn=cyl(.08,.14,.4,10,0x6c9bd2,1.1,-.04,0); sn.rotation.z=Math.PI/2; g.add(sn);
@@ -2181,6 +2294,12 @@ const Music = (() => {
   const custom={};   // name -> HTMLAudioElement if lib/music/<name>.mp3 exists
   const level=()=> held||state.music===false ? 0 : (state.vol??.55) * (ducked?.35:1) * .55;
   const mtof=m=>440*Math.pow(2,(m-69)/12);
+  let silentEl=null;
+  function iosPlayback(){ try{ if(navigator.audioSession) navigator.audioSession.type="playback"; }catch(e){}
+    try{ if(!silentEl){ const sr=8000, n=sr/2, buf=new ArrayBuffer(44+n*2), v=new DataView(buf), w=(o,str)=>{ for(let i=0;i<str.length;i++) v.setUint8(o+i,str.charCodeAt(i)); };
+        w(0,"RIFF"); v.setUint32(4,36+n*2,true); w(8,"WAVE"); w(12,"fmt "); v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,1,true); v.setUint32(24,sr,true); v.setUint32(28,sr*2,true); v.setUint16(32,2,true); v.setUint16(34,16,true); w(36,"data"); v.setUint32(40,n*2,true);
+        silentEl=new Audio(URL.createObjectURL(new Blob([buf],{type:"audio/wav"}))); silentEl.loop=true; silentEl.setAttribute("playsinline",""); silentEl.volume=.01; }
+      if(silentEl.paused) silentEl.play().catch(()=>{}); }catch(e){} }
   function init(){ if(ac) return true; const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return false;
     ac=new AC(); master=ac.createGain(); master.gain.value=0; master.connect(ac.destination);
     meter=ac.createAnalyser(); meter.fftSize=2048; master.connect(meter);
@@ -2288,12 +2407,12 @@ const Music = (() => {
   // optional real recordings: lib/music/<style>.mp3
   fetch("lib/music/list.json").then(r=>r.ok?r.json():[]).then(list=>{ (list||[]).forEach(name=>{ if(!SONGS[name]) return; const a=new Audio(`lib/music/${name}.mp3`); a.loop=true; custom[name]=a; if(ac && cur && cur.name===name && !cur.el) startStyle(name); }); }).catch(()=>{});
   return {
-    unlock(){ if(state.music===false || held) return; if(!init()) return; if(ac.state==="suspended") ac.resume(); if(!cur || cur.name!==wanted) startStyle(wanted); },
+    unlock(){ if(state.music===false || held) return; iosPlayback(); if(!init()) return; if(ac.state!=="running") ac.resume(); try{ const b=ac.createBuffer(1,1,22050), s=ac.createBufferSource(); s.buffer=b; s.connect(ac.destination); s.start(0); }catch(e){} if(!cur || cur.name!==wanted) startStyle(wanted); },
     play(name){ wanted=SONGS[name]?name:"ocean"; if(ac && state.music!==false){ if(ac.state==="suspended") ac.resume(); if(!cur||cur.name!==wanted) startStyle(wanted); } },
     setOn(on){ state.music=on; save(); if(on){ this.unlock(); } else if(ac){ master.gain.setTargetAtTime(0,ac.currentTime,.1); } },
     setVol(v){ state.vol=v; save(); },
     duck(on){ ducked=on; },
-    hold(on){ held=on; if(!ac) return; master.gain.setTargetAtTime(level(), ac.currentTime, .05); if(on) setTimeout(()=>{ if(held && ac.state==='running') ac.suspend(); },120); else if(ac.state==='suspended' && !document.hidden) ac.resume(); },
+    hold(on){ held=on; try{ if(navigator.audioSession) navigator.audioSession.type = on ? "play-and-record" : "playback"; }catch(e){} if(!on && silentEl && silentEl.paused) silentEl.play().catch(()=>{}); if(!ac) return; master.gain.setTargetAtTime(level(), ac.currentTime, .05); if(on) setTimeout(()=>{ if(held && ac.state==='running') ac.suspend(); },120); else if(ac.state==='suspended' && !document.hidden) ac.resume(); },
     rms(){ if(!meter) return 0; const a=new Float32Array(meter.fftSize); meter.getFloatTimeDomainData(a); let s=0; for(const v of a) s+=v*v; return Math.sqrt(s/a.length); },
     get styles(){ return Object.keys(SONGS); }
   };
@@ -2389,7 +2508,7 @@ $("#zAll").onclick=()=>{ if(scene) setOverview(false); };
 $("#bMe").onclick=()=>openSide("me");
 function applyMusicBtn(){ const b=$("#bMusic"); if(b) b.setAttribute("aria-pressed",String(state.music!==false)); }
 $("#bMusic").onclick=()=>{ const on=state.music===false; Music.setOn(on); applyMusicBtn(); toast(on?"背景音乐：开":"背景音乐：关", on?"Music on":"Music off"); };
-document.addEventListener("pointerdown",()=>Music.unlock(),{passive:true}); document.addEventListener("keydown",()=>Music.unlock());
+["pointerdown","touchend","click","keydown"].forEach(ev=>document.addEventListener(ev,()=>Music.unlock(),{passive:true}));
 $("#bList").onclick=()=>openSide("list");
 $("#bSet").onclick=()=>openSide("settings");
 $("#bEn").onclick=()=>{ state.en=!state.en; save(); applyEn(); toast(state.en?"已显示英文":"已隐藏英文", state.en?"English on":"English off"); };
