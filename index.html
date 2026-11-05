@@ -342,7 +342,7 @@ button.gcard:hover{border-color:var(--gold)}
 @keyframes burstOut{to{transform:scale(1.6);opacity:0}}
 @media (prefers-reduced-motion:reduce){.ar-b{animation:none}}
 .okp{color:var(--ok);font-weight:700}.badp{color:var(--bad);font-weight:700;text-decoration:underline}
-.seg{display:flex;gap:6px}.segb{flex:1;border:1.5px solid var(--line);background:var(--panel);border-radius:12px;padding:8px;font-weight:700}.segb[aria-selected="true"]{border-color:var(--red);background:var(--red);color:var(--red-ink)}.segb .ui-en{display:block;margin:0}
+.seg{display:flex;gap:6px}.lookset{display:flex;flex-direction:column;gap:6px;padding:4px 0 8px}.lookset small{color:var(--muted);font-size:12.5px}.lookset .segb .ui-en{display:block;font-size:11px;font-weight:400}.segb{flex:1;border:1.5px solid var(--line);background:var(--panel);border-radius:12px;padding:8px;font-weight:700}.segb[aria-selected="true"]{border-color:var(--red);background:var(--red);color:var(--red-ink)}.segb .ui-en{display:block;margin:0}
 .lgmsg{min-height:1.2em;margin:0;color:var(--bad);font-size:13.5px}
 .wcard{max-height:calc(100% - 24px);overflow-y:auto}
 .sync{width:10px;height:10px;border-radius:50%;flex:none;background:var(--muted);margin-left:4px}.sync[data-s="ok"]{background:var(--ok)}.sync[data-s="wait"],.sync[data-s="busy"]{background:var(--gold)}.sync[data-s="err"]{background:var(--bad)}.sync[data-s="off"]{background:var(--line)}
@@ -804,7 +804,7 @@ const KIDS=["kid-malay-boy","kid-thai-girl","kid-chinese-boy","kid-vietnamese-gi
 const kidTex={}, kidList=[];
 function kidAtlas(name){ if(!kidTex[name]){ kidTex[name]={base:null, wait:[]}; new THREE.TextureLoader().load(`assets/sprites/${name}.webp`, t=>{ t.colorSpace=THREE.SRGBColorSpace; kidTex[name].base=t; kidTex[name].wait.forEach(fn=>fn(t)); kidTex[name].wait=[]; }); } return kidTex[name]; }
 // a kid standing on the ground at the group's origin, about h tall; mode: "stand" | "wave" | "walk"
-function kidSprite(name, h, mode){ const g=new THREE.Group(), m=new THREE.SpriteMaterial({transparent:true, alphaTest:.45, depthWrite:true, fog:true, toneMapped:false}), sp=new THREE.Sprite(m);
+function kidSprite(name, h, mode){ const g=new THREE.Group(), m=new THREE.SpriteMaterial({transparent:true, alphaTest:.45, depthWrite:true, fog:true, toneMapped:false}), sp=new THREE.Sprite(m); m.color.setRGB(...nightTint()); nightMats.push(m);
   sp.center.set(.5,0); sp.scale.set(h*1.12,h*1.12,1); sp.visible=false; g.add(sp);
   const use=t=>{ const c=t.clone(); c.colorSpace=THREE.SRGBColorSpace; c.needsUpdate=true; c.repeat.set(1/3,.5); m.map=c; m.needsUpdate=true; sp.visible=true; };
   const a=kidAtlas(name); if(a.base) use(a.base); else a.wait.push(use);
@@ -1083,7 +1083,7 @@ function addWalkers(){ const rr=rng(91);
     Object.assign(k,{o, R:o.r*(.5+rr()*.08), a:rr()*6.28, spd:(.05+rr()*.02)*(i%2?1:-1), pause:0, next:6+rr()*8}); }); }
 function addLife(){ addWalkers(); const L=new THREE.TextureLoader(), rr=rng(77);
   Promise.all(["seagull","butterflies"].map(n=>L.loadAsync(`assets/sprites/${n}.webp`))).then(([gBase,bBase])=>{
-    const mk=(base, w)=>{ const t=base.clone(); t.colorSpace=THREE.SRGBColorSpace; t.needsUpdate=true; const m=new THREE.SpriteMaterial({map:t, transparent:true, alphaTest:.4, depthWrite:false, fog:true, toneMapped:false}); const sp=new THREE.Sprite(m); sp.scale.set(w,w,1); scene.add(sp); return sp; };
+    const mk=(base, w)=>{ const t=base.clone(); t.colorSpace=THREE.SRGBColorSpace; t.needsUpdate=true; const m=new THREE.SpriteMaterial({map:t, transparent:true, alphaTest:.4, depthWrite:false, fog:true, toneMapped:false}); m.color.setRGB(...nightTint()); nightMats.push(m); const sp=new THREE.Sprite(m); sp.scale.set(w,w,1); scene.add(sp); return sp; };
     for(let k=0;k<7;k++){ const sp=mk(gBase, 3.4); sp.material.map.repeat.set(.5,.5); life.gulls.push({s:sp, cx:CENTER.x+(rr()-.5)*120, cz:CENTER.z+(rr()-.5)*90, R:22+rr()*40, y:15+rr()*12, sp:(.12+rr()*.12)*(k%2?1:-1), ph:rr()*6.28, glide:rr()*10}); }
     isles.forEach(o=>{ for(let k=0;k<2;k++){ const sp=mk(bBase, .62); sp.material.map.repeat.set(1/3,1/3); const a=rr()*6.28, d=o.r*(.35+rr()*.3); life.flies.push({s:sp, o, cx:Math.cos(a)*d, cz:Math.sin(a)*d, kind:Math.floor(rr()*3), ph:rr()*6.28, R:1.2+rr()*1.6}); } });
   }).catch(e=>console.warn("life sprites", e)); }
@@ -1172,11 +1172,12 @@ function scatter(g, sh, count, minT, maxT, geo, mat, colors, scaleR, rr){
 /* ---- hand-painted sprites (assets/sprites) ---- */
 const SPR_DIM={"cloud-0":[520,276],"cloud-1":[460,268],"cloud-2":[548,276],"cloud-3":[392,260],"cloud-4":[408,232],"cloud-5":[224,200],"cloud-6":[180,156],
   "mist-0":[520,244],"mist-1":[524,252],"mist-2":[492,428],"mist-3":[480,456]};
-const sprTexCache={};
+const sprTexCache={}, nightMats=[];   // sprite materials that dim at night (their pictures are drawn without tone mapping)
+const nightTint=m=>!themeDark()?[1,1,1]:(m&&m.userData.layered)?[.3,.33,.47]:[.5,.53,.68];   // layered mist adds up, so it dims more
 function sprTex(name){ if(!sprTexCache[name]){ const t=new THREE.TextureLoader().load(`assets/sprites/${name}.png`); t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=4; sprTexCache[name]=t; } return sprTexCache[name]; }
 // a camera-facing picture, `width` world units wide; its own material so it can fade on its own
 function spriteOf(name, width, opts){ const [w,h]=SPR_DIM[name]; const m=new THREE.SpriteMaterial(Object.assign({map:sprTex(name), transparent:true, depthWrite:false, fog:true, toneMapped:false}, opts||{}));
-  const s=new THREE.Sprite(m); s.scale.set(width, width*h/w, 1); return s; }
+  m.userData.layered=true; m.color.setRGB(...nightTint(m)); nightMats.push(m); const s=new THREE.Sprite(m); s.scale.set(width, width*h/w, 1); return s; }
 
 function buildIsland(d, i){
   const r=d.r||10.5, rr=rng(i*97+13), sh={r, s:i*7.31+1.7};
@@ -1273,6 +1274,8 @@ const TiltShader=()=>({ uniforms:{tDiffuse:{value:null}, uDir:{value:new THREE.V
 const GradeShader=()=>({ uniforms:{tDiffuse:{value:null}, uSat:{value:1.26}, uCon:{value:1.07}, uVig:{value:.18}},
   vertexShader:"varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }",
   fragmentShader:"uniform sampler2D tDiffuse; uniform float uSat,uCon,uVig; varying vec2 vUv; void main(){ vec4 c=texture2D(tDiffuse,vUv); float l=dot(c.rgb,vec3(.2126,.7152,.0722)); vec3 s=mix(vec3(l),c.rgb,uSat); s=(s-.18)*uCon+.18; float v=1.-uVig*smoothstep(.45,.95,length(vUv-.5)*1.25); gl_FragColor=vec4(max(s,0.)*v,c.a); }" });
+// 画面 Scene: "day" (default) | "night" | "auto" (follow the device's dark mode)
+function applyLook(){ const v=state.look||"day", el=document.documentElement; if(v==="auto") delete el.dataset.theme; else el.dataset.theme = v==="night"?"dark":"light"; }
 function themeDark(){ return document.documentElement.dataset.theme==="dark"||(document.documentElement.dataset.theme!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches); }
 function applyTheme(){ if(!scene) return; const dark=themeDark();
   const elev=dark?2.2:24, azim=dark?248:205, phi=THREE.MathUtils.degToRad(90-elev), th=THREE.MathUtils.degToRad(azim);
@@ -1290,6 +1293,7 @@ function applyTheme(){ if(!scene) return; const dark=themeDark();
     try{ if(!skyRT){ skyRT=new THREE.WebGLCubeRenderTarget(512,{type:THREE.HalfFloatType, generateMipmaps:false}); skyCam=new THREE.CubeCamera(1,5000,skyRT); }
       skyCam.update(renderer, envScene); scene.background=skyRT.texture; sky.visible=false; }catch(e){ sky.visible=true; scene.background=null; }
     if(scene.environment) scene.environment.dispose(); scene.environment=pmrem.fromScene(envScene,0.04).texture; }
+  nightMats.forEach(m=>m.color.setRGB(...nightTint(m)));
   Object.values(cardMats).forEach(m=>m.uniforms.uLight.value.setRGB(...(dark?[.42,.45,.6]:[.9,.9,.88])));
   refreshShadows();
   if(bloomPass){ bloomPass.strength=dark?.7:.18; bloomPass.threshold=dark?.82:.97; } if(gradePass) gradePass.uniforms.uSat.value=dark?1.15:1.26;
@@ -2876,9 +2880,11 @@ function openSide(kind){
   } else {
     setHTML(side, `<div class="d-head"><button class="d-close" type="button" id="sClose" aria-label="关闭">${X_SVG}</button><div class="chip">设置 Settings</div><h2 class="d-title">设置<span class=ui-en data-b>Settings</span></h2><p class="d-sub">进度只保存在这台设备的浏览器里。<span class=ui-en data-b>Progress is saved in this browser only.</span></p></div>
       <div class="d-body"><div class="set">
-        <button class="switch" type="button" role="switch" id="swP" aria-checked="${state.py}"><span><b>显示拼音<span class=ui-en>Show pinyin</span></b><small>关掉可以练习 Week 13 的无拼音阅读。<span class=ui-en data-b>Turn off to practise the Week 13 reading test.</span></small></span><span class="tr"></span></button>
+        <button class="switch" type="button" role="switch" id="swP" aria-checked="${state.py}"><span><b>显示拼音<span class=ui-en>Show pinyin</span></b><small>关掉可以练习无拼音阅读。<span class=ui-en data-b>Turn off to practise reading without pinyin.</span></small></span><span class="tr"></span></button>
         <button class="switch" type="button" role="switch" id="swE" aria-checked="${state.en}"><span><b>显示英文<span class=ui-en>Show English</span></b><small>按钮和说明旁边的英文。<span class=ui-en data-b>English next to buttons and instructions.</span></small></span><span class="tr"></span></button>
         <button class="switch" type="button" role="switch" id="swT" aria-checked="${state.teacher}"><span><b>教师模式：解锁全部岛屿<span class=ui-en>Teacher mode: unlock all</span></b><small>上课演示用。不会获得椰子币，建设免费。<span class=ui-en data-b>For class demos. No coins are earned; building is free.</span></small></span><span class="tr"></span></button>
+        <div class="lookset"><b>画面<span class=ui-en>Scene</span></b><small>默认白天；“跟随系统”会在手机或电脑切到深色模式时变成夜晚。<span class=ui-en data-b>Day by default. “Auto” turns to night when your device is in dark mode.</span></small>
+          <div class="seg" role="radiogroup" aria-label="画面 Scene">${[["day","☀️ 白天","Day"],["night","🌙 夜晚","Night"],["auto","跟随系统","Auto"]].map(([v,zh,en])=>`<button type="button" class="segb" role="radio" data-look="${v}" aria-selected="${(state.look||"day")===v}" aria-checked="${(state.look||"day")===v}">${zh}<span class=ui-en>${en}</span></button>`).join("")}</div></div>
         <button class="switch" type="button" role="switch" id="swMu" aria-checked="${state.music!==false}"><span><b>背景海风声<span class=ui-en>Sea-breeze sound</span></b><small>轻柔的海风和海浪声。<span class=ui-en data-b>A soft sea breeze and waves.</span></small></span><span class="tr"></span></button>
         <label class="vol" for="volR"><span>音量<span class=ui-en>Volume</span></span><input type="range" id="volR" min="0" max="1" step="0.05" value="${state.vol??.55}"></label>
         <button class="switch" type="button" role="switch" id="swG" aria-checked="${HIGH()}"><span><b>高画质<span class=ui-en>High quality</span></b><small>光晕、移轴景深、更多花草。旧手机可以关掉，会重新载入。<span class=ui-en data-b>Bloom, tilt-shift and denser plants. Turn off on older phones (reloads the page).</span></small></span><span class="tr"></span></button>
@@ -2892,6 +2898,7 @@ function openSide(kind){
     $("#swT").onclick=async e=>{ const sw=e.currentTarget;
       if(API && !state.teacher){ const k=prompt("请输入老师密码 Teacher password"); if(!k) return; try{ const j=await api("tLogin",{key:k}); if(!j.ok){ toast("老师密码不对","Wrong teacher password"); return; } }catch(err){ toast("连不上服务器","Can't reach the server"); return; } }
       state.teacher=!state.teacher; save(); sw.setAttribute("aria-checked",state.teacher); refreshLabels(); refreshRoute(); toast(state.teacher?"已解锁全部岛屿（教师模式）":"已关闭教师模式", state.teacher?"All islands unlocked (teacher mode)":"Teacher mode off"); };
+    side.querySelectorAll("[data-look]").forEach(b=>b.onclick=()=>{ state.look=b.dataset.look; save(); applyLook(); side.querySelectorAll("[data-look]").forEach(x=>{ x.setAttribute("aria-selected", x===b); x.setAttribute("aria-checked", x===b); }); });
     $("#swMu").onclick=e=>{ const on=state.music===false; Music.setOn(on); applyMusicBtn(); e.currentTarget.setAttribute("aria-checked",on); };
     $("#volR").oninput=e=>Music.setVol(+e.target.value);
     $("#swG").onclick=()=>{ state.gfx=HIGH()?"low":"high"; save(); location.reload(); };
@@ -2936,7 +2943,7 @@ const cloudState=()=>{ const c=Object.assign({}, state); delete c.teacher; retur
 document.addEventListener("visibilitychange",()=>{ if(document.hidden && auth && syncState==="wait"){ clearTimeout(syncTimer); syncNow(true); } });
 
 // replace the local state with a saved one and refresh everything on screen
-function adoptState(s){ const dev={gfx:state.gfx, music:state.music, vol:state.vol}; state=Object.assign(freshState(), s||{}, {teacher:false}); Object.keys(dev).forEach(k=>{ if(dev[k]!==undefined) state[k]=dev[k]; else delete state[k]; }); try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} applyPy(); applyEn(); applyMusicBtn(); updateCoins(); refreshLabels(); if(scene) ISLANDS.forEach((_,i)=>{ render3DBuild(i); render3DFarm(i); }); }
+function adoptState(s){ const dev={gfx:state.gfx, music:state.music, vol:state.vol, look:state.look}; state=Object.assign(freshState(), s||{}, {teacher:false}); Object.keys(dev).forEach(k=>{ if(dev[k]!==undefined) state[k]=dev[k]; else delete state[k]; }); try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} applyPy(); applyEn(); applyMusicBtn(); updateCoins(); refreshLabels(); if(scene) ISLANDS.forEach((_,i)=>{ render3DBuild(i); render3DFarm(i); }); }
 function afterLogin(j, isNew){
   auth={token:j.token, cls:j.cls, sid:j.sid, nick:j.nick}; saveAuth(); remember(j.cls, j.sid);
   const local=state, sameOwner=local.owner===`${j.cls}/${j.sid}`, server=j.state;
@@ -3021,7 +3028,7 @@ addEventListener("resize",()=>{ resize(); fitTop(); updateOffsetGoal(); const bv
 /* ============================== boot ============================== */
 document.querySelectorAll(".tbtn").forEach(b=>{ const t=b.querySelector("span"); if(t) b.title=t.textContent.replace(/([^\x00-\x7F])([A-Za-z])/,"$1 $2"); });
 rubify($(".topbar")); rubify($("#hint"));
-setAnim(animOn); applyPy(); applyEn(); applyMusicBtn(); updateCoins(); fitTop();
+applyLook(); setAnim(animOn); applyPy(); applyEn(); applyMusicBtn(); updateCoins(); fitTop();
 if(!API){ const d=$("#syncDot"); if(d) d.hidden=true; }
 let started=false;
 function start3D(){ if(started) return; started=true;
