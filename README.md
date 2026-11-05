@@ -12,11 +12,16 @@
 - 海洋养殖：解锁 4 座岛后开放，12 种海洋生物在岛的周围游动
 - 我的成绩：昵称、每岛进度、继续上次；换设备用“进度码”
 
+- 登入（可选）：班级代码 + 昵称 + 4 位密码，进度存到老师自己的 Google 表格，跨设备同步；`teacher.html` 是老师后台（全班进度、各岛通过率、重设密码、导出 CSV）。部署方法见 `backend/部署说明.md`
+
 ## 文件
 
 | 文件 | 用途 |
 |---|---|
 | `index.html` | 游戏本体 |
+| `teacher.html` | 老师后台 |
+| `config.js` | 填入后台网址（留空 = 不用登入） |
+| `backend/Code.gs`、`backend/部署说明.md` | Google Apps Script 后台程序与部署说明 |
 | `camera-test.html` | 摄像头、麦克风、中文语音识别测试页 |
 | `lib/` | three.js r160、pinyin-pro、Hanzi Writer 及 449 字笔顺数据、MediaPipe 手势识别、transformers.js 的本地副本（不依赖外部 CDN） |
 | `lib/models/Xenova/whisper-tiny/` | 语音识别备用模型（优先从 Hugging Face 官方下载，失败时才用这份） |

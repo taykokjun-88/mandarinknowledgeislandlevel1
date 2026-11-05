@@ -330,6 +330,10 @@ button.gcard:hover{border-color:var(--gold)}
 @keyframes burstOut{to{transform:scale(1.6);opacity:0}}
 @media (prefers-reduced-motion:reduce){.ar-b{animation:none}}
 .okp{color:var(--ok);font-weight:700}.badp{color:var(--bad);font-weight:700;text-decoration:underline}
+.seg{display:flex;gap:6px}.segb{flex:1;border:1.5px solid var(--line);background:var(--panel);border-radius:12px;padding:8px;font-weight:700}.segb[aria-selected="true"]{border-color:var(--red);background:var(--red);color:var(--red-ink)}.segb .ui-en{display:block;margin:0}
+.lgmsg{min-height:1.2em;margin:0;color:var(--bad);font-size:13.5px}
+.wcard{max-height:calc(100% - 24px);overflow-y:auto}
+.sync{width:10px;height:10px;border-radius:50%;flex:none;background:var(--muted);margin-left:4px}.sync[data-s="ok"]{background:var(--ok)}.sync[data-s="wait"],.sync[data-s="busy"]{background:var(--gold)}.sync[data-s="err"]{background:var(--bad)}.sync[data-s="off"]{background:var(--line)}
 /* my progress */
 .sum{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
 .sum div{display:flex;flex-direction:column;align-items:center;padding:10px 4px;border-radius:12px;background:var(--panel-2)}
@@ -393,7 +397,7 @@ textarea{resize:vertical;font-size:12px;font-family:ui-monospace,Menlo,monospace
       <div class="prog" title="已获得的星星">
         <svg class="star on" viewBox="0 0 24 24" style="width:20px;height:20px"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6L2.5 9.4l6.6-.8z"/></svg>
         <div><span id="starCount">0</span>/27<small>星星<span class=ui-en>stars</span></small></div>
-        <span class="coin" aria-hidden="true" style="margin-left:8px"></span><div><span id="coinCount">0</span><small>椰子币<span class=ui-en>coins</span></small></div>
+        <span class="coin" aria-hidden="true" style="margin-left:8px"></span><span class="sync" id="syncDot" data-s="off" aria-hidden="true"></span><div><span id="coinCount">0</span><small>椰子币<span class=ui-en>coins</span></small></div>
       </div>
     </div>
     <nav class="tools" aria-label="工具">
@@ -445,6 +449,7 @@ import * as BGU from "three/addons/utils/BufferGeometryUtils.js";
 window.THREE = Object.assign({}, T, { OrbitControls, Sky, EffectComposer, RenderPass, UnrealBloomPass, ShaderPass, OutputPass, RoundedBoxGeometry, SimplexNoise, BGU });
 window.dispatchEvent(new Event("three-ready"));
 </script>
+<script src="config.js"></script>
 <script src="lib/pinyin-pro.js"></script>
 <script src="lib/hanzi-writer.min.js"></script>
 <script>
@@ -697,7 +702,7 @@ const SEM = { w1:Date.UTC(2026,7,31), brk:Date.UTC(2026,9,19), w8:Date.UTC(2026,
 const KEY = "m1-knowledge-isles-v1";
 const freshState = () => ({stars:{}, teacher:false, nick:"", py:true, en:true, coins:0, quiz:{}, games:{}, build:{}, farm:{}, consent:{}, last:null});
 let state = (()=>{ try{ const s=JSON.parse(localStorage.getItem(KEY)); if(s && s.stars) return Object.assign(freshState(), s); }catch(e){} return freshState(); })();
-const save = ()=>{ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} };
+const save = ()=>{ state.updatedAt=Date.now(); try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} if(typeof scheduleSync==="function") scheduleSync(); };
 const starsOf = i => state.stars[i]||0;
 const isUnlocked = i => state.teacher || i===0 || starsOf(i-1)>=1;
 
@@ -2450,6 +2455,9 @@ function openSide(kind){
           <textarea id="codeIn" rows="3" placeholder="把另一台设备的进度码贴在这里 · Paste a code from another device" aria-label="输入进度码"></textarea>
           <div class="row"><button class="btn ghost" type="button" id="ld">读取进度码<span class=ui-en>Load code</span></button></div>
           <p class="sw-msg" id="codeMsg" style="text-align:left"></p></section>
+        ${API?`<section class="spot"><h3 class="spot-h" style="margin:0">我的账号<span class=ui-en>My account</span></h3>
+          ${auth?`<p class="sw-msg" style="text-align:left">班级 ${esc(auth.cls)} · 昵称 ${esc(auth.nick)} · 进度自动存到云端。<span class=ui-en data-b>Class ${esc(auth.cls)} · nickname ${esc(auth.nick)} · progress saves to the cloud.</span></p><div class="row"><button class="btn ghost" type="button" id="syncBtn">立刻同步<span class=ui-en>Sync now</span></button><button class="btn ghost" type="button" id="outBtn">登出<span class=ui-en>Log out</span></button></div><p class="sw-msg" style="text-align:left">在共用的 iPad 上玩完，请记得登出。<span class=ui-en data-b>Log out when you finish on a shared iPad.</span></p>`
+          :`<p class="sw-msg" style="text-align:left">现在是离线模式，进度只存在这台设备。<span class=ui-en data-b>Offline mode: progress is saved on this device only.</span></p><div class="row"><button class="btn" type="button" id="inBtn">登入 / 注册<span class=ui-en>Log in / sign up</span></button></div>`}</section>`:""}
         <section class="spot"><h3 class="spot-h" style="margin:0">我的昵称 <span class="en">Nickname</span></h3>
           <div class="row"><input id="nick2" maxlength="16" value="${esc(state.nick||"")}" aria-label="昵称"><button class="btn ghost" type="button" id="nkSave">保存<span class=ui-en>Save</span></button></div></section>
       </div>`);
@@ -2461,6 +2469,7 @@ function openSide(kind){
       let ns; try{ ns=decodeProgress(v); }catch(err){ setHTML($("#codeMsg"),"进度码不正确，请检查有没有复制完整。<span class=ui-en>That code isn't valid — check it was copied in full.</span>"); return; }
       if(!armed){ armed=true; setHTML(e.currentTarget,"再点一次确认（会取代这台设备的进度）<span class=ui-en>Tap again to confirm — replaces this device's progress</span>"); return; }
       state=ns; save(); applyPy(); applyEn(); updateCoins(); refreshLabels(); ISLANDS.forEach((_,i)=>{ render3DBuild(i); render3DFarm(i); }); openSide("me"); toast(`已读取 ${state.nick||"同学"} 的进度`, "Progress loaded"); };
+    const ob=$("#outBtn"); if(ob) ob.onclick=()=>logout(); const sb=$("#syncBtn"); if(sb) sb.onclick=async()=>{ await syncNow(); toast(syncState==="ok"?"已同步":"同步失败，稍后再试", syncState==="ok"?"Synced":"Sync failed — will retry"); }; const ib=$("#inBtn"); if(ib) ib.onclick=()=>{ side.hidden=true; updateOffsetGoal(); state.offline=false; save(); welcome(true); };
     $("#nkSave").onclick=()=>{ const v=$("#nick2").value.trim(); if(!v) return; state.nick=v.slice(0,16); save(); openSide("me"); toast("昵称已保存","Nickname saved"); };
   } else if(kind==="list"){
     setHTML(side, `<div class="d-head"><button class="d-close" type="button" id="sClose" aria-label="关闭">${X_SVG}</button><div class="chip">地点清单 · 9 Modules</div><h2 class="d-title">群岛航线<span class=ui-en data-b>Island route</span></h2><p class="d-sub">一座岛 = 一个 Module。按顺序闯关，云雾会一座一座散开。<span class=ui-en data-b>One island = one Module. Pass each quiz in order and the clouds clear one by one.</span></p></div>
@@ -2477,6 +2486,7 @@ function openSide(kind){
         <button class="switch" type="button" role="switch" id="swG" aria-checked="${HIGH()}"><span><b>高画质<span class=ui-en>High quality</span></b><small>光晕、移轴景深、更多花草。旧手机可以关掉，会重新载入。<span class=ui-en data-b>Bloom, tilt-shift and denser plants. Turn off on older phones (reloads the page).</span></small></span><span class="tr"></span></button>
         <button class="switch" type="button" role="switch" id="swM" aria-checked="${animOn}"><span><b>动态效果<span class=ui-en>Motion</span></b><small>海浪、灯塔、巴士等动画。<span class=ui-en data-b>Waves, lighthouse beam, bus and boats.</span></small></span><span class="tr"></span></button>
         <div class="row"><button class="btn ghost" type="button" id="rst">重置全部进度<span class=ui-en>Reset all progress</span></button></div>
+        ${API?`<a class="btn ghost" href="teacher.html" target="_blank" rel="noopener">老师后台<span class=ui-en>Teacher dashboard</span></a>`:""}
         <p style="margin:0;color:var(--muted);font-size:12.5px">课本：《轻松学中文 1》。<span class=ui-en data-b>Textbook: Easy Steps to Chinese 1.</span></p>
       </div></div>`);
     $("#swP").onclick=e=>{ state.py=!state.py; save(); applyPy(); e.currentTarget.setAttribute("aria-checked",state.py); };
@@ -2495,12 +2505,87 @@ function openSide(kind){
 function setAnim(on){ animOn=on; const b=$("#bMotion"); b.setAttribute("aria-pressed",String(!on)); const s=b.querySelector("span"); s.innerHTML=on?"暂停动态<span class=ui-en>Pause</span>":"恢复动态<span class=ui-en>Resume</span>"; rubify(s); b.querySelector("svg").innerHTML=on?'<path d="M10 5v14M14 5v14"/>':'<path d="M8 5v14l11-7z"/>'; }
 
 /* ---------- welcome / nickname ---------- */
-function welcome(){
-  const w=$("#welcome"); if(state.nick){ w.hidden=true; return; }
-  w.hidden=false; rubify(w); const inp=$("#nickIn"); setTimeout(()=>inp.focus(),50);
-  const go=()=>{ const v=inp.value.trim(); if(!v){ inp.focus(); return; } state.nick=v.slice(0,16); save(); w.hidden=true; toast(`欢迎你，${state.nick}！先登上 M1「拼音灯塔」吧。`, `Welcome, ${state.nick}! Start at M1, the Pinyin Lighthouse.`); };
-  $("#nickGo").onclick=go; inp.onkeydown=e=>{ if(e.key==="Enter") go(); };
+/* ============================== 登入与云端同步 Login + cloud sync (class code + nickname + 4-digit PIN) ============================== */
+const API=(window.ISLES_API||"").trim();
+const AUTH_KEY="m1-isles-auth";
+let auth=(()=>{ try{ return JSON.parse(localStorage.getItem(AUTH_KEY))||null; }catch(e){ return null; } })();
+const saveAuth=()=>{ try{ auth?localStorage.setItem(AUTH_KEY,JSON.stringify(auth)):localStorage.removeItem(AUTH_KEY); }catch(e){} };
+async function api(action, data){ const r=await fetch(API,{method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify(Object.assign({action},data||{})), redirect:"follow"}); if(!r.ok) throw new Error("http "+r.status); return r.json(); }
+const AUTH_MSG={ bad_class:["班级代码要 3–12 个英文字母或数字。","The class code is 3–12 letters or digits."], no_class:["找不到这个班级代码，请问老师。","That class code doesn't exist — ask your teacher."], class_closed:["这个班级已经关闭，请问老师。","This class is closed — ask your teacher."],
+  bad_nick:["请输入昵称（最多 16 个字）。","Enter a nickname (up to 16 characters)."], bad_pin:["密码要 4 位数字。","The PIN must be 4 digits."], bad_input:["请填好班级代码、昵称和 4 位数字密码。","Fill in the class code, nickname and 4-digit PIN."],
+  nick_taken:["这个昵称在班上已经有人用了。换一个，或者改用“登入”。","That nickname is taken in this class. Pick another, or log in instead."], no_student:["找不到这个昵称。第一次来的话请先“注册”。","Nickname not found. If you're new, sign up first."],
+  wrong_pin:["密码不对。","Wrong PIN."], locked:["错太多次了，请 10 分钟后再试，或请老师帮你重设密码。","Too many tries — wait 10 minutes or ask your teacher to reset your PIN."], busy:["服务器忙，请再试一次。","The server is busy — try again."], network:["连不上服务器。可以先离线玩，之后再登入。","Can't reach the server. You can play offline and log in later."] };
+const authMsg=(code, extra)=>{ const m=AUTH_MSG[code]||AUTH_MSG.network; return `${m[0]}${extra||""}<span class=ui-en data-b>${m[1]}</span>`; };
+
+// what the teacher dashboard shows
+function progressSummary(){ const islands=ISLANDS.map((d,i)=>{ const g=state.games[i]||{}, ql=state.quiz[i]||{}; return {s:starsOf(i), best:ql.best??null, n:ql.n||null, att:ql.att||0, games:["sb","mm","wm"].filter(k=>g[k]).length+((g.sw||[]).length>=8?1:0)+["tone","read","gest"].filter(k=>g[k]).length, pct:islandPct(i), locked:!isUnlocked(i)}; });
+  return {stars:Object.values(state.stars).reduce((a,b)=>a+b,0), coins:state.coins, done:ISLANDS.filter((_,i)=>islandPct(i)===100).length, pct:Math.round(ISLANDS.reduce((a,_,i)=>a+islandPct(i),0)/ISLANDS.length), islands}; }
+
+let syncTimer=null, syncing=false, syncState="off";
+function setSync(s){ syncState=s; const el=$("#syncDot"); if(!el) return; el.dataset.s=s; el.title={ok:"已同步到云端 Saved to the cloud", wait:"等待同步… Saving soon…", busy:"同步中… Saving…", err:"同步失败，稍后会再试 Couldn't save — will retry", off:"离线模式（只存在这台设备）Offline: saved on this device only"}[s]||""; }
+function scheduleSync(){ if(!API||!auth) return; setSync("wait"); clearTimeout(syncTimer); syncTimer=setTimeout(syncNow, 2500); }
+async function syncNow(keepalive){ if(!API||!auth||syncing) return; syncing=true; setSync("busy");
+  const body=JSON.stringify({action:"save", token:auth.token, state:cloudState(), summary:progressSummary()});
+  try{ const r=await fetch(API,{method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body, keepalive:!!keepalive}); const j=await r.json();
+    if(j.ok){ state.syncedAt=j.updated; setSync("ok"); } else if(j.error==="auth"){ setSync("err"); auth=null; saveAuth(); welcome(true); } else setSync("err"); }
+  catch(e){ setSync("err"); clearTimeout(syncTimer); syncTimer=setTimeout(syncNow, 20000); }
+  syncing=false; }
+const cloudState=()=>{ const c=Object.assign({}, state); delete c.teacher; return c; };
+document.addEventListener("visibilitychange",()=>{ if(document.hidden && auth && syncState==="wait"){ clearTimeout(syncTimer); syncNow(true); } });
+
+// replace the local state with a saved one and refresh everything on screen
+function adoptState(s){ state=Object.assign(freshState(), s||{}, {teacher:false}); try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} applyPy(); applyEn(); applyMusicBtn(); updateCoins(); refreshLabels(); if(scene) ISLANDS.forEach((_,i)=>{ render3DBuild(i); render3DFarm(i); }); }
+function afterLogin(j, isNew){
+  auth={token:j.token, cls:j.cls, nick:j.nick}; saveAuth(); remember(j.cls, j.nick);
+  const local=state, sameOwner=local.owner===`${j.cls}/${j.nick}`, server=j.state;
+  if(server && (!sameOwner || !(local.updatedAt>server.updatedAt))) adoptState(server);          // the cloud copy wins unless this device has newer work by the same student
+  else if(!server && local.owner && !sameOwner) adoptState(null);                                   // another student's progress on a shared device — start fresh
+  state.owner=`${j.cls}/${j.nick}`; state.nick=j.nick; save(); setSync("ok"); scheduleSync();
+  $("#welcome").hidden=true;
+  toast(isNew?`欢迎你，${j.nick}！你的进度会自动存到云端。`:`欢迎回来，${j.nick}！`, isNew?`Welcome, ${j.nick}! Your progress now saves to the cloud.`:`Welcome back, ${j.nick}!`); }
+const remember=(c,n)=>{ try{ localStorage.setItem("m1-isles-last", JSON.stringify({c,n})); }catch(e){} };
+const remembered=()=>{ try{ return JSON.parse(localStorage.getItem("m1-isles-last"))||{}; }catch(e){ return {}; } };
+async function logout(){ if(auth){ try{ await syncNow(); }catch(e){} try{ api("logout",{token:auth.token}); }catch(e){} } auth=null; saveAuth(); adoptState(null); setSync("off"); side.hidden=true; updateOffsetGoal(); welcome(true); }
+
+/* ---------- welcome / login screen ---------- */
+function welcome(force){
+  const w=$("#welcome");
+  if(!API){ if(state.nick && !force){ w.hidden=true; return; } return nickOnly(w); }
+  if(auth && !force){ w.hidden=true; setSync("busy"); api("load",{token:auth.token}).then(j=>{ if(j.ok){ if(j.state && !(state.owner===`${j.cls}/${j.nick}` && state.updatedAt>j.state.updatedAt)) adoptState(j.state); state.owner=`${j.cls}/${j.nick}`; save(); setSync("ok"); } else { auth=null; saveAuth(); welcome(true); } }).catch(()=>setSync("err")); return; }
+  if(!auth && state.offline && !force){ w.hidden=true; setSync("off"); return; }
+  const last=remembered(); let mode="login";
+  const render=()=>{ setHTML(w, `<div class="wcard" role="dialog" aria-modal="true" aria-labelledby="wTitle">
+      <div class="seal" aria-hidden="true" data-nopy>华</div>
+      <h2 id="wTitle">${mode==="login"?"登入":"注册新账号"} Mandarin 1的知识群岛<span class=ui-en data-b>${mode==="login"?"Log in":"Create your account"}</span></h2>
+      <div class="seg" role="tablist"><button type="button" class="segb" data-m="login" aria-selected="${mode==="login"}">登入<span class=ui-en>Log in</span></button><button type="button" class="segb" data-m="signup" aria-selected="${mode==="signup"}">第一次来：注册<span class=ui-en>New here: sign up</span></button></div>
+      <label for="lgCls">班级代码<span class=ui-en>Class code</span></label><input id="lgCls" maxlength="12" autocapitalize="characters" autocomplete="off" placeholder="例如 MANDARIN1A" value="${esc(last.c||"")}">
+      <label for="lgNick">昵称<span class=ui-en>Nickname</span></label><input id="lgNick" maxlength="16" autocomplete="nickname" placeholder="例如 Ali、小明" value="${esc(mode==="login"?(last.n||""):"")}">
+      <label for="lgPin">${mode==="login"?"4 位数字密码":"自己设一个 4 位数字密码"}<span class=ui-en>${mode==="login"?"4-digit PIN":"Choose a 4-digit PIN"}</span></label><input id="lgPin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="${mode==="login"?"current-password":"new-password"}" placeholder="••••">
+      ${mode==="signup"?`<label for="lgPin2">再输入一次密码<span class=ui-en>Type the PIN again</span></label><input id="lgPin2" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="new-password" placeholder="••••">`:""}
+      <p class="lgmsg" id="lgMsg" role="alert"></p>
+      <button class="btn" type="button" id="lgGo">${mode==="login"?"登入":"注册并出发"}<span class=ui-en>${mode==="login"?"Log in":"Sign up and start"}</span></button>
+      <button class="btn ghost" type="button" id="lgOff">先不登入，离线玩<span class=ui-en>Play offline for now</span></button>
+      <small>${mode==="signup"?"不需要邮箱或真实姓名。请记住你的昵称和密码；忘记的话请老师帮你重设。":"进度会自动存到云端，在 iPad、电脑、手机都能继续。"}<span class=ui-en data-b>${mode==="signup"?"No email or real name needed. Remember your nickname and PIN — your teacher can reset a forgotten PIN.":"Progress saves to the cloud, so you can carry on from any device."}</span></small>
+    </div>`);
+    w.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>{ mode=b.dataset.m; render(); });
+    const go=async()=>{ const cls=$("#lgCls").value.trim().toUpperCase(), nick=$("#lgNick").value.trim(), pin=$("#lgPin").value.trim(), m=$("#lgMsg");
+      if(!/^[A-Z0-9]{3,12}$/.test(cls)) return setHTML(m, authMsg("bad_class")); if(!nick) return setHTML(m, authMsg("bad_nick")); if(!/^\d{4}$/.test(pin)) return setHTML(m, authMsg("bad_pin"));
+      if(mode==="signup" && $("#lgPin2").value.trim()!==pin) return setHTML(m, `两次输入的密码不一样。<span class=ui-en data-b>The two PINs don't match.</span>`);
+      const b=$("#lgGo"); b.disabled=true; setHTML(m, `连接中…<span class=ui-en>Connecting…</span>`);
+      try{ const j=await api(mode==="login"?"login":"register",{cls, nick, pin});
+        if(j.ok){ state.offline=false; afterLogin(j, mode==="signup"); return; }
+        setHTML(m, authMsg(j.error, j.error==="wrong_pin"&&j.left!=null?`还有 ${j.left} 次机会。`:"")); }
+      catch(e){ setHTML(m, authMsg("network")); }
+      b.disabled=false; };
+    $("#lgGo").onclick=go; w.querySelectorAll("input").forEach(i=>i.onkeydown=e=>{ if(e.key==="Enter") go(); });
+    $("#lgOff").onclick=()=>{ state.offline=true; if(!state.nick) state.nick=($("#lgNick").value.trim()||"同学").slice(0,16); save(); w.hidden=true; setSync("off"); toast("离线模式：进度只存在这台设备。","Offline: progress is saved on this device only."); };
+    setTimeout(()=>{ const f=last.c?(mode==="login"&&last.n?$("#lgPin"):$("#lgNick")):$("#lgCls"); f&&f.focus(); },60);
+  };
+  w.hidden=false; render();
 }
+function nickOnly(w){ w.hidden=false; rubify(w); const inp=$("#nickIn"); if(!inp) return; setTimeout(()=>inp.focus(),50);
+  const go=()=>{ const v=inp.value.trim(); if(!v){ inp.focus(); return; } state.nick=v.slice(0,16); save(); w.hidden=true; toast(`欢迎你，${state.nick}！先登上 M1「拼音灯塔」吧。`, `Welcome, ${state.nick}! Start at M1, the Pinyin Lighthouse.`); };
+  $("#nickGo").onclick=go; inp.onkeydown=e=>{ if(e.key==="Enter") go(); }; }
 
 $("#zIn").onclick=()=>zoomBy(.7);
 $("#zOut").onclick=()=>zoomBy(1.45);
@@ -2523,6 +2608,7 @@ addEventListener("resize",()=>{ resize(); fitTop(); updateOffsetGoal(); });
 document.querySelectorAll(".tbtn").forEach(b=>{ const t=b.querySelector("span"); if(t) b.title=t.textContent.replace(/([^\x00-\x7F])([A-Za-z])/,"$1 $2"); });
 rubify($(".topbar")); rubify($("#hint"));
 setAnim(animOn); applyPy(); applyEn(); applyMusicBtn(); updateCoins(); fitTop();
+if(!API){ const d=$("#syncDot"); if(d) d.hidden=true; }
 let started=false;
 function start3D(){ if(started) return; started=true;
   HAS3D = !!(window.THREE && THREE.OrbitControls) && webglOK();

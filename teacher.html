@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>老师后台 · Mandarin 1的知识群岛</title>
+<style>
+/* Teacher dashboard: summary tiles → pass-rate chart → roster table. Chinese red accent, one-hue teal ramp for data. */
+:root{--bg:#f6f2ea;--panel:#fffdf8;--ink:#2b1d16;--muted:#6e5d52;--line:rgba(90,55,30,.16);--red:#b3121c;--red-ink:#fff;--ok:#2c7a4b;--bad:#b3121c;--warn:#a86a00;
+  --s0:#e7f1ef;--s1:#b9dcd5;--s2:#6fb7a9;--s3:#2c8a79;--bar:#2c8a79;--grid:rgba(90,55,30,.12);--f:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif}
+@media (prefers-color-scheme:dark){:root{--bg:#1a1513;--panel:#231c19;--ink:#f3e9df;--muted:#b8a798;--line:rgba(255,225,190,.14);--red:#e2474f;--red-ink:#1a1513;--ok:#62c98f;--bad:#ff7070;--warn:#e6b84c;
+  --s0:#22302d;--s1:#2b5a52;--s2:#3f8c7d;--s3:#6cc7b4;--bar:#5fbca9;--grid:rgba(255,225,190,.1);color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--f)}
+header{display:flex;align-items:center;gap:12px;padding:16px max(16px,env(safe-area-inset-left));border-bottom:1px solid var(--line);background:var(--panel);position:sticky;top:0;z-index:5}
+.seal{width:38px;height:38px;border-radius:9px;background:var(--red);color:var(--red-ink);display:grid;place-items:center;font-size:22px;font-weight:700}
+header h1{margin:0;font-size:19px}header small{display:block;color:var(--muted);font-size:12px}
+header .sp{flex:1}
+main{max-width:1200px;margin:0 auto;padding:18px 16px 60px;display:flex;flex-direction:column;gap:18px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px}
+h2{margin:0 0 10px;font-size:16px}h2 small{color:var(--muted);font-weight:400;margin-left:6px}
+input,select,button{font:inherit;color:inherit}
+input,select{border:1.5px solid var(--line);background:var(--panel);border-radius:10px;padding:8px 10px;min-width:0}
+.btn{border:0;border-radius:10px;padding:9px 14px;font-weight:700;background:var(--red);color:var(--red-ink);cursor:pointer}
+.btn.ghost{background:transparent;border:1.5px solid var(--line);color:var(--ink)}
+.btn.sm{padding:4px 9px;font-size:12.5px}
+.btn:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.msg{color:var(--bad);min-height:1.2em;margin:6px 0 0;font-size:13.5px}
+.login{max-width:420px;margin:40px auto}
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px}
+.tile b{display:block;font-size:30px;font-variant-numeric:tabular-nums;line-height:1.1}.tile span{color:var(--muted);font-size:13px}
+@media (max-width:760px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.chart{position:relative}
+.chart svg{width:100%;height:auto;display:block;overflow:visible}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--panel);font-size:12.5px;padding:6px 9px;border-radius:8px;white-space:nowrap;transform:translate(-50%,-110%);opacity:0;transition:opacity .1s}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13.5px;font-variant-numeric:tabular-nums}
+th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{font-size:12px;color:var(--muted);font-weight:700;cursor:pointer;user-select:none;position:sticky;top:0;background:var(--panel)}
+th[aria-sort="ascending"]::after{content:" ▲"}th[aria-sort="descending"]::after{content:" ▼"}
+td.isl{text-align:center;min-width:44px;border-left:2px solid var(--panel)}
+td.isl[data-s="0"]{background:var(--s0)}td.isl[data-s="1"]{background:var(--s1)}td.isl[data-s="2"]{background:var(--s2);color:#fff}td.isl[data-s="3"]{background:var(--s3);color:#fff}td.isl.lock{background:transparent;color:var(--muted)}
+.bar{display:inline-block;width:70px;height:8px;border-radius:4px;background:var(--s0);vertical-align:middle;margin-right:6px;overflow:hidden}.bar i{display:block;height:100%;background:var(--bar);border-radius:4px}
+.chip{display:inline-block;font-size:11.5px;border-radius:999px;padding:1px 8px;border:1px solid var(--line)}
+.chip.on{border-color:var(--ok);color:var(--ok)}.chip.off{border-color:var(--muted);color:var(--muted)}.chip.lk{border-color:var(--bad);color:var(--bad)}
+.legend{display:flex;gap:10px;align-items:center;font-size:12px;color:var(--muted);flex-wrap:wrap}.legend i{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-2px;margin-right:4px}
+.note{color:var(--muted);font-size:13px;margin:0}
+#app{display:flex;flex-direction:column;gap:18px}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header><div class="seal">华</div><div><h1>老师后台 Teacher dashboard</h1><small>Mandarin 1的知识群岛</small></div><span class="sp"></span><button class="btn ghost sm" id="outBtn" hidden>登出 Log out</button></header>
+<main>
+  <section class="card login" id="loginCard">
+    <h2>老师登入 <small>Teacher login</small></h2>
+    <p class="note" id="cfgNote"></p>
+    <div class="row"><input id="key" type="password" placeholder="老师密码 Teacher password" autocomplete="current-password" style="flex:1"><button class="btn" id="keyGo">进入 Open</button></div>
+    <p class="msg" id="keyMsg"></p>
+  </section>
+
+  <div id="app" hidden>
+    <section class="card">
+      <h2>班级 <small>Classes</small></h2>
+      <div class="row"><select id="cls" aria-label="选择班级 Choose a class"></select><span id="clsState"></span><button class="btn ghost sm" id="toggle">关闭注册 Close sign-up</button><button class="btn ghost sm" id="refresh">刷新 Refresh</button><button class="btn ghost sm" id="csv">导出 CSV Export</button></div>
+      <details style="margin-top:10px"><summary>新建班级代码 New class code</summary><div class="row" style="margin-top:8px"><input id="newCode" maxlength="12" placeholder="代码 e.g. MANDARIN1B" autocapitalize="characters"><input id="newName" maxlength="40" placeholder="名称 Name (optional)"><button class="btn sm" id="create">建立 Create</button></div><p class="msg" id="createMsg"></p></details>
+      <p class="note" id="joinNote" style="margin-top:8px"></p>
+    </section>
+    <section class="tiles" id="tiles"></section>
+    <section class="card">
+      <h2>各岛通过率 <small>Share of students with at least 1 star on each island</small></h2>
+      <div class="chart" id="chart"></div>
+    </section>
+    <section class="card">
+      <div class="row" style="justify-content:space-between"><h2 style="margin:0">学生进度 <small>Roster</small></h2><input id="search" placeholder="搜索昵称 Search nickname" style="width:220px"></div>
+      <div class="legend" style="margin:8px 0"><span>每岛星星 Stars per island:</span><span><i style="background:var(--s0)"></i>0</span><span><i style="background:var(--s1)"></i>1</span><span><i style="background:var(--s2)"></i>2</span><span><i style="background:var(--s3)"></i>3</span><span>🔒 未解锁 locked</span></div>
+      <div class="tablewrap"><table id="tbl"><thead></thead><tbody></tbody></table></div>
+      <p class="note" id="empty" hidden>这个班还没有学生注册。把班级代码告诉学生，让他们在游戏里选「第一次来：注册」。<br>No students yet. Give students the class code and ask them to choose “New here: sign up”.</p>
+    </section>
+  </div>
+</main>
+<script src="config.js"></script>
+<script>
+"use strict";
+const API=(window.ISLES_API||"").trim(), $=s=>document.querySelector(s), esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const ISL=["M1","M2","M3","M4","M5","M6","M7","M8","M9"], ISL_NAME=["拼音灯塔","问候码头","日历钟楼","文莱住址村","家庭树林","国籍港口","交通车站","服饰街","终点舞台"];
+let key=sessionStorage.getItem("isles-tkey")||"", classes=[], roster=[], sortBy={k:"pct",dir:-1};
+async function api(action, data){ const r=await fetch(API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(Object.assign({action,key},data||{}))}); return r.json(); }
+const ERR={wrong_key:"密码不对。Wrong password.", no_teacher_password:"还没有设定老师密码。请在 Google 表格的「知识群岛」菜单里设定。No teacher password yet — set it from the sheet's 知识群岛 menu.", locked:"错太多次，请 15 分钟后再试。Too many tries — wait 15 minutes.", class_exists:"这个代码已经有了。That code already exists.", bad_class:"代码要 3–12 个英文字母或数字。3–12 letters or digits.", bad_pin:"密码要 4 位数字。PIN must be 4 digits.", no_student:"找不到这个学生。Student not found."};
+const errText=e=>ERR[e]||("出错了 Error: "+e);
+if(!API){ $("#cfgNote").textContent="还没有连接后台：请先按照 backend/部署说明.md 部署，并把网址填进 config.js。Not connected yet — deploy the backend (backend/部署说明.md) and put its URL in config.js."; $("#keyGo").disabled=true; }
+
+async function enter(){ const m=$("#keyMsg"); m.textContent="连接中… Connecting…"; try{ const j=await api("tLogin"); if(!j.ok){ m.textContent=errText(j.error); sessionStorage.removeItem("isles-tkey"); return; } sessionStorage.setItem("isles-tkey",key); $("#loginCard").hidden=true; $("#app").hidden=false; $("#outBtn").hidden=false; await loadClasses(); }catch(e){ m.textContent="连不上后台。Can't reach the backend."; } }
+$("#keyGo").onclick=()=>{ key=$("#key").value; enter(); }; $("#key").onkeydown=e=>{ if(e.key==="Enter"){ key=$("#key").value; enter(); } };
+$("#outBtn").onclick=()=>{ sessionStorage.removeItem("isles-tkey"); key=""; location.reload(); };
+if(key && API) enter();
+
+async function loadClasses(sel){ const j=await api("tClasses"); if(!j.ok) return alertBox(errText(j.error)); classes=j.classes;
+  const s=$("#cls"), want=sel||s.value||localStorage.getItem("isles-tcls")||"";
+  s.innerHTML=classes.length?classes.map(c=>`<option value="${esc(c.code)}">${esc(c.code)}${c.name?" · "+esc(c.name):""} (${c.count})</option>`).join(""):`<option value="">还没有班级 No classes yet</option>`;
+  if(classes.some(c=>c.code===want)) s.value=want; await loadRoster(); }
+$("#cls").onchange=()=>{ localStorage.setItem("isles-tcls",$("#cls").value); loadRoster(); };
+$("#refresh").onclick=()=>loadClasses();
+$("#create").onclick=async()=>{ const code=$("#newCode").value.trim().toUpperCase(), m=$("#createMsg"); const j=await api("tCreateClass",{code,name:$("#newName").value.trim()}); if(!j.ok){ m.textContent=errText(j.error); return; } m.textContent=""; $("#newCode").value=""; $("#newName").value=""; await loadClasses(j.code); };
+$("#toggle").onclick=async()=>{ const c=classes.find(x=>x.code===$("#cls").value); if(!c) return; await api("tToggleClass",{code:c.code,active:!c.active}); await loadClasses(c.code); };
+function alertBox(t){ $("#joinNote").textContent=t; }
+
+async function loadRoster(){ const code=$("#cls").value, c=classes.find(x=>x.code===code); if(!code){ roster=[]; render(); return; }
+  $("#clsState").innerHTML=c&&c.active?`<span class="chip on">开放注册 open</span>`:`<span class="chip off">已关闭注册 closed</span>`; $("#toggle").textContent=c&&c.active?"关闭注册 Close sign-up":"开放注册 Open sign-up";
+  $("#joinNote").textContent=`学生加入方法：打开游戏 → 第一次来：注册 → 班级代码填 ${code} → 自己取昵称和 4 位密码。 Students: open the game → New here: sign up → class code ${code}.`;
+  const j=await api("tRoster",{cls:code}); if(!j.ok) return alertBox(errText(j.error)); roster=j.students; render(); }
+
+function render(){ tiles(); chart(); table(); }
+function tiles(){ const n=roster.length, wk=Date.now()-7*864e5, act=roster.filter(s=>s.updated>wk).length, avgS=n?(roster.reduce((a,s)=>a+(+s.stars||0),0)/n):0, avgP=n?Math.round(roster.reduce((a,s)=>a+(+s.pct||0),0)/n):0;
+  $("#tiles").innerHTML=[[n,"学生 Students"],[act,"7 天内活跃 Active in the last 7 days"],[avgS.toFixed(1)+" / 27","平均星星 Average stars"],[avgP+"%","平均总进度 Average progress"]].map(([v,l])=>`<div class="tile"><b>${v}</b><span>${l}</span></div>`).join(""); }
+function chart(){ const el=$("#chart"), n=roster.length;
+  const vals=ISL.map((_,i)=>n?roster.filter(s=>((s.summary&&s.summary.islands||[])[i]||{}).s>=1).length/n:0);
+  const W=900, H=260, L=44, R=10, T=14, B=44, iw=W-L-R, ih=H-T-B, bw=iw/9, gap=Math.min(26,bw*.36);
+  const y=v=>T+ih*(1-v);
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="各岛通过率 pass rate by island">`;
+  [0,.25,.5,.75,1].forEach(t=>{ s+=`<line x1="${L}" x2="${W-R}" y1="${y(t)}" y2="${y(t)}" stroke="var(--grid)" stroke-width="1"/><text x="${L-8}" y="${y(t)+4}" text-anchor="end" font-size="12" fill="var(--muted)">${Math.round(t*100)}%</text>`; });
+  vals.forEach((v,i)=>{ const x=L+i*bw+gap/2, w=bw-gap, h=Math.max(v>0?3:0, ih*v), top=y(0)-h, r=Math.min(4,h/2,w/2);
+    const path=h>0?`M${x},${y(0)} L${x},${top+r} Q${x},${top} ${x+r},${top} L${x+w-r},${top} Q${x+w},${top} ${x+w},${top+r} L${x+w},${y(0)} Z`:"";
+    s+=`<g class="b" data-i="${i}"><rect x="${L+i*bw}" y="${T}" width="${bw}" height="${ih}" fill="transparent"/>${path?`<path d="${path}" fill="var(--bar)"/>`:""}<text x="${x+w/2}" y="${H-B+18}" text-anchor="middle" font-size="12.5" fill="var(--ink)">${ISL[i]}</text><text x="${x+w/2}" y="${H-B+34}" text-anchor="middle" font-size="11" fill="var(--muted)">${ISL_NAME[i]}</text></g>`; });
+  s+=`<line x1="${L}" x2="${W-R}" y1="${y(0)}" y2="${y(0)}" stroke="var(--muted)" stroke-width="1"/></svg><div class="tip" id="tip"></div>`;
+  el.innerHTML=s; const tip=$("#tip");
+  el.querySelectorAll(".b").forEach(g=>{ g.onmousemove=e=>{ const i=+g.dataset.i, c=Math.round(vals[i]*n), r=el.getBoundingClientRect(); tip.textContent=`${ISL[i]} ${ISL_NAME[i]}：${c}/${n} 人通过 passed (${Math.round(vals[i]*100)}%)`; tip.style.left=(e.clientX-r.left)+"px"; tip.style.top=(e.clientY-r.top)+"px"; tip.style.opacity=1; }; g.onmouseleave=()=>tip.style.opacity=0; }); }
+const COLS=[["nick","昵称 Nickname"],["pct","总进度 Progress"],["done","完成岛 Done"],["stars","星星 Stars"],["coins","椰子币 Coins"]].concat(ISL.map((m,i)=>["i"+i,m])).concat([["updated","最后活跃 Last active"],["act",""]]);
+function val(s,k){ if(k.startsWith("i")){ const x=((s.summary&&s.summary.islands)||[])[+k.slice(1)]||{}; return x.locked?-1:(x.s||0)*100+(x.best||0); } return s[k]; }
+function ago(t){ if(!t) return "—"; const d=(Date.now()-t)/6e4; return d<60?Math.round(d)+" 分钟前":d<1440?Math.round(d/60)+" 小时前":Math.round(d/1440)+" 天前"; }
+function table(){ const q=$("#search").value.trim().toLowerCase(); let rows=roster.filter(s=>!q||String(s.nick).toLowerCase().includes(q));
+  rows.sort((a,b)=>{ const x=val(a,sortBy.k), y=val(b,sortBy.k); return (typeof x==="string"?x.localeCompare(y):(x||0)-(y||0))*sortBy.dir; });
+  $("#tbl thead").innerHTML="<tr>"+COLS.map(([k,l])=>`<th data-k="${k}" ${k==="act"?"":`aria-sort="${sortBy.k===k?(sortBy.dir>0?"ascending":"descending"):"none"}"`}>${l}</th>`).join("")+"</tr>";
+  $("#tbl tbody").innerHTML=rows.map(s=>{ const isl=((s.summary&&s.summary.islands)||[]);
+    return `<tr data-n="${esc(s.nick)}"><td><b>${esc(s.nick)}</b> ${s.locked?'<span class="chip lk">锁定 locked</span>':""}</td><td><span class="bar"><i style="width:${+s.pct||0}%"></i></span>${+s.pct||0}%</td><td>${s.done||0}/9</td><td>${s.stars||0}/27</td><td>${s.coins||0}</td>`+
+      ISL.map((m,i)=>{ const x=isl[i]||{}; return x.locked?`<td class="isl lock" title="${m} 未解锁 locked">🔒</td>`:`<td class="isl" data-s="${x.s||0}" title="${m}：${x.s||0}★ · 闯关最高 best ${x.best??"—"}/${x.n||10} · 挑战 ${x.att||0} 次 tries · 游戏 ${x.games||0}/7 · ${x.pct||0}%">${"★".repeat(x.s||0)||"·"}</td>`; }).join("")+
+      `<td title="${s.updated?new Date(s.updated).toLocaleString():""}">${ago(s.updated)}</td><td><button class="btn ghost sm" data-a="pin">重设密码 Reset PIN</button> <button class="btn ghost sm" data-a="del">删除 Remove</button></td></tr>`; }).join("");
+  $("#empty").hidden=roster.length>0;
+  $("#tbl thead").querySelectorAll("th[data-k]").forEach(th=>{ if(th.dataset.k==="act") return; th.onclick=()=>{ const k=th.dataset.k; sortBy={k, dir:sortBy.k===k?-sortBy.dir:(k==="nick"?1:-1)}; table(); }; });
+  $("#tbl tbody").querySelectorAll("button[data-a]").forEach(b=>b.onclick=()=>rowAction(b, b.closest("tr").dataset.n, b.dataset.a)); }
+$("#search").oninput=table;
+async function rowAction(b, nick, a){ const cls=$("#cls").value, td=b.parentElement;
+  if(a==="pin"){ td.innerHTML=`<input class="np" inputmode="numeric" maxlength="4" placeholder="新密码 new PIN" style="width:110px"> <button class="btn sm">确定 OK</button> <button class="btn ghost sm">取消</button>`; const [inp,ok,cancel]=[td.querySelector("input"),...td.querySelectorAll("button")]; inp.focus();
+    cancel.onclick=table; ok.onclick=async()=>{ const pin=inp.value.trim(); const j=await api("tResetPin",{cls,nick,pin}); if(!j.ok){ inp.value=""; inp.placeholder=errText(j.error).split(" ")[0]; return; } td.innerHTML=`<span class="chip on">已重设为 ${esc(pin)} · reset</span>`; setTimeout(loadRoster,2500); }; return; }
+  if(a==="del"){ if(b.dataset.armed){ const j=await api("tDelete",{cls,nick}); if(j.ok) loadRoster(); return; } b.dataset.armed="1"; b.textContent="再点一次确认删除 Tap again to remove"; b.style.color="var(--bad)"; setTimeout(()=>{ if(b.isConnected){ delete b.dataset.armed; b.textContent="删除 Remove"; b.style.color=""; } },4000); } }
+$("#csv").onclick=()=>{ const head=["nickname","progress_%","islands_done","stars","coins"].concat(ISL.flatMap(m=>[m+"_stars",m+"_best",m+"_games"])).concat(["last_active"]);
+  const rows=roster.map(s=>{ const isl=(s.summary&&s.summary.islands)||[]; return [s.nick,s.pct,s.done,s.stars,s.coins].concat(ISL.flatMap((_,i)=>{ const x=isl[i]||{}; return x.locked?["locked","",""]:[x.s||0,x.best??"",x.games||0]; })).concat([s.updated?new Date(s.updated).toISOString():""]); });
+  const csv="﻿"+[head].concat(rows).map(r=>r.map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(",")).join("\n");
+  const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"})); a.download=`isles-${$("#cls").value}-${new Date().toISOString().slice(0,10)}.csv`; a.click(); };
+</script>
+</body>
+</html>
