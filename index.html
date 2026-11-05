@@ -768,7 +768,8 @@ const seaBoats = [];
 const swayers = [];          // palm crowns etc.
 const grassMats = [];        // materials with a wind uniform
 let animOn = !matchMedia("(prefers-reduced-motion: reduce)").matches;
-let simT = 0, lastNow = performance.now();
+let simT = 0, lastNow = performance.now(), hzMs = 16.7;
+const fpsEl = /[?&]fps\b/.test(location.search) ? Object.assign(document.body.appendChild(document.createElement("div")),{style:"position:fixed;left:8px;bottom:8px;z-index:99;background:rgba(0,0,0,.7);color:#fff;font:12px/1.4 monospace;padding:4px 8px;border-radius:6px;pointer-events:none"}) : null;
 let fly = null, viewOff = {x:0,y:0}, viewOffGoal = {x:0,y:0};
 const HIGH = () => state.gfx ? state.gfx==="high" : !matchMedia("(max-width:720px)").matches && (navigator.hardwareConcurrency||4)>=4;
 
@@ -1204,7 +1205,7 @@ function initScene(){
   const canvas=$("#scene"), hi=HIGH();
   SN=new THREE.SimplexNoise({ random: rng(42) });
   renderer=new THREE.WebGLRenderer({canvas, antialias:!hi, powerPreference:"high-performance"});
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, hi?2:1.5));
+  perfInit(); renderer.info.autoReset=false;
   renderer.outputColorSpace=THREE.SRGBColorSpace; renderer.toneMapping=THREE.ACESFilmicToneMapping;
   renderer.shadowMap.enabled=true; renderer.shadowMap.type=hi?THREE.PCFSoftShadowMap:THREE.PCFShadowMap; renderer.shadowMap.autoUpdate=false;   // shadows are redrawn only when the scenery changes (see refreshShadows)
   scene=new THREE.Scene();
@@ -1248,12 +1249,22 @@ function initScene(){
 }
 
 // if this device still can't keep up, lower the resolution, then switch off shadows
-let perfAcc=0, perfN=0, perfStep=0;
-function perfWatch(dt){ if(perfStep>=3 || document.body.classList.contains("drawer-open")) return; perfAcc+=dt; perfN++; if(perfAcc<3) return;
-  const fps=perfN/perfAcc; perfAcc=0; perfN=0; if(fps>40) return;
-  if(perfStep===0){ perfStep=1; if(renderer.getPixelRatio()>1){ renderer.setPixelRatio(1); resize(); return; } }
-  if(perfStep===1){ perfStep=2; if(composer){ composer=null; return; } }
-  perfStep=3; renderer.shadowMap.enabled=false; scene.traverse(o=>{ if(o.material && !Array.isArray(o.material)) o.material.needsUpdate=true; }); }
+// automatic resolution: watch for dropped frames and lower (or raise again) the render resolution so the frame rate stays steady.
+// Only if the lowest resolution still can't keep up are the post effects, then shadows, switched off.
+let prMax=1, prCur=1, perfWin=0, perfBad=0, perfN=0, perfGood=0, perfStep=0, lastRender=0;
+function perfInit(){ prMax=Math.min(window.devicePixelRatio||1, HIGH()?2:1.5); prCur=Math.min(prMax, HIGH()?1.5:prMax); renderer.setPixelRatio(prCur); }
+function setPr(v){ v=Math.round(v*4)/4; if(v===prCur) return; prCur=v; renderer.setPixelRatio(v); resize(); }
+function perfWatch(now, wantGap){ const gap=now-lastRender; lastRender=now;
+  if(document.body.classList.contains("drawer-open") || gap>250){ perfWin=0; perfBad=0; perfN=0; return; }   // ignore panels and tab switches
+  perfWin+=gap; perfN++; if(gap>wantGap*1.45) perfBad++;
+  if(perfWin<2000) return;
+  const bad=perfBad/perfN; perfWin=0; perfBad=0; perfN=0;
+  if(bad>.12){ perfGood=0;
+    if(prCur>1) return setPr(Math.max(1, prCur-.25));
+    if(perfStep===0){ perfStep=1; if(composer && bad>.25){ composer=null; return; } return; }
+    if(perfStep===1 && bad>.25){ perfStep=2; renderer.shadowMap.enabled=false; scene.traverse(o=>{ if(o.material && !Array.isArray(o.material)) o.material.needsUpdate=true; }); }
+    return; }
+  if(bad<.02 && ++perfGood>=4 && prCur<prMax){ perfGood=0; setPr(Math.min(prMax, prCur+.25)); } }
 function zoomBy(f){ if(!camera) return; const t=controls.target.clone(), dir=camera.position.clone().sub(t); const L=Math.min(controls.maxDistance, Math.max(controls.minDistance, dir.length()*f)); go(t.clone().add(dir.setLength(L)), t, 320); }
 function aspect(){ return innerWidth/Math.max(1,innerHeight); }
 function setOverview(instant){
@@ -1279,13 +1290,19 @@ function updateOffsetGoal(){ const p=$("#panel"), s=$("#side"); const el=!p.hidd
 function loop(now){
   requestAnimationFrame(loop);
   if(document.hidden) return;
+  const raw=now-(loop.raw||now); loop.raw=now; if(raw>0 && raw<100) hzMs+=(raw-hzMs)*.05;   // how fast this screen refreshes
+  // 120/144 Hz laptop screens: draw on every 2nd (or 3rd) refresh — an even rhythm, about 60–72 fps, instead of 2–3x as many frames
+  const skip=Math.max(1, Math.floor(17.7/hzMs)); loop.k=((loop.k||0)+1)%skip; if(loop.k) return;
   const dt=Math.min(.05,(now-lastNow)/1000); lastNow=now; if(animOn) simT+=dt;
   if(fly){ const k=Math.min(1,(now-fly.s)/fly.dur), e=ease(k); camera.position.lerpVectors(fly.p0,fly.p1,e); controls.target.lerpVectors(fly.t0,fly.t1,e); if(k>=1){ fly=null; controls.enabled=true; } }
   viewOff.x+=(viewOffGoal.x-viewOff.x)*Math.min(1,dt*7); viewOff.y+=(viewOffGoal.y-viewOff.y)*Math.min(1,dt*7); applyOffset();
   controls.update();
-  loop.n=(loop.n||0)+1; perfWatch(dt);
+  loop.n=(loop.n||0)+1;
   if(media && (media.stream) && loop.n%4){ placeLabels(); return; }
-  if(!fly && loop.n%2 && (document.body.classList.contains("drawer-open") || now-lastTouch>1500)) return;   // view is still or a panel is open: 30 fps is plenty
+  const still=!fly && !HIGH() && (document.body.classList.contains("drawer-open") || now-lastTouch>1500);   // phones/tablets only
+  if(still && loop.n%2) return;   // view is still or a panel is open: 30 fps is plenty
+  perfWatch(now, still?2000/60:1000/60); const draws=renderer.info.render.calls; renderer.info.reset();
+  if(fpsEl){ fpsEl.n=(fpsEl.n||0)+1; fpsEl.w=(fpsEl.w||0)+dt; fpsEl.mx=Math.max(fpsEl.mx||0,dt); if(fpsEl.w>=1){ fpsEl.textContent=`${Math.round(fpsEl.n/fpsEl.w)} fps · worst ${Math.round(fpsEl.mx*1000)} ms · screen ${Math.round(1000/hzMs)} Hz · res ×${prCur} · ${composer?"effects on":"effects off"}${renderer.shadowMap.enabled?"":" · no shadows"} · ${draws} draws`; fpsEl.n=0; fpsEl.w=0; fpsEl.mx=0; } }
   ocean.material.uniforms.uTime.value=simT;
   grassMats.forEach(m=>{ if(m.userData.u) m.userData.u.uTime.value=simT; });
   animateAll(simT);
@@ -2598,7 +2615,7 @@ if(!API){ const d=$("#syncDot"); if(d) d.hidden=true; }
 let started=false;
 function start3D(){ if(started) return; started=true;
   HAS3D = !!(window.THREE && THREE.OrbitControls) && webglOK();
-  if(HAS3D){ try{ buildLabels(); initScene(); ISLANDS.forEach((_,i)=>{ render3DBuild(i); render3DFarm(i); }); bakeAll(); refreshShadows(); $("#zoomer").hidden=false; return; }catch(err){ console.error(err); HAS3D=false; } }
+  if(HAS3D){ try{ buildLabels(); initScene(); ISLANDS.forEach((_,i)=>{ render3DBuild(i); render3DFarm(i); }); bakeAll(); refreshShadows(); try{ renderer.compile(scene,camera); }catch(e){} $("#zoomer").hidden=false; return; }catch(err){ console.error(err); HAS3D=false; } }
   $("#hint").hidden=true; $("#zoomer").hidden=true; refreshLabels(); openSide("list"); }
 if(window.THREE) start3D(); else { addEventListener("three-ready", start3D, {once:true}); setTimeout(start3D, 12000); }
 welcome();
