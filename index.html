@@ -51,9 +51,9 @@ button{font:inherit;color:inherit;cursor:pointer}
 .lbl.locked{opacity:.82}
 .lbl.locked .lbl-no{background:var(--muted)}
 .lbl .now{font-size:11px;font-weight:700;color:var(--gold);border:1px solid var(--gold);border-radius:999px;padding:0 6px}
-.star{width:13px;height:13px;display:block}
+.star{width:15px;height:15px;display:block}
 .star.on{fill:var(--gold)} .star.off{fill:none;stroke:var(--muted);stroke-width:1.6}
-.lock{width:13px;height:13px;fill:var(--muted)}
+.lock{width:15px;height:15px}
 
 /* top bar */
 .topbar{position:absolute;top:12px;left:16px;right:16px;display:flex;gap:10px;align-items:flex-start;justify-content:space-between;pointer-events:none;flex-wrap:wrap}
@@ -111,7 +111,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .v .hz{font-size:21px;font-weight:500;line-height:1.25}
 .v .py{font-size:13px;color:var(--red);font-weight:500}
 .v .en{font-size:12px;color:var(--muted);line-height:1.3}
-.spk{position:absolute;top:8px;right:8px;width:14px;height:14px;fill:none;stroke:var(--muted);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.spk{position:absolute;top:7px;right:7px;width:18px;height:18px}
 .pats{display:flex;flex-direction:column;gap:6px}
 .pat{display:flex;flex-direction:column;align-items:flex-start;text-align:left;padding:10px 34px 10px 12px;border:1px solid var(--line);border-left:3px solid var(--red);background:var(--panel);border-radius:10px;position:relative}
 .pat .zh{font-size:17px;font-weight:500}
@@ -198,9 +198,10 @@ body.nopy .py,body.nopy .apy{display:none}
 .lbl{padding-top:3px}
 .lbl-name rt{font-size:10px}
 /* coin */
-.coin{display:inline-block;width:18px;height:18px;border-radius:50%;flex:none;background:radial-gradient(circle at 35% 35%,#b07a45,#6b4423 70%);box-shadow:inset 0 0 0 2px var(--gold);position:relative}
-.coin::after{content:"";position:absolute;left:5px;top:6px;width:2px;height:2px;border-radius:50%;background:#2b1a10;box-shadow:4px 0 #2b1a10,2px 3px #2b1a10}
-.coin.sm{width:14px;height:14px}.coin.sm::after{left:3px;top:4px}
+.coin{display:inline-block;width:20px;height:20px;flex:none;background:url(assets/sprites/ic-coin.webp) center/contain no-repeat;position:relative}
+.coin.sm{width:16px;height:16px}
+.ico{width:1.2em;height:1.2em;vertical-align:-.25em;display:inline-block}.bigico{width:64px;height:64px}
+.cat .ci{width:20px;height:20px;vertical-align:-5px;margin-right:3px}
 /* welcome */
 #welcome{position:absolute;inset:0;z-index:30;display:grid;place-items:center;padding:16px;background:rgba(20,30,40,.45);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
 .wcard{width:min(420px,100%);background:var(--panel);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:22px;display:flex;flex-direction:column;gap:10px}
@@ -731,10 +732,12 @@ const NOW_IDX = -1;   // no "this week" badges
 /* ============================== helpers ============================== */
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const STAR = on => `<svg class="star ${on?"on":"off"}" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6L2.5 9.4l6.6-.8z"/></svg>`;
+// hand-painted interface icons (assets/sprites/ic-*.webp, cat-*.webp)
+const ICON = (n, cls="ico") => `<img class="${cls}" src="assets/sprites/${n}.webp" alt="" aria-hidden="true" draggable="false">`;
+const STAR = on => ICON(on?"ic-star":"ic-star-empty", "star "+(on?"on":"off"));
 const stars3 = n => [0,1,2].map(k=>STAR(k<n)).join("");
-const LOCK = `<svg class="lock" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V7a5 5 0 0 1 10 0v3h1a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1zm2 0h6V7a3 3 0 0 0-6 0z"/></svg>`;
-const SPK = `<svg class="spk" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5L6 9H2v6h4l5 4zM15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>`;
+const LOCK = ICON("ic-lock","lock");
+const SPK = ICON("ic-sound","spk");
 function rnd(n){ try{ const u=new Uint32Array(1); crypto.getRandomValues(u); return u[0]%n; }catch(e){ return Math.floor(Math.random()*n); } }   // cryptographic ("true") randomness
 const shuffle = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; };
 const weeksTxt = w => w.length>1 ? `Week ${w[0]}–${w[w.length-1]}` : `Week ${w[0]}`;
@@ -1772,7 +1775,7 @@ function showAfter(body){
 }
 // what reaching island t adds to the shop (shown on the quiz result)
 function newRewards(t){ const d=BUILD.filter(x=>x.tier===t), c=SEA.filter(x=>x.tier===t); if(!d.length&&!c.length) return "";
-  return `<p class="unlock" style="margin:0">🎁 新摆设：${d.map(x=>x.name).join("、")||"—"}${c.length?`；新海洋生物：${c.map(x=>x.zh).join("、")}`:""}${t===3?"（海洋养殖开放了！）":""}<span class=ui-en data-b>New in the shop: ${d.map(x=>x.en).join(", ")}${c.length?`; sea creatures: ${c.map(x=>x.en).join(", ")}`:""}${t===3?" — the sea farm is now open!":""}</span></p>`; }
+  return `<p class="unlock" style="margin:0">${ICON("ic-gift")} 新摆设：${d.map(x=>x.name).join("、")||"—"}${c.length?`；新海洋生物：${c.map(x=>x.zh).join("、")}`:""}${t===3?"（海洋养殖开放了！）":""}<span class=ui-en data-b>New in the shop: ${d.map(x=>x.en).join(", ")}${c.length?`; sea creatures: ${c.map(x=>x.en).join(", ")}`:""}${t===3?" — the sea farm is now open!":""}</span></p>`; }
 function renderResult(body){
   const n=quiz.qs.length, sc=quiz.score, r=sc/n, st=r>=1?3:r>=.8?2:r>=.6?1:0;
   const prev=starsOf(cur), wasLocked=cur<8 && !isUnlocked(cur+1);
@@ -1790,7 +1793,7 @@ function renderResult(body){
     <div class="big">${sc} / ${n}</div>
     <p style="margin:0">${msg}</p>
     ${st>prev&&prev>0?`<p style="margin:0;color:var(--muted)">刷新最佳成绩：${prev} → ${st} 颗星<span class=ui-en data-b>New best: ${prev} → ${st} stars</span></p>`:""}
-    ${newly?`<p class="unlock" style="margin:0">云雾散开了！新岛屿已解锁：${ISLANDS[cur+1].no}「${ISLANDS[cur+1].name}」<span class=ui-en data-b>The clouds have cleared — new island unlocked!</span></p>${newRewards(cur+1)}`:""}
+    ${newly?`<p class="unlock" style="margin:0">${ICON("ic-unlock")} 云雾散开了！新岛屿已解锁：${ISLANDS[cur+1].no}「${ISLANDS[cur+1].name}」<span class=ui-en data-b>The clouds have cleared — new island unlocked!</span></p>${newRewards(cur+1)}`:""}
     ${cur===8&&st>0?`<p class="unlock" style="margin:0">恭喜你走完整个学期的知识群岛！<span class=ui-en data-b>Congratulations — you've sailed the whole semester!</span></p>`:""}
     <div class="row" style="justify-content:center;margin-top:8px">
       <button class="btn ghost" type="button" id="rAgain">再挑战一次<span class=ui-en>Try again</span></button>
@@ -2708,7 +2711,7 @@ function moveItem(from, to){ const slots=buildsOf(cur); [slots[from], slots[to]]
 function renderBuild(body){
   const free=state.teacher, open=farmOpen();
   setHTML(body, `<div class="coinbar"><span class="coin" aria-hidden="true"></span><b>${state.coins}</b> 椰子币<span class=ui-en>coins</span> ${free?'<small>（教师模式：免费建设 Teacher mode: free）</small>':""}</div>
-    <div class="subtabs" role="tablist"><button type="button" class="subtab" data-bt="decor" aria-selected="${buildTab==="decor"}">摆设<span class=ui-en>Decorate</span></button><button type="button" class="subtab" data-bt="farm" aria-selected="${buildTab==="farm"}">海洋养殖<span class=ui-en>Sea farm</span>${open?"":" 🔒"}</button></div>
+    <div class="subtabs" role="tablist"><button type="button" class="subtab" data-bt="decor" aria-selected="${buildTab==="decor"}">摆设<span class=ui-en>Decorate</span></button><button type="button" class="subtab" data-bt="farm" aria-selected="${buildTab==="farm"}">海洋养殖<span class=ui-en>Sea farm</span>${open?"":" "+ICON("ic-lock")}</button></div>
     <div id="bView"></div>`);
   body.querySelectorAll("[data-bt]").forEach(b=>b.onclick=()=>{ buildTab=b.dataset.bt; bSel=null; renderBuild(body); });
   if(buildTab==="farm") renderFarm($("#bView"), body); else renderDecor($("#bView"), body);
@@ -2725,7 +2728,7 @@ function showShop(view){ const shop=view.querySelector(".shop"), wrap=view.query
   const pinned=wrap && !wrap.classList.contains("nostick"); const top=shop.getBoundingClientRect().top-sc.getBoundingClientRect().top+sc.scrollTop-(pinned?wrap.offsetHeight:SHEET_MQ.matches?70:0)-24; if(sc.scrollTop<top) sc.scrollTo({top, behavior:"smooth"}); }
 // category tabs; the number shows how many items in that category are unlocked
 function catBar(cats, cur, list, key){ const tab=(id,zh,en)=>{ const all=list.filter(x=>id==="all"||x.cat===id), open=all.filter(itemOpen).length;
-    return `<button type="button" class="cat" data-${key}="${id}" aria-pressed="${cur===id}"><b>${zh} <small>${open}/${all.length}</small></b><span class=ui-en>${en}</span></button>`; };
+    return `<button type="button" class="cat" data-${key}="${id}" aria-pressed="${cur===id}"><b>${ICON("cat-"+id,"ci")}${zh} <small>${open}/${all.length}</small></b><span class=ui-en>${en}</span></button>`; };
   return `<div class="cats" role="group" aria-label="类别 Categories">${tab("all","全部","All")}${cats.map(([id,zh,en])=>tab(id,zh,en)).join("")}</div>`; }
 function renderDecor(view, body){
   const slots=buildsOf(cur), free=state.teacher;
@@ -2736,7 +2739,7 @@ function renderDecor(view, body){
     <div class="row" id="selBar">${bSel&&bSel.kind==="plot"&&slots[bSel.k]?`<span class="sw-msg">已选 ${bSel.k+1} 号：${BUILD.find(x=>x.id===slots[bSel.k]).name} · 点另一块空地移动<span class=ui-en>Selected — tap another plot to move</span></span><button class="btn ghost sm" type="button" id="rmSel">拆除<span class=ui-en>Remove</span></button>`: bSel&&bSel.kind==="shop"?`<span class="sw-msg">已选「${BUILD.find(x=>x.id===bSel.id).name}」· 点一块空地放下<span class=ui-en>Selected — tap a plot to place it</span></span>`:""}</div>${catBar(DECOR_CATS, decorCat, BUILD, "dc")}</div>
     <h3 class="spot-h" style="margin:0">南洋商店<span class=ui-en>Nanyang shop</span> <span class="en">已解锁 ${BUILD.filter(itemOpen).length}/${BUILD.length} 种 · ${BUILD.filter(itemOpen).length}/${BUILD.length} unlocked</span></h3>
     <div class="shop">${BUILD.filter(it=>decorCat==="all"||it.cat===decorCat).sort((a,b)=>(itemOpen(b)-itemOpen(a))||(a.tier-b.tier)).map(it=>{ const open=itemOpen(it), can=open&&(free||state.coins>=it.cost), sel=bSel&&bSel.kind==="shop"&&bSel.id===it.id;
-      return `<div class="item ${can?"":"off"} ${open?"":"lockd"} ${sel?"sel":""}" role="button" tabindex="0" data-b="${it.id}" aria-disabled="${!can}"><b>${it.name}</b><span class="en">${it.en}</span>${open?`<span class="price"><span class="coin sm" aria-hidden="true"></span>${it.cost}</span>`:`<span class="price lockp">🔒 ${tierLabel(it.tier)} 解锁<span class=ui-en>Unlocks at ${tierLabel(it.tier)}</span></span>`}</div>`; }).join("")}</div>`);
+      return `<div class="item ${can?"":"off"} ${open?"":"lockd"} ${sel?"sel":""}" role="button" tabindex="0" data-b="${it.id}" aria-disabled="${!can}"><b>${it.name}</b><span class="en">${it.en}</span>${open?`<span class="price"><span class="coin sm" aria-hidden="true"></span>${it.cost}</span>`:`<span class="price lockp">${ICON("ic-lock")} ${tierLabel(it.tier)} 解锁<span class=ui-en>Unlocks at ${tierLabel(it.tier)}</span></span>`}</div>`; }).join("")}</div>`);
   view.querySelectorAll("[data-dc]").forEach(b=>b.onclick=()=>{ decorCat=b.dataset.dc; bSel=null; renderDecor(view, body); showShop(view); });
   const rerender=()=>renderDecor(view, body);
   fitMapSticky(view);
@@ -2773,7 +2776,7 @@ function enableDrag(root, sel, onDrop){
 }
 function renderFarm(view, body){
   if(!farmOpen()){ const n=ISLANDS.filter((_,i)=>isUnlocked(i)).length;
-    setHTML(view, `<div class="result"><div class="big">🔒</div><p style="margin:0">解锁 4 座岛之后，就可以在岛的周围养殖海洋生物。现在已解锁 ${n}/4 座。<span class=ui-en data-b>Unlock 4 islands to start a sea farm around your islands. Unlocked so far: ${n}/4.</span></p></div>`); return; }
+    setHTML(view, `<div class="result"><div class="big">${ICON("ic-lock","bigico")}</div><p style="margin:0">解锁 4 座岛之后，就可以在岛的周围养殖海洋生物。现在已解锁 ${n}/4 座。<span class=ui-en data-b>Unlock 4 islands to start a sea farm around your islands. Unlocked so far: ${n}/4.</span></p></div>`); return; }
   const list=farmOf(cur), free=state.teacher;
   const counts={}; list.forEach(id=>counts[id]=(counts[id]||0)+1);
   setHTML(view, `<p class="notice">买一种海洋生物，它就会在这座岛的周围游来游去。点名字可以听读音。每座岛最多 ${FARM_MAX} 只。<span class=ui-en data-b>Buy a sea creature and it will swim around this island. Tap a name to hear it. Up to ${FARM_MAX} per island.</span></p>
@@ -2782,7 +2785,7 @@ function renderFarm(view, body){
     <h3 class="spot-h" style="margin:0">海洋生物<span class=ui-en>Sea creatures</span> <span class="en">已解锁 ${SEA.filter(itemOpen).length}/${SEA.length} 种 · ${SEA.filter(itemOpen).length}/${SEA.length} unlocked</span></h3>
     ${catBar(SEA_CATS, seaCat, SEA, "sc")}
     <div class="shop">${SEA.filter(c=>seaCat==="all"||c.cat===seaCat).sort((a,b)=>(itemOpen(b)-itemOpen(a))||(a.tier-b.tier)).map(c=>{ const open=itemOpen(c), can=open&&(free||state.coins>=c.cost)&&list.length<FARM_MAX;
-      return `<button class="item ${open?"":"lockd"}" type="button" data-sea="${c.id}" ${can?"":"disabled"}><b>${c.zh}</b><span class="en">${c.en}</span>${open?`<span class="price"><span class="coin sm" aria-hidden="true"></span>${c.cost}</span>`:`<span class="price lockp">🔒 ${tierLabel(c.tier)} 解锁<span class=ui-en>Unlocks at ${tierLabel(c.tier)}</span></span>`}</button>`; }).join("")}</div>`);
+      return `<button class="item ${open?"":"lockd"}" type="button" data-sea="${c.id}" ${can?"":"disabled"}><b>${c.zh}</b><span class="en">${c.en}</span>${open?`<span class="price"><span class="coin sm" aria-hidden="true"></span>${c.cost}</span>`:`<span class="price lockp">${ICON("ic-lock")} ${tierLabel(c.tier)} 解锁<span class=ui-en>Unlocks at ${tierLabel(c.tier)}</span></span>`}</button>`; }).join("")}</div>`);
   view.querySelectorAll("[data-sc]").forEach(b=>b.onclick=()=>{ seaCat=b.dataset.sc; renderFarm(view, body); });
   view.querySelectorAll("[data-sea]").forEach(b=>b.onclick=()=>{ const c=SEA.find(x=>x.id===b.dataset.sea); if(list.length>=FARM_MAX || !itemOpen(c)) return; if(!free){ if(state.coins<c.cost) return; state.coins-=c.cost; }
     list.push(c.id); save(); updateCoins(); render3DFarm(cur); speak(c.zh); toast(`养了一只${c.zh}！`, `You now have a ${c.en}!`); renderFarm(view, body); });
@@ -2884,7 +2887,7 @@ function openSide(kind){
         <button class="switch" type="button" role="switch" id="swE" aria-checked="${state.en}"><span><b>显示英文<span class=ui-en>Show English</span></b><small>按钮和说明旁边的英文。<span class=ui-en data-b>English next to buttons and instructions.</span></small></span><span class="tr"></span></button>
         <button class="switch" type="button" role="switch" id="swT" aria-checked="${state.teacher}"><span><b>教师模式：解锁全部岛屿<span class=ui-en>Teacher mode: unlock all</span></b><small>上课演示用。不会获得椰子币，建设免费。<span class=ui-en data-b>For class demos. No coins are earned; building is free.</span></small></span><span class="tr"></span></button>
         <div class="lookset"><b>画面<span class=ui-en>Scene</span></b><small>默认白天；“跟随系统”会在手机或电脑切到深色模式时变成夜晚。<span class=ui-en data-b>Day by default. “Auto” turns to night when your device is in dark mode.</span></small>
-          <div class="seg" role="radiogroup" aria-label="画面 Scene">${[["day","☀️ 白天","Day"],["night","🌙 夜晚","Night"],["auto","跟随系统","Auto"]].map(([v,zh,en])=>`<button type="button" class="segb" role="radio" data-look="${v}" aria-selected="${(state.look||"day")===v}" aria-checked="${(state.look||"day")===v}">${zh}<span class=ui-en>${en}</span></button>`).join("")}</div></div>
+          <div class="seg" role="radiogroup" aria-label="画面 Scene">${[["day","白天","Day","ic-sun"],["night","夜晚","Night","ic-moon"],["auto","跟随系统","Auto",""]].map(([v,zh,en,ic])=>`<button type="button" class="segb" role="radio" data-look="${v}" aria-selected="${(state.look||"day")===v}" aria-checked="${(state.look||"day")===v}">${ic?ICON(ic)+" ":""}${zh}<span class=ui-en>${en}</span></button>`).join("")}</div></div>
         <button class="switch" type="button" role="switch" id="swMu" aria-checked="${state.music!==false}"><span><b>背景海风声<span class=ui-en>Sea-breeze sound</span></b><small>轻柔的海风和海浪声。<span class=ui-en data-b>A soft sea breeze and waves.</span></small></span><span class="tr"></span></button>
         <label class="vol" for="volR"><span>音量<span class=ui-en>Volume</span></span><input type="range" id="volR" min="0" max="1" step="0.05" value="${state.vol??.55}"></label>
         <button class="switch" type="button" role="switch" id="swG" aria-checked="${HIGH()}"><span><b>高画质<span class=ui-en>High quality</span></b><small>光晕、移轴景深、更多花草。旧手机可以关掉，会重新载入。<span class=ui-en data-b>Bloom, tilt-shift and denser plants. Turn off on older phones (reloads the page).</span></small></span><span class="tr"></span></button>
