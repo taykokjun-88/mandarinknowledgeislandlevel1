@@ -1325,7 +1325,7 @@ function renderPanel(){
   setHTML(panel, `
    <div class="d-head">
      <button class="d-close" type="button" id="pClose" aria-label="关闭">${X_SVG}</button>
-     <div class="chip"><b>${d.no}</b> Module ${cur+1} <span class="mus">♪ ${MUSIC_NAME[d.no][0]}<span class=ui-en>${MUSIC_NAME[d.no][1]}</span></span></div>
+     <div class="chip"><b>${d.no}</b> Module ${cur+1}</div>
      <h2 class="d-title">${d.name}</h2>
      <p class="d-sub"><span class="py">${d.py}</span> · ${d.en}</p>
      <dl class="meta"><dt>主题<span class=ui-en>Topic</span></dt><dd>${d.module} <span style="color:var(--muted)">${d.moduleEn}</span></dd><dt>课本<span class=ui-en>Textbook</span></dt><dd>${d.lesson}</dd></dl>
@@ -2294,136 +2294,42 @@ function renderFarm(view, body){
 }
 
 /* ============================== Background music v2: composed loops, warm instruments; optional mp3 per island ============================== */
+// Background sound: a gentle sea breeze — one pre-made looping buffer, no note scheduling, almost no CPU.
 const Music = (() => {
-  let held=false, meter=null, ac=null, master=null, verb=null, bus=null, timer=null, cur=null, nextT=0, step=0, ducked=false, wanted="ocean";
-  const custom={};   // name -> HTMLAudioElement if lib/music/<name>.mp3 exists
-  const level=()=> held||state.music===false ? 0 : (state.vol??.55) * (ducked?.35:1) * .55;
-  const mtof=m=>440*Math.pow(2,(m-69)/12);
-  let silentEl=null;
+  let held=false, ac=null, master=null, src=null, meter=null, ducked=false, silentEl=null;
+  const level=()=> held||state.music===false ? 0 : (state.vol??.55) * (ducked?.35:1) * .8;
   function iosPlayback(){ try{ if(navigator.audioSession) navigator.audioSession.type="playback"; }catch(e){}
     try{ if(!silentEl){ const sr=8000, n=sr/2, buf=new ArrayBuffer(44+n*2), v=new DataView(buf), w=(o,str)=>{ for(let i=0;i<str.length;i++) v.setUint8(o+i,str.charCodeAt(i)); };
         w(0,"RIFF"); v.setUint32(4,36+n*2,true); w(8,"WAVE"); w(12,"fmt "); v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,1,true); v.setUint32(24,sr,true); v.setUint32(28,sr*2,true); v.setUint16(32,2,true); v.setUint16(34,16,true); w(36,"data"); v.setUint32(40,n*2,true);
         silentEl=new Audio(URL.createObjectURL(new Blob([buf],{type:"audio/wav"}))); silentEl.loop=true; silentEl.setAttribute("playsinline",""); silentEl.volume=.01; }
       if(silentEl.paused) silentEl.play().catch(()=>{}); }catch(e){} }
+  // 16 s of soft wind + slow wave swells; every slow curve repeats a whole number of times so the loop is seamless
+  function breeze(){ const sr=ac.sampleRate, L=16, n=Math.floor(sr*L), b=ac.createBuffer(2,n,sr), TAU=Math.PI*2;
+    for(let c=0;c<2;c++){ const d=b.getChannelData(c); let b0=0,b1=0,b2=0, lp=0, ph=c*1.3;
+      for(let i=0;i<n;i++){ const w=Math.random()*2-1; b0=.99765*b0+w*.099; b1=.963*b1+w*.2965; b2=.57*b2+w*1.0526; const pink=(b0+b1+b2+w*.1848)*.18;
+        lp+= (pink-lp)*.06;                                                    // warm, muffled wind
+        const t=i/n, swell=.55+.45*Math.pow(.5+.5*Math.sin(TAU*(t*4)+ph),2.2), gust=.75+.25*Math.sin(TAU*t*1+ph*.7);
+        const hiss=(pink-lp)*.18*Math.pow(.5+.5*Math.sin(TAU*(t*4)+ph-.6),6);  // foam as each wave breaks
+        d[i]=(lp*swell*gust+hiss)*.9; } }
+    return b; }
   function init(){ if(ac) return true; const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return false;
-    ac=new AC(); master=ac.createGain(); master.gain.value=0; master.connect(ac.destination);
-    meter=ac.createAnalyser(); meter.fftSize=2048; master.connect(meter);
-    const comp=ac.createDynamicsCompressor(); comp.threshold.value=-20; comp.ratio.value=2.5; comp.attack.value=.01; comp.connect(master);
-    const tone=ac.createBiquadFilter(); tone.type="lowpass"; tone.frequency.value=6500; tone.connect(comp);
-    bus=ac.createGain(); bus.connect(tone);
-    verb=ac.createConvolver(); const len=Math.floor(ac.sampleRate*1.7), ir=ac.createBuffer(2,len,ac.sampleRate);
-    for(let c=0;c<2;c++){ const d=ir.getChannelData(c); let lp=0; for(let i=0;i<len;i++){ lp=lp*.6+(Math.random()*2-1)*.4; d[i]=lp*Math.pow(1-i/len,3.2); } }
-    verb.buffer=ir; const vg=ac.createGain(); vg.gain.value=.22; verb.connect(vg); vg.connect(tone);
-    timer=setInterval(tick, 40); document.addEventListener("visibilitychange",()=>{ if(!ac) return; document.hidden?ac.suspend():ac.resume(); });
+    ac=new AC(); master=ac.createGain(); master.gain.value=0; master.connect(ac.destination); meter=ac.createAnalyser(); meter.fftSize=2048; master.connect(meter);
+    src=ac.createBufferSource(); src.buffer=breeze(); src.loop=true; const lp=ac.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=2200; src.connect(lp); lp.connect(master); src.start();
+    document.addEventListener("visibilitychange",()=>{ if(!ac||held) return; document.hidden?ac.suspend():ac.resume(); });
     return true; }
-  // ---------- warm instruments ----------
-  const send=(node,g,wet)=>{ const a=ac.createGain(); a.gain.value=g; node.connect(a); a.connect(cur.gain); if(wet){ const s=ac.createGain(); s.gain.value=wet; a.connect(s); s.connect(verb); } };
-  function osc(t,fr,type,a,peak,dec,dest){ const o=ac.createOscillator(), g=ac.createGain(); o.type=type; o.frequency.value=fr; g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(peak,t+a); g.gain.exponentialRampToValueAtTime(.0001,t+a+dec); o.connect(g); g.connect(dest); o.start(t); o.stop(t+a+dec+.05); }
-  function marimba(t,m,v=.5){ const d=ac.createGain(), f=mtof(m); osc(t,f,"sine",.003,1,.9,d); osc(t,f*4,"sine",.002,.16,.11,d); osc(t,f*2,"sine",.003,.08,.25,d); send(d,v*.5,.25); }
-  function kalimba(t,m,v=.5){ const d=ac.createGain(), f=mtof(m); osc(t,f,"sine",.002,1,1.5,d); osc(t,f*3.01,"sine",.002,.06,.22,d); osc(t,f*5.2,"sine",.001,.03,.06,d); send(d,v*.45,.35); }
-  const ks={};
-  function ksBuf(fr){ const k=Math.round(fr*4); if(ks[k]) return ks[k]; const sr=ac.sampleRate, N=Math.max(2,Math.round(sr/fr)), len=Math.round(sr*1.8), b=ac.createBuffer(1,len,sr), d=b.getChannelData(0), ring=new Float32Array(N);
-    let lp=0; for(let i=0;i<N;i++){ lp=lp*.5+(Math.random()*2-1)*.5; ring[i]=lp; } let p=0; for(let i=0;i<len;i++){ const nx=(p+1)%N; const v=(ring[p]+ring[nx])*.5*.9965; d[i]=ring[p]; ring[p]=v; p=nx; } return ks[k]=b; }
-  function pluck(t,m,v=.5,bright=2400){ const s=ac.createBufferSource(); s.buffer=ksBuf(mtof(m)); const lp=ac.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=bright; const body=ac.createBiquadFilter(); body.type="peaking"; body.frequency.value=220; body.gain.value=4; s.connect(lp); lp.connect(body); send(body,v*.55,.25); s.start(t); }
-  function flute(t,m,dur,v=.5){ const f=mtof(m), d=ac.createGain(); const g=ac.createGain(); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(1,t+.07); g.gain.setValueAtTime(1,t+Math.max(.08,dur-.12)); g.gain.linearRampToValueAtTime(0,t+dur+.05); g.connect(d);
-    const lfo=ac.createOscillator(), lg=ac.createGain(); lfo.frequency.value=5; lg.gain.setValueAtTime(0,t); lg.gain.linearRampToValueAtTime(f*.006,t+.35); lfo.connect(lg);
-    [[1,1],[2,.22],[3,.06]].forEach(([r,a])=>{ const o=ac.createOscillator(), og=ac.createGain(); o.type="sine"; o.frequency.value=f*r; lg.connect(o.frequency); og.gain.value=a; o.connect(og); og.connect(g); o.start(t); o.stop(t+dur+.1); });
-    lfo.start(t); lfo.stop(t+dur+.1);
-    const nb=ac.createBuffer(1,Math.ceil(ac.sampleRate*.12),ac.sampleRate), nd=nb.getChannelData(0); for(let i=0;i<nd.length;i++) nd[i]=(Math.random()*2-1)*(1-i/nd.length);
-    const ns=ac.createBufferSource(); ns.buffer=nb; const bp=ac.createBiquadFilter(); bp.type="bandpass"; bp.frequency.value=f*2; bp.Q.value=2; const ng=ac.createGain(); ng.gain.value=.08; ns.connect(bp); bp.connect(ng); ng.connect(d); ns.start(t);
-    send(d,v*.3,.4); }
-  function bamboo(t,m,dur,v=.5){ const n=Math.max(2,Math.round(dur*11)); for(let k=0;k<n;k++){ const tt=t+k/11, d=ac.createGain(), f=mtof(m); osc(tt,f,"sine",.004,1,.12,d); osc(tt,f*2,"sine",.003,.25,.06,d); send(d,v*.32*(1-k/(n*1.4)),.3); } }
-  function pad(t,ms,dur,v=.5){ const lp=ac.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=750; lp.Q.value=.4; const g=ac.createGain(); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(1,t+.6); g.gain.setValueAtTime(1,t+Math.max(.7,dur-.6)); g.gain.linearRampToValueAtTime(0,t+dur+.2); lp.connect(g);
-    ms.forEach(m=>[-6,6].forEach(dt=>{ const o=ac.createOscillator(); o.type="sawtooth"; o.frequency.value=mtof(m); o.detune.value=dt; const og=ac.createGain(); og.gain.value=.25; o.connect(og); og.connect(lp); o.start(t); o.stop(t+dur+.3); }));
-    send(g,v*.09,.5); }
-  function bass(t,m,v=.5){ const d=ac.createGain(), f=mtof(m); osc(t,f,"triangle",.005,1,.5,d); osc(t,f,"sine",.005,.6,.7,d); const lp=ac.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=500; d.connect(lp); send(lp,v*.5,0); }
-  function gong(t,m,v=.5){ const d=ac.createGain(), f=mtof(m); const o=ac.createOscillator(), g=ac.createGain(); o.frequency.setValueAtTime(f*1.015,t); o.frequency.exponentialRampToValueAtTime(f,t+.4); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(1,t+.02); g.gain.exponentialRampToValueAtTime(.0001,t+3); o.connect(g); g.connect(d); o.start(t); o.stop(t+3.1); osc(t,f*2,"sine",.02,.25,1.6,d); send(d,v*.35,.45); }
-  function nz(t,dur,ft,fq,q,v,wet=0){ const b=ac.createBuffer(1,Math.ceil(ac.sampleRate*dur),ac.sampleRate), d=b.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2);
-    const s=ac.createBufferSource(); s.buffer=b; const fl=ac.createBiquadFilter(); fl.type=ft; fl.frequency.value=fq; fl.Q.value=q; s.connect(fl); send(fl,v,wet); s.start(t); }
-  function drum(t,k,v=.5){ if(k==="D"){ const d=ac.createGain(), o=ac.createOscillator(), g=ac.createGain(); o.frequency.setValueAtTime(115,t); o.frequency.exponentialRampToValueAtTime(58,t+.2); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(1,t+.004); g.gain.exponentialRampToValueAtTime(.0001,t+.32); o.connect(g); g.connect(d); o.start(t); o.stop(t+.36); send(d,v*.6,.08); }
-    else if(k==="T") nz(t,.06,"bandpass",1700,1.1,v*.32,.1); else if(k==="S") nz(t,.04,"highpass",7500,.7,v*.1,0); else if(k==="W"){ const d=ac.createGain(); osc(t,820,"sine",.001,1,.05,d); osc(t,1240,"sine",.001,.5,.035,d); send(d,v*.22,.1); } }
-  // ---------- score helpers ----------
-  const MAJ=[0,2,4,5,7,9,11], MIN_H=[0,2,3,5,7,8,11];
-  function deg(tok, root, scale){ const m=tok.match(/^([1-7])([',]*)$/); if(!m) return null; let o=0; for(const c of m[2]) o+= c==="'"?12:-12; return root+scale[+m[1]-1]+o; }
-  // parse a melody string (tokens per 8th note; "." rest, "-" hold) into [{i, m, len}]
-  function parseMel(str, root, scale){ const tk=str.trim().split(/\s+/), out=[]; tk.forEach((t,i)=>{ if(t==="-"&&out.length&&out[out.length-1].end===i){ out[out.length-1].len++; out[out.length-1].end++; return; } const m=deg(t,root,scale); if(m!=null) out.push({i,m,len:1,end:i+1}); }); return {notes:out, len:tk.length}; }
-  const CH={I:[0,4,7],ii:[2,5,9],iii:[4,7,11],IV:[5,9,12],V:[7,11,14],vi:[9,12,16],i:[0,3,7],iv:[5,8,12],VI:[8,12,15],VII:[10,14,17],bVII:[10,14,17]};
-  const hum=()=> (Math.random()-.5)*.012, vel=b=> b*(.85+Math.random()*.3);
-  // ---------- composed styles ----------
-  const SONGS={
-    ocean:{bpm:70, root:60, scale:MAJ, lead:"kalimba", comp:"pad", drums:"", bassOn:true,
-      mel:"3 . 5 . 6 . 5 . | 3 - - - 2 . 1 . | 2 . 3 . 5 . 3 . | 2 - - - . . . . | 3 . 5 . 6 . 1' . | 6 - - - 5 . 3 . | 2 . 3 . 2 . 1 . | 1 - - - . . . .",
-      ch:"I vi IV V I vi IV I"},
-    M1:{bpm:82, root:62, scale:MAJ, lead:"pluck", comp:"arp", drums:"", bassOn:true, drone:true,
-      mel:"6, 1 2 3 2 1 6, . | 5, - 6, 1 2 - . . | 3 5 6 5 3 2 1 2 | 3 - - - . . . . | 6 5 3 5 6 1' 6 5 | 3 - 2 3 5 - . . | 2 3 2 1 6, 1 2 . | 1 - - - . . . .",
-      ch:"I vi IV V I IV V I"},
-    M2:{bpm:96, root:67, scale:MAJ, lead:"bamboo", comp:"arp", drums:"kompang", bassOn:true,
-      mel:"1 . 3 . 5 . 3 . | 6 . 5 . 3 - . . | 2 . 3 . 5 . 6 . | 5 - - - . . . . | 1' . 6 . 5 . 3 . | 5 . 6 . 5 3 2 . | 3 . 2 . 1 . 2 . | 1 - - - . . . .",
-      ch:"I vi IV V I IV V I"},
-    M3:{bpm:90, root:65, scale:MAJ, lead:"marimba", comp:"ostinato", drums:"soft", bassOn:true, gongEvery:2,
-      mel:"5 . 6 . 1' - 6 5 | 3 - - - . . . . | 2 . 3 . 5 . 6 . | 5 - - - . . . . | 6 . 1' . 2' - 1' 6 | 5 - - - 3 . . . | 2 . 3 . 2 . 1 . | 1 - - - . . . .",
-      ch:"I I IV IV vi vi V I"},
-    M4:{bpm:104, root:72, scale:MAJ, lead:"marimba", comp:"pad", drums:"kompang", bassOn:true, gongEvery:1,
-      mel:"5 6 1' 6 5 3 5 6 | 1' 6 5 3 2 3 5 . | 3 5 6 5 3 2 1 2 | 3 2 1 6, 1 - . . | 5 6 1' 6 5 3 5 6 | 1' 2' 1' 6 5 6 1' . | 6 5 3 2 3 5 3 2 | 1 - - - . . . .",
-      ch:"I IV vi V I IV V I"},
-    M5:{bpm:86, root:65, scale:MAJ, lead:"flute", comp:"strum", drums:"shaker", bassOn:true,
-      mel:"3 - 5 - 6 - 5 3 | 2 - - - . . . . | 3 - 2 - 1 - 6, 1 | 2 - - - . . . . | 5 - 6 - 1' - 6 5 | 3 - - 5 6 - . . | 5 3 2 3 2 - 1 - | 1 - - - . . . .",
-      ch:"I vi IV V I vi IV I"},
-    M6:{bpm:122, six:true, root:62, scale:MAJ, lead:"flute", comp:"pad", drums:"rebana", bassOn:true,
-      mel:"1 2 3 5 3 2 | 3 - - 2 1 6, | 1 2 3 5 6 5 | 3 - - - - . | 5 6 1' 6 5 3 | 2 3 5 3 2 1 | 2 - 3 2 1 6, | 1 - - - - .",
-      ch:"I I IV V I IV V I"},
-    M7:{bpm:104, root:62, scale:MIN_H, lead:"pluck", comp:"pad", drums:"marwas", bassOn:true,
-      mel:"5 4 3 2 1 2 3 . | 4 - 3 2 3 - . . | 5 6 5 4 3 4 5 . | 3 - - - . . . . | 1' 7 6 5 4 5 6 . | 5 - 4 3 4 - . . | 3 2 1 2 3 4 3 2 | 1 - - - . . . .",
-      ch:"i iv V i i VI V i"},
-    M8:{bpm:108, root:65, scale:MAJ, lead:"flute", comp:"cakcuk", drums:"", bassOn:true,
-      mel:"5 - 3 - 5 6 5 3 | 2 - - 3 5 - . . | 6 - 5 - 6 1' 6 5 | 3 - - - . . . . | 1' - 6 - 5 6 5 3 | 2 - 3 5 6 - 5 - | 3 2 1 2 3 - 2 - | 1 - - - . . . .",
-      ch:"I vi IV V I IV V I"},
-    M9:{bpm:116, root:67, scale:MAJ, lead:"marimba", comp:"pad", drums:"festive", bassOn:true, gongEvery:2, double:true,
-      mel:"1 3 5 1' 5 3 5 6 | 5 - 3 5 6 - . . | 1' 6 5 3 5 6 1' . | 2' - 1' - 5 - . . | 6 5 3 5 6 1' 6 5 | 3 5 6 5 3 2 1 2 | 3 - 2 - 1 - 5, - | 1 - - - . . . .",
-      ch:"I vi IV V I IV V I"}
-  };
-  const DRUMS={ kompang:"D..T..T.D.T.T...", soft:"..T.....W...T...", shaker:"S.S.S.S.S.S.S.S.", marwas:"D..TT.D.D.T.TT.S", festive:"D.TTD.T.D.TTDTT.", rebana:"D.TT.TD.T.T." };
-  function compile(name){ const s=SONGS[name]; const bars=s.mel.split("|"), per=s.six?6:8; const mel=parseMel(bars.join(" "), s.root, s.scale); return {s, mel, per, chords:s.ch.split(" "), stepsPerBar:per*2}; }
-  function play16(c, i, t, d){ const s=c.s, bar=Math.floor(i/c.stepsPerBar)%8, inBar=i%c.stepsPerBar, eighth=inBar/2, sw=(inBar%2===1)?d*.12:0, T=t+sw+hum();
-    const chord=(CH[c.chords[bar]]||CH.I).map(x=>s.root+x-12), eighthIdx=bar*c.per+Math.floor(eighth);
-    // melody on 8ths
-    if(inBar%2===0){ const n=c.mel.notes.find(n=>n.i===eighthIdx); if(n){ const dur=n.len*d*2; const L=s.lead;
-      if(L==="kalimba") kalimba(T,n.m,vel(.6)); else if(L==="pluck") pluck(T,n.m,vel(.7)); else if(L==="marimba") marimba(T,n.m,vel(.7)); else if(L==="bamboo") bamboo(T,n.m,Math.min(dur,.9),vel(.7)); else flute(T,n.m+12,dur*.95,vel(.65));
-      if(s.double) flute(T,n.m+12,dur*.9,.35); } }
-    // accompaniment
-    if(s.comp==="pad" && inBar===0) pad(t, chord.map(x=>x+12), d*c.stepsPerBar, .7);
-    if(s.comp==="arp" && inBar%4===0){ const k=(inBar/4)%4; kalimba(T, chord[[0,1,2,1][k]]+12, vel(.32)); }
-    if(s.comp==="ostinato" && inBar%2===0){ const pat=[0,2,1,2,0,2,1,2]; marimba(T, chord[pat[(inBar/2)%8]]+12, vel(.28)); if(inBar%4===2) marimba(T+.004, chord[2]+24, vel(.12)); }
-    if(s.comp==="strum" && (inBar===0||inBar===6||inBar===8||inBar===12)) chord.forEach((m,k)=>pluck(T+k*.018, m+12, vel(.28), 2000));
-    if(s.comp==="cakcuk"){ if(inBar%4===2) chord.forEach((m,k)=>pluck(T+k*.008, m+24, vel(.2), 3800)); if(inBar%4===3) pluck(T, chord[0]+24, vel(.14), 4200); }
-    if(s.drone && inBar===0) pad(t,[s.root-12, s.root-5],d*c.stepsPerBar,.45);
-    // bass
-    if(s.bassOn){ if(inBar===0) bass(T, chord[0]-12, vel(.75)); else if(inBar===(s.six?6:8)) bass(T, chord[s.six?0:2]-12, vel(.55)); }
-    // drums
-    const dp=DRUMS[s.drums]; if(dp){ const k=dp[inBar%dp.length]; if(k&&k!==".") drum(T,k,vel(.6)); }
-    if(s.gongEvery && inBar===0 && bar%s.gongEvery===0) gong(t, s.root-24, .55);
-  }
-  function startStyle(name){ const g=ac.createGain(); g.gain.setValueAtTime(0,ac.currentTime); g.gain.linearRampToValueAtTime(1,ac.currentTime+2); g.connect(bus);
-    if(cur){ const old=cur.gain, el=cur.el; old.gain.cancelScheduledValues(ac.currentTime); old.gain.setValueAtTime(old.gain.value,ac.currentTime); old.gain.linearRampToValueAtTime(0,ac.currentTime+1.6); setTimeout(()=>{ old.disconnect(); if(el) el.pause(); },2200); }
-    const el=custom[name]; if(el){ try{ if(!el._src){ el._src=ac.createMediaElementSource(el); } el._src.disconnect(); el._src.connect(g); el.currentTime=0; el.play().catch(()=>{}); }catch(e){} cur={name, gain:g, el, c:null, d:1}; return; }
-    const c=compile(name); cur={name, gain:g, c, d:60/c.s.bpm/4, el:null}; nextT=ac.currentTime+.1; step=0; }
-  function tick(){ if(!ac||!cur||ac.state!=="running") return; master.gain.setTargetAtTime(level(), ac.currentTime, .25); if(!cur.c) return;
-    while(nextT<ac.currentTime+.3){ try{ play16(cur.c, step, nextT, cur.d); }catch(e){} nextT+=cur.d; step++; } }
-  // optional real recordings: lib/music/<style>.mp3
-  fetch("lib/music/list.json").then(r=>r.ok?r.json():[]).then(list=>{ (list||[]).forEach(name=>{ if(!SONGS[name]) return; const a=new Audio(`lib/music/${name}.mp3`); a.loop=true; custom[name]=a; if(ac && cur && cur.name===name && !cur.el) startStyle(name); }); }).catch(()=>{});
+  const apply=(tc=.4)=>{ if(ac) master.gain.setTargetAtTime(level(), ac.currentTime, tc); };
   return {
-    unlock(){ if(state.music===false || held) return; iosPlayback(); if(!init()) return; if(ac.state!=="running") ac.resume(); try{ const b=ac.createBuffer(1,1,22050), s=ac.createBufferSource(); s.buffer=b; s.connect(ac.destination); s.start(0); }catch(e){} if(!cur || cur.name!==wanted) startStyle(wanted); },
-    play(name){ wanted=SONGS[name]?name:"ocean"; if(ac && state.music!==false){ if(ac.state==="suspended") ac.resume(); if(!cur||cur.name!==wanted) startStyle(wanted); } },
-    setOn(on){ state.music=on; save(); if(on){ this.unlock(); } else if(ac){ master.gain.setTargetAtTime(0,ac.currentTime,.1); } },
-    setVol(v){ state.vol=v; save(); },
-    duck(on){ ducked=on; },
-    hold(on){ held=on; try{ if(navigator.audioSession) navigator.audioSession.type = on ? "play-and-record" : "playback"; }catch(e){} if(!on && silentEl && silentEl.paused) silentEl.play().catch(()=>{}); if(!ac) return; master.gain.setTargetAtTime(level(), ac.currentTime, .05); if(on) setTimeout(()=>{ if(held && ac.state==='running') ac.suspend(); },120); else if(ac.state==='suspended' && !document.hidden) ac.resume(); },
+    unlock(){ if(state.music===false || held) return; iosPlayback(); if(!init()) return; if(ac.state!=="running") ac.resume(); apply(1.2); },
+    play(){ if(ac && state.music!==false && ac.state==="suspended" && !held) ac.resume(); },
+    setOn(on){ state.music=on; save(); if(on) this.unlock(); else apply(.1); },
+    setVol(v){ state.vol=v; save(); apply(.1); },
+    duck(on){ ducked=on; apply(.15); },
+    hold(on){ held=on; try{ if(navigator.audioSession) navigator.audioSession.type = on ? "play-and-record" : "playback"; }catch(e){} if(!on && silentEl && silentEl.paused) silentEl.play().catch(()=>{}); if(!ac) return; apply(.05); if(on) setTimeout(()=>{ if(held && ac.state==='running') ac.suspend(); },120); else if(ac.state==='suspended' && !document.hidden) ac.resume(); },
     rms(){ if(!meter) return 0; const a=new Float32Array(meter.fftSize); meter.getFloatTimeDomainData(a); let s=0; for(const v of a) s+=v*v; return Math.sqrt(s/a.length); },
-    get styles(){ return Object.keys(SONGS); }
+    get styles(){ return ["ocean"]; }
   };
 })();
 
-const MUSIC_NAME={ocean:["海风","Sea breeze"],M1:["婆罗洲弹拨琴","Sape, Borneo lute"],M2:["竹管乐","Angklung"],M3:["甘美兰风","Gamelan-style marimba"],M4:["文莱铜锣乐风","Gulingtangan-style"],M5:["弹拨琴与手鼓","Sape and kompang"],M6:["马来舞曲","Joget"],M7:["沙宾舞曲","Zapin"],M8:["南洋民谣","Keroncong"],M9:["节庆","Festival"]};
 
 /* ============================== 我的成绩 · list · settings ============================== */
 const encodeProgress = () => "HYZD1-" + btoa(unescape(encodeURIComponent(JSON.stringify(Object.assign({}, state, {teacher:false})))));
@@ -2457,7 +2363,7 @@ function openSide(kind){
           <p class="sw-msg" id="codeMsg" style="text-align:left"></p></section>
         ${API?`<section class="spot"><h3 class="spot-h" style="margin:0">我的账号<span class=ui-en>My account</span></h3>
           ${auth?`<p class="sw-msg" style="text-align:left">班级 ${esc(auth.cls)} · 学号 ${esc(auth.sid)} · 进度自动存到云端。<span class=ui-en data-b>Class ${esc(auth.cls)} · Student ID ${esc(auth.sid)} · progress saves to the cloud.</span></p><div class="row"><button class="btn ghost" type="button" id="syncBtn">立刻同步<span class=ui-en>Sync now</span></button><button class="btn ghost" type="button" id="outBtn">登出<span class=ui-en>Log out</span></button></div><p class="sw-msg" style="text-align:left">在共用的 iPad 上玩完，请记得登出。<span class=ui-en data-b>Log out when you finish on a shared iPad.</span></p>`
-          :`<p class="sw-msg" style="text-align:left">现在是离线模式，进度只存在这台设备。<span class=ui-en data-b>Offline mode: progress is saved on this device only.</span></p><div class="row"><button class="btn" type="button" id="inBtn">登入 / 注册<span class=ui-en>Log in / sign up</span></button></div>`}</section>`:""}
+          :`<p class="sw-msg" style="text-align:left">现在是教师模式，进度只存在这台设备。<span class=ui-en data-b>Teacher mode: progress is saved on this device only.</span></p><div class="row"><button class="btn" type="button" id="inBtn">退出教师模式，学生登入<span class=ui-en>Leave teacher mode — student log-in</span></button></div>`}</section>`:""}
         <section class="spot"><h3 class="spot-h" style="margin:0">我的昵称 <span class="en">Nickname</span></h3>
           <div class="row"><input id="nick2" maxlength="16" value="${esc(state.nick||"")}" aria-label="昵称"><button class="btn ghost" type="button" id="nkSave">保存<span class=ui-en>Save</span></button></div></section>
       </div>`);
@@ -2469,7 +2375,7 @@ function openSide(kind){
       let ns; try{ ns=decodeProgress(v); }catch(err){ setHTML($("#codeMsg"),"进度码不正确，请检查有没有复制完整。<span class=ui-en>That code isn't valid — check it was copied in full.</span>"); return; }
       if(!armed){ armed=true; setHTML(e.currentTarget,"再点一次确认（会取代这台设备的进度）<span class=ui-en>Tap again to confirm — replaces this device's progress</span>"); return; }
       state=ns; save(); applyPy(); applyEn(); updateCoins(); refreshLabels(); ISLANDS.forEach((_,i)=>{ render3DBuild(i); render3DFarm(i); }); openSide("me"); toast(`已读取 ${state.nick||"同学"} 的进度`, "Progress loaded"); };
-    const ob=$("#outBtn"); if(ob) ob.onclick=()=>logout(); const sb=$("#syncBtn"); if(sb) sb.onclick=async()=>{ await syncNow(); toast(syncState==="ok"?"已同步":"同步失败，稍后再试", syncState==="ok"?"Synced":"Sync failed — will retry"); }; const ib=$("#inBtn"); if(ib) ib.onclick=()=>{ side.hidden=true; updateOffsetGoal(); state.offline=false; save(); welcome(true); };
+    const ob=$("#outBtn"); if(ob) ob.onclick=()=>logout(); const sb=$("#syncBtn"); if(sb) sb.onclick=async()=>{ await syncNow(); toast(syncState==="ok"?"已同步":"同步失败，稍后再试", syncState==="ok"?"Synced":"Sync failed — will retry"); }; const ib=$("#inBtn"); if(ib) ib.onclick=()=>{ side.hidden=true; updateOffsetGoal(); adoptState(null); refreshRoute(); welcome(true); };
     $("#nkSave").onclick=()=>{ const v=$("#nick2").value.trim(); if(!v) return; state.nick=v.slice(0,16); save(); openSide("me"); toast("昵称已保存","Nickname saved"); };
   } else if(kind==="list"){
     setHTML(side, `<div class="d-head"><button class="d-close" type="button" id="sClose" aria-label="关闭">${X_SVG}</button><div class="chip">地点清单 · 9 Modules</div><h2 class="d-title">群岛航线<span class=ui-en data-b>Island route</span></h2><p class="d-sub">一座岛 = 一个 Module。按顺序闯关，云雾会一座一座散开。<span class=ui-en data-b>One island = one Module. Pass each quiz in order and the clouds clear one by one.</span></p></div>
@@ -2481,7 +2387,7 @@ function openSide(kind){
         <button class="switch" type="button" role="switch" id="swP" aria-checked="${state.py}"><span><b>显示拼音<span class=ui-en>Show pinyin</span></b><small>关掉可以练习 Week 13 的无拼音阅读。<span class=ui-en data-b>Turn off to practise the Week 13 reading test.</span></small></span><span class="tr"></span></button>
         <button class="switch" type="button" role="switch" id="swE" aria-checked="${state.en}"><span><b>显示英文<span class=ui-en>Show English</span></b><small>按钮和说明旁边的英文。<span class=ui-en data-b>English next to buttons and instructions.</span></small></span><span class="tr"></span></button>
         <button class="switch" type="button" role="switch" id="swT" aria-checked="${state.teacher}"><span><b>教师模式：解锁全部岛屿<span class=ui-en>Teacher mode: unlock all</span></b><small>上课演示用。不会获得椰子币，建设免费。<span class=ui-en data-b>For class demos. No coins are earned; building is free.</span></small></span><span class="tr"></span></button>
-        <button class="switch" type="button" role="switch" id="swMu" aria-checked="${state.music!==false}"><span><b>背景音乐<span class=ui-en>Background music</span></b><small>每座岛有不同的东南亚风格音乐。<span class=ui-en data-b>Each island has its own Southeast Asian style.</span></small></span><span class="tr"></span></button>
+        <button class="switch" type="button" role="switch" id="swMu" aria-checked="${state.music!==false}"><span><b>背景海风声<span class=ui-en>Sea-breeze sound</span></b><small>轻柔的海风和海浪声。<span class=ui-en data-b>A soft sea breeze and waves.</span></small></span><span class="tr"></span></button>
         <label class="vol" for="volR"><span>音量<span class=ui-en>Volume</span></span><input type="range" id="volR" min="0" max="1" step="0.05" value="${state.vol??.55}"></label>
         <button class="switch" type="button" role="switch" id="swG" aria-checked="${HIGH()}"><span><b>高画质<span class=ui-en>High quality</span></b><small>光晕、移轴景深、更多花草。旧手机可以关掉，会重新载入。<span class=ui-en data-b>Bloom, tilt-shift and denser plants. Turn off on older phones (reloads the page).</span></small></span><span class="tr"></span></button>
         <button class="switch" type="button" role="switch" id="swM" aria-checked="${animOn}"><span><b>动态效果<span class=ui-en>Motion</span></b><small>海浪、灯塔、巴士等动画。<span class=ui-en data-b>Waves, lighthouse beam, bus and boats.</span></small></span><span class="tr"></span></button>
@@ -2491,7 +2397,9 @@ function openSide(kind){
       </div></div>`);
     $("#swP").onclick=e=>{ state.py=!state.py; save(); applyPy(); e.currentTarget.setAttribute("aria-checked",state.py); };
     $("#swE").onclick=e=>{ state.en=!state.en; save(); applyEn(); e.currentTarget.setAttribute("aria-checked",state.en); };
-    $("#swT").onclick=e=>{ state.teacher=!state.teacher; save(); e.currentTarget.setAttribute("aria-checked",state.teacher); refreshLabels(); toast(state.teacher?"已解锁全部岛屿（教师模式）":"已关闭教师模式", state.teacher?"All islands unlocked (teacher mode)":"Teacher mode off"); };
+    $("#swT").onclick=async e=>{ const sw=e.currentTarget;
+      if(API && !state.teacher){ const k=prompt("请输入老师密码 Teacher password"); if(!k) return; try{ const j=await api("tLogin",{key:k}); if(!j.ok){ toast("老师密码不对","Wrong teacher password"); return; } }catch(err){ toast("连不上服务器","Can't reach the server"); return; } }
+      state.teacher=!state.teacher; save(); sw.setAttribute("aria-checked",state.teacher); refreshLabels(); refreshRoute(); toast(state.teacher?"已解锁全部岛屿（教师模式）":"已关闭教师模式", state.teacher?"All islands unlocked (teacher mode)":"Teacher mode off"); };
     $("#swMu").onclick=e=>{ const on=state.music===false; Music.setOn(on); applyMusicBtn(); e.currentTarget.setAttribute("aria-checked",on); };
     $("#volR").oninput=e=>Music.setVol(+e.target.value);
     $("#swG").onclick=()=>{ state.gfx=HIGH()?"low":"high"; save(); location.reload(); };
@@ -2516,7 +2424,7 @@ const AUTH_MSG={ bad_class:["班级代码要 3–12 个英文字母或数字。"
   bad_sid:["学号要 5–12 个英文字母或数字，例如 25B0082。","The Student ID is 5–12 letters or digits, e.g. 25B0082."], sid_taken:["这个学号已经注册过了，请改用“登入”。忘记密码的话请老师帮你重设。","This Student ID already has an account — log in instead. Your teacher can reset a forgotten PIN."],
   not_on_list:["这个学号不在班级名单里。请检查学号，或问老师。","This Student ID isn't on the class list. Check it, or ask your teacher."],
   no_student:["找不到这个学号。第一次来的话请先“注册”。","Student ID not found. If you're new, sign up first."],
-  wrong_pin:["密码不对。","Wrong PIN."], locked:["错太多次了，请 10 分钟后再试，或请老师帮你重设密码。","Too many tries — wait 10 minutes or ask your teacher to reset your PIN."], busy:["服务器忙，请再试一次。","The server is busy — try again."], network:["连不上服务器。可以先离线玩，之后再登入。","Can't reach the server. You can play offline and log in later."] };
+  wrong_pin:["密码不对。","Wrong PIN."], locked:["错太多次了，请 10 分钟后再试，或请老师帮你重设密码。","Too many tries — wait 10 minutes or ask your teacher to reset your PIN."], busy:["服务器忙，请再试一次。","The server is busy — try again."], network:["连不上服务器，请检查网络后再试。","Can't reach the server — check the internet connection and try again."] };
 const authMsg=(code, extra)=>{ const m=AUTH_MSG[code]||AUTH_MSG.network; return `${m[0]}${extra||""}<span class=ui-en data-b>${m[1]}</span>`; };
 
 // what the teacher dashboard shows
@@ -2524,7 +2432,7 @@ function progressSummary(){ const islands=ISLANDS.map((d,i)=>{ const g=state.gam
   return {stars:Object.values(state.stars).reduce((a,b)=>a+b,0), coins:state.coins, done:ISLANDS.filter((_,i)=>islandPct(i)===100).length, pct:Math.round(ISLANDS.reduce((a,_,i)=>a+islandPct(i),0)/ISLANDS.length), islands}; }
 
 let syncTimer=null, syncing=false, syncState="off";
-function setSync(s){ syncState=s; const el=$("#syncDot"); if(!el) return; el.dataset.s=s; el.title={ok:"已同步到云端 Saved to the cloud", wait:"等待同步… Saving soon…", busy:"同步中… Saving…", err:"同步失败，稍后会再试 Couldn't save — will retry", off:"离线模式（只存在这台设备）Offline: saved on this device only"}[s]||""; }
+function setSync(s){ syncState=s; const el=$("#syncDot"); if(!el) return; el.dataset.s=s; el.title={ok:"已同步到云端 Saved to the cloud", wait:"等待同步… Saving soon…", busy:"同步中… Saving…", err:"同步失败，稍后会再试 Couldn't save — will retry", off:"教师模式（只存在这台设备）Teacher mode: saved on this device only"}[s]||""; }
 function scheduleSync(){ if(!API||!auth) return; setSync("wait"); clearTimeout(syncTimer); syncTimer=setTimeout(syncNow, 2500); }
 async function syncNow(keepalive){ if(!API||!auth||syncing) return; syncing=true; setSync("busy");
   const body=JSON.stringify({action:"save", token:auth.token, state:cloudState(), summary:progressSummary()});
@@ -2549,17 +2457,25 @@ const remember=(c,s)=>{ try{ localStorage.setItem("m1-isles-last", JSON.stringif
 const remembered=()=>{ try{ return JSON.parse(localStorage.getItem("m1-isles-last"))||{}; }catch(e){ return {}; } };
 async function logout(){ if(auth){ try{ await syncNow(); }catch(e){} try{ api("logout",{token:auth.token}); }catch(e){} } auth=null; saveAuth(); adoptState(null); setSync("off"); side.hidden=true; updateOffsetGoal(); welcome(true); }
 
+function teacherIn(){ if(state.owner!=="teacher") adoptState(null); state.teacher=true; state.owner="teacher"; state.nick="老师"; save(); refreshLabels(); refreshRoute(); $("#welcome").hidden=true; setSync("off");
+  toast("教师模式：全部岛屿已解锁。玩完请到「我的成绩」→ 登入 / 注册，换回学生账号。","Teacher mode: all islands unlocked."); }
 /* ---------- welcome / login screen ---------- */
 function welcome(force){
   const w=$("#welcome");
   if(!API){ if(state.nick && !force){ w.hidden=true; return; } return nickOnly(w); }
   if(auth && !force){ w.hidden=true; setSync("busy"); api("load",{token:auth.token}).then(j=>{ if(j.ok){ if(j.state && !(state.owner===`${j.cls}/${j.sid}` && state.updatedAt>j.state.updatedAt)) adoptState(j.state); state.owner=`${j.cls}/${j.sid}`; if(j.nick) state.nick=j.nick; save(); setSync("ok"); } else { auth=null; saveAuth(); welcome(true); } }).catch(()=>setSync("err")); return; }
-  if(!auth && state.offline && !force){ w.hidden=true; setSync("off"); return; }
+  if(!auth && state.teacher && state.owner==="teacher" && !force){ w.hidden=true; setSync("off"); return; }   // teacher mode stays signed in on this device
   const last=remembered(); let mode="login";
   const render=()=>{ setHTML(w, `<div class="wcard" role="dialog" aria-modal="true" aria-labelledby="wTitle">
       <div class="seal" aria-hidden="true" data-nopy>华</div>
-      <h2 id="wTitle">${mode==="login"?"登入":"注册新账号"} Mandarin 1的知识群岛<span class=ui-en data-b>${mode==="login"?"Log in":"Create your account"}</span></h2>
+      <h2 id="wTitle">${mode==="login"?"登入":mode==="teacher"?"老师登入":"注册新账号"} Mandarin 1的知识群岛<span class=ui-en data-b>${mode==="login"?"Log in":mode==="teacher"?"Teacher log-in":"Create your account"}</span></h2>
       <div class="seg" role="tablist"><button type="button" class="segb" data-m="login" aria-selected="${mode==="login"}">登入<span class=ui-en>Log in</span></button><button type="button" class="segb" data-m="signup" aria-selected="${mode==="signup"}">第一次来：注册<span class=ui-en>New here: sign up</span></button></div>
+      ${mode==="teacher"?`<label for="lgKey">老师密码（和老师后台同一个）<span class=ui-en>Teacher password (same as the dashboard)</span></label><input id="lgKey" type="password" autocomplete="current-password">
+      <p class="lgmsg" id="lgMsg" role="alert"></p>
+      <button class="btn" type="button" id="lgGo">进入教师模式<span class=ui-en>Enter teacher mode</span></button>
+      <small>教师模式：全部岛屿解锁，建设和养殖免费，不会获得椰子币。进度只存在这台设备，不会出现在学生名单里。<span class=ui-en data-b>Teacher mode: every island unlocked, building and farming free, no coins. Progress stays on this device and never appears in the class roster.</span></small>
+      <button class="btn ghost" type="button" data-m="login">返回学生登入<span class=ui-en>Back to student log-in</span></button>
+    </div>`:`
       <label for="lgCls">班级代码<span class=ui-en>Class code</span></label><input id="lgCls" maxlength="12" autocapitalize="characters" autocomplete="off" placeholder="例如 MANDARIN1A" value="${esc(last.c||"")}">
       <label for="lgSid">学号<span class=ui-en>Student ID</span></label><input id="lgSid" maxlength="14" autocapitalize="characters" autocomplete="username" spellcheck="false" placeholder="例如 25B0082" value="${esc(last.s||"")}">
       ${mode==="signup"?`<label for="lgNick">昵称（在游戏里显示）<span class=ui-en>Nickname (shown in the game)</span></label><input id="lgNick" maxlength="16" autocomplete="nickname" placeholder="例如 Ali、小明" value="">`:""}
@@ -2567,21 +2483,24 @@ function welcome(force){
       ${mode==="signup"?`<label for="lgPin2">再输入一次密码<span class=ui-en>Type the PIN again</span></label><input id="lgPin2" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="new-password" placeholder="••••">`:""}
       <p class="lgmsg" id="lgMsg" role="alert"></p>
       <button class="btn" type="button" id="lgGo">${mode==="login"?"登入":"注册并出发"}<span class=ui-en>${mode==="login"?"Log in":"Sign up and start"}</span></button>
-      <button class="btn ghost" type="button" id="lgOff">先不登入，离线玩<span class=ui-en>Play offline for now</span></button>
       <small>${mode==="signup"?"请填写你自己正确的学号：学号不在班级名单里的记录会被删除。请记住你的密码；忘记的话请老师帮你重设。":"用学号和密码登入。进度会自动存到云端，在 iPad、电脑、手机都能继续。"}<span class=ui-en data-b>${mode==="signup"?"Use your own, correct Student ID: records whose ID isn't on the class list will be deleted. Remember your PIN — your teacher can reset a forgotten one.":"Log in with your Student ID and PIN. Progress saves to the cloud, so you can carry on from any device."}</span></small>
-    </div>`);
+      <button class="btn ghost sm" type="button" data-m="teacher" style="align-self:center;font-size:12.5px;opacity:.8">我是老师<span class=ui-en>I'm the teacher</span></button>
+    </div>`}`);
     w.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>{ mode=b.dataset.m; render(); });
+    if(mode==="teacher"){ const tgo=async()=>{ const k=$("#lgKey").value, m=$("#lgMsg"); if(!k) return $("#lgKey").focus(); const b=$("#lgGo"); b.disabled=true; setHTML(m, `连接中…<span class=ui-en>Connecting…</span>`);
+        try{ const j=await api("tLogin",{key:k}); if(j.ok){ teacherIn(); return; } setHTML(m, j.error==="locked"?`错太多次，请 15 分钟后再试。<span class=ui-en data-b>Too many tries — wait 15 minutes.</span>`:j.error==="no_teacher_password"?`还没有设定老师密码（Google 表格 → 知识群岛 → 2）。<span class=ui-en data-b>No teacher password set yet.</span>`:`老师密码不对。<span class=ui-en data-b>Wrong teacher password.</span>`); }
+        catch(e){ setHTML(m, authMsg("network")); } b.disabled=false; };
+      $("#lgGo").onclick=tgo; $("#lgKey").onkeydown=e=>{ if(e.key==="Enter") tgo(); }; setTimeout(()=>$("#lgKey").focus(),60); return; }
     const go=async()=>{ const cls=$("#lgCls").value.trim().toUpperCase(), sid=$("#lgSid").value.replace(/[\s\-_.]/g,"").toUpperCase(), nick=mode==="signup"?$("#lgNick").value.trim():"", pin=$("#lgPin").value.trim(), m=$("#lgMsg");
       if(!/^[A-Z0-9]{3,12}$/.test(cls)) return setHTML(m, authMsg("bad_class")); if(!/^[A-Z0-9]{5,12}$/.test(sid)) return setHTML(m, authMsg("bad_sid")); if(mode==="signup" && !nick) return setHTML(m, authMsg("bad_nick")); if(!/^\d{4}$/.test(pin)) return setHTML(m, authMsg("bad_pin"));
       if(mode==="signup" && $("#lgPin2").value.trim()!==pin) return setHTML(m, `两次输入的密码不一样。<span class=ui-en data-b>The two PINs don't match.</span>`);
       const b=$("#lgGo"); b.disabled=true; setHTML(m, `连接中…<span class=ui-en>Connecting…</span>`);
       try{ const j=await api(mode==="login"?"login":"register",mode==="login"?{cls, sid, pin}:{cls, sid, nick, pin});
-        if(j.ok){ state.offline=false; afterLogin(j, mode==="signup"); return; }
+        if(j.ok){ afterLogin(j, mode==="signup"); return; }
         setHTML(m, authMsg(j.error, j.error==="wrong_pin"&&j.left!=null?`还有 ${j.left} 次机会。`:"")); }
       catch(e){ setHTML(m, authMsg("network")); }
       b.disabled=false; };
     $("#lgGo").onclick=go; w.querySelectorAll("input").forEach(i=>i.onkeydown=e=>{ if(e.key==="Enter") go(); });
-    $("#lgOff").onclick=()=>{ state.offline=true; if(!state.nick) state.nick=((mode==="signup"&&$("#lgNick").value.trim())||"同学").slice(0,16); save(); w.hidden=true; setSync("off"); toast("离线模式：进度只存在这台设备。","Offline: progress is saved on this device only."); };
     setTimeout(()=>{ const f=!last.c?$("#lgCls"):!last.s?$("#lgSid"):mode==="login"?$("#lgPin"):$("#lgNick"); f&&f.focus(); },60);
   };
   w.hidden=false; render();
@@ -2595,7 +2514,7 @@ $("#zOut").onclick=()=>zoomBy(1.45);
 $("#zAll").onclick=()=>{ if(scene) setOverview(false); };
 $("#bMe").onclick=()=>openSide("me");
 function applyMusicBtn(){ const b=$("#bMusic"); if(b) b.setAttribute("aria-pressed",String(state.music!==false)); }
-$("#bMusic").onclick=()=>{ const on=state.music===false; Music.setOn(on); applyMusicBtn(); toast(on?"背景音乐：开":"背景音乐：关", on?"Music on":"Music off"); };
+$("#bMusic").onclick=()=>{ const on=state.music===false; Music.setOn(on); applyMusicBtn(); toast(on?"海风声：开":"海风声：关", on?"Sea breeze on":"Sea breeze off"); };
 ["pointerdown","touchend","click","keydown"].forEach(ev=>document.addEventListener(ev,()=>Music.unlock(),{passive:true}));
 $("#bList").onclick=()=>openSide("list");
 $("#bSet").onclick=()=>openSide("settings");
