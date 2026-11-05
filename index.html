@@ -280,6 +280,8 @@ button.gcard:hover{border-color:var(--gold)}
 .world{border:1px solid var(--line);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;background:var(--panel)}
 .world .wn{font-size:12px;color:var(--muted)}.world b{font-size:17px}.world b .ui-en{display:block;font-size:12px;font-weight:400;color:var(--muted)}.world .wc{font-size:12px;color:var(--muted)}
 .world.on{border-color:var(--red);box-shadow:inset 0 0 0 1px var(--red)}.world.soon{opacity:.6;border-style:dashed}
+#fx{position:fixed;inset:0;pointer-events:none;z-index:60;overflow:hidden;perspective:600px}
+#fx .fxp{position:absolute;left:0;top:0;will-change:transform,opacity;user-select:none}
 .cats{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:5px}
 .cat{font:inherit;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:10px;padding:4px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;line-height:1.15;min-height:40px;justify-content:center;touch-action:manipulation}
 .cat b{font-size:13px;font-weight:600}.cat .ui-en{font-size:10px;color:var(--muted)}.cat small{font-size:10px;color:var(--muted)}
@@ -1078,7 +1080,7 @@ function cardMat(kind){ if(cardMats[kind]) return cardMats[kind];
 const life={gulls:[], flies:[]};
 function addWalkers(){ const rr=rng(91);
   isles.forEach((o,i)=>{ const g=kidSprite(KIDS[(i+1)%KIDS.length], 2.1, "walk"), k=g.userData.kid; o.group.add(g);
-    Object.assign(k,{o, R:o.r*(.5+rr()*.08), a:rr()*6.28, sp:(.05+rr()*.02)*(i%2?1:-1), pause:0, next:6+rr()*8}); }); }
+    Object.assign(k,{o, R:o.r*(.5+rr()*.08), a:rr()*6.28, spd:(.05+rr()*.02)*(i%2?1:-1), pause:0, next:6+rr()*8}); }); }
 function addLife(){ addWalkers(); const L=new THREE.TextureLoader(), rr=rng(77);
   Promise.all(["seagull","butterflies"].map(n=>L.loadAsync(`assets/sprites/${n}.webp`))).then(([gBase,bBase])=>{
     const mk=(base, w)=>{ const t=base.clone(); t.colorSpace=THREE.SRGBColorSpace; t.needsUpdate=true; const m=new THREE.SpriteMaterial({map:t, transparent:true, alphaTest:.4, depthWrite:false, fog:true, toneMapped:false}); const sp=new THREE.Sprite(m); sp.scale.set(w,w,1); scene.add(sp); return sp; };
@@ -1087,15 +1089,24 @@ function addLife(){ addWalkers(); const L=new THREE.TextureLoader(), rr=rng(77);
   }).catch(e=>console.warn("life sprites", e)); }
 let _cr, _cu, _v, _kv, lastKidT=0;   // created once THREE has loaded
 function updateKids(t){ if(!_kv) _kv=new THREE.Vector3(); const dt=Math.min(.1, Math.max(0, t-lastKidT)); lastKidT=t;
-  kidList.forEach(k=>{ if(!k.sp.visible) return;
+  kidList.forEach(k=>{ if(!k.sp.visible) return; const sp=k.sp, base=k.base||(k.base=sp.scale.x); let sx=1, sy=1, rot=0, f=0, left=k.left||false, lift=0;
     if(k.mode==="walk" && k.o){ const o=k.o;
-      if(k.pause>0){ k.pause-=dt; const w=Math.floor(t*3+k.ph)%2; kidFrame(k, w?1:0, false); return; }
-      k.next-=dt; if(k.next<=0){ k.pause=2.6; k.next=9+Math.random()*8; }
-      k.a+=k.sp*dt*6; const x=Math.cos(k.a)*k.R, z=Math.sin(k.a)*k.R; k.g.position.set(x, o.sh?terrainH(o.sh,x,z):2.2, z);
-      _kv.set(-Math.sin(k.a)*k.sp, 0, Math.cos(k.a)*k.sp); const left=_kv.dot(_cr)<0;
-      kidFrame(k, 2+Math.floor(t*7+k.ph)%4, left); k.sp.position.y=(Math.floor(t*7+k.ph)%4===3?.06:0); return; }
-    if(k.mode==="wave"){ const w=Math.sin(t*1.3+k.ph)>-.2; kidFrame(k, w?(Math.floor(t*3+k.ph)%2?1:0):0, false); return; }
-    kidFrame(k, Math.sin(t*.5+k.ph)>.85?1:0, false); }); }
+      // speed eases in and out around the little pauses
+      const want=k.pause>0?0:1; k.v=(k.v??0)+(want-(k.v??0))*Math.min(1,dt*4);
+      if(k.pause>0){ k.pause-=dt; } else { k.next-=dt; if(k.next<=0){ k.pause=3.2; k.next=9+Math.random()*8; } }
+      const step=k.spd*dt*6*k.v; k.a+=step; k.dist=(k.dist||0)+Math.abs(step)*k.R;
+      const x=Math.cos(k.a)*k.R, z=Math.sin(k.a)*k.R; k.g.position.set(x, o.sh?terrainH(o.sh,x,z):2.2, z);
+      _kv.set(-Math.sin(k.a)*k.spd, 0, Math.cos(k.a)*k.spd); const nl=_kv.dot(_cr)<0;
+      if(nl!==k.left && k.v>.3){ k.flip=(k.flip||0)>0?k.flip:.18; k.nextLeft=nl; }
+      if(k.v>.15){ const cyc=k.dist/.9;   // one full stride every 0.9 world units: frames follow the feet, no sliding
+        f=2+Math.floor(cyc*4)%4; const ph=cyc*Math.PI*2; lift=Math.abs(Math.sin(ph))*.04*base; rot=Math.sin(ph)*.035; sy=1+Math.sin(ph*2)*.012; }
+      else { const w=(3.2-k.pause); f=(w>.6&&w<2.4)?1:0; if(f===1) rot=Math.sin(t*7)*.06; sy=1+Math.sin(t*2.2+k.ph)*.012; }
+    } else if(k.mode==="wave"){ const c=(t*.45+k.ph*.2)%1; f=c<.55?1:0; if(f===1) rot=Math.sin(t*7+k.ph)*.06; sy=1+Math.sin(t*2.2+k.ph)*.014; }
+    else { const c=(t*.12+k.ph*.13)%1; f=c>.82?1:0; if(f===1) rot=Math.sin(t*7+k.ph)*.06; sy=1+Math.sin(t*2+k.ph)*.014; sx=1-Math.sin(t*2+k.ph)*.006; }
+    // quick squash-turn when changing direction
+    if(k.flip>0){ k.flip-=dt; const u=1-Math.max(0,k.flip)/.18; sx*=Math.max(.12,Math.abs(1-2*u)); if(u>=.5) k.left=k.nextLeft; left=k.left; }
+    else if(k.mode!=="walk") left=false; else left=k.left??false;
+    kidFrame(k, f, left); sp.scale.set(base*sx, base*sy, 1); sp.material.rotation=rot; sp.position.y=lift; }); }
 function updateLife(t){ if(!life.gulls.length) return; if(!_cr){ _cr=new THREE.Vector3(); _cu=new THREE.Vector3(); _v=new THREE.Vector3(); }
   _cr.setFromMatrixColumn(camera.matrixWorld,0); _cu.setFromMatrixColumn(camera.matrixWorld,1);
   const FLAP=[0,3,1,2,1,3];
@@ -1439,7 +1450,8 @@ function loop(now){
   ocean.material.uniforms.uTime.value=simT;
   grassMats.forEach(m=>{ if(m.userData.u) m.userData.u.uTime.value=simT; });
   animateAll(simT); updateLife(simT);
-  isles.forEach((o,i)=>{ const goal=isUnlocked(i)?0:1; if(Math.abs(o.cloudK-goal)>.001){ o.cloudK+=(goal-o.cloudK)*Math.min(1,dt*2.2); if(Math.abs(o.cloudK-goal)<.01) o.cloudK=goal; } o.clouds.visible=o.cloudK>.01;
+  isles.forEach((o,i)=>{ const goal=isUnlocked(i)?0:1; if(goal===0 && o.cloudK===1 && !o.fxShown){ o.fxShown=true; const sp=FX.screenOf(o.group.position.clone().setY(6)); if(sp) setTimeout(()=>FX.sparkle(sp[0],sp[1],true),200); }
+    if(Math.abs(o.cloudK-goal)>.001){ o.cloudK+=(goal-o.cloudK)*Math.min(1,dt*2.2); if(Math.abs(o.cloudK-goal)<.01) o.cloudK=goal; } o.clouds.visible=o.cloudK>.01;
     if(o.clouds.visible){ const k=o.cloudK, spread=1+(1-k)*1.6; o.clouds.children.forEach((c,j)=>{ const b=c.userData.base; c.position.set(b.x*spread, b.y+(1-k)*4+Math.sin(simT*.5+j)*.3, b.z*spread); c.material.opacity=Math.min(1,k*1.15); c.material.rotation+=c.userData.spin*dt; }); o.clouds.rotation.y=simT*.03; } });
   if(composer){ const f=.5+viewOff.y/Math.max(1,innerHeight); tiltH.uniforms.uFocus.value=f; tiltV.uniforms.uFocus.value=f; composer.render(); }
   else renderer.render(scene,camera);
@@ -1510,7 +1522,39 @@ function setHTML(el, html){ el.innerHTML=html; rubify(el); el.querySelectorAll("
 /* ============================== progress helpers ============================== */
 const gst = i => state.games[i] || (state.games[i]={});
 function updateCoins(){ const c=$("#coinCount"); if(c) c.textContent=state.coins; }
-function earn(n, why){ if(state.teacher || n<=0) return; state.coins+=n; save(); updateCoins(); toast(`+${n} 椰子币 · ${why}`, `+${n} coconut coins`); }
+function earn(n, why){ if(state.teacher || n<=0) return; state.coins+=n; save(); updateCoins(); toast(`+${n} 椰子币 · ${why}`, `+${n} coconut coins`); FX.coins(n); }
+/* ---- reward effects: hand-painted particles on a 2D layer above the map (assets/sprites/fx-*.webp) ---- */
+const FX=(()=>{ let layer=null, lastX=innerWidth/2, lastY=innerHeight/2;
+  addEventListener("pointerdown",e=>{ lastX=e.clientX; lastY=e.clientY; },{passive:true,capture:true});
+  const calm=()=>!animOn || matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const L=()=>{ if(!layer){ layer=document.createElement("div"); layer.id="fx"; layer.setAttribute("aria-hidden","true"); document.body.appendChild(layer); } return layer; };
+  const img=(name,size)=>{ const im=new Image(); im.src=`assets/sprites/fx-${name}.webp`; im.className="fxp"; im.style.width=im.style.height=size+"px"; L().appendChild(im); return im; };
+  const run=(el,kf,ms,opt)=>{ const a=el.animate(kf,Object.assign({duration:ms, easing:"cubic-bezier(.2,.7,.3,1)", fill:"both"},opt||{})); a.onfinish=()=>el.remove(); return a; };
+  const at=(x,y,s,r=0,o=1,ry=0)=>({transform:`translate(${x}px,${y}px) translate(-50%,-50%) scale(${s}) rotate(${r}deg) rotateY(${ry}deg)`, opacity:o});
+  const centerOf=el=>{ const r=el.getBoundingClientRect(); return [r.left+r.width/2, r.top+r.height/2]; };
+  return {
+    // coins spin up from where the student tapped and fly into the coin counter
+    coins(n){ if(calm()) return; const tgt=$("#coinCount"); if(!tgt) return; const [tx,ty]=centerOf(tgt), k=Math.min(8, Math.max(3, Math.ceil(n/5)));
+      for(let i=0;i<k;i++){ const c=img("coin",34), sx=lastX+(Math.random()-.5)*40, sy=lastY+(Math.random()-.5)*30, mx=(sx+tx)/2+(Math.random()-.5)*160, my=Math.min(sy,ty)-80-Math.random()*80;
+        run(c,[at(sx,sy,.4,0,0,0),at(sx,sy-30,1,0,1,180),at(mx,my,1,0,1,540),at(tx,ty,.45,0,.9,900)],900+i*40,{delay:i*70, easing:"cubic-bezier(.4,0,.6,1)"}); }
+      setTimeout(()=>{ tgt.animate([{transform:"scale(1)"},{transform:"scale(1.45)"},{transform:"scale(1)"}],{duration:380}); }, 900+k*70); },
+    // confetti shower for a perfect score
+    confetti(){ if(calm()) return; const names=["confetti-red","confetti-blue","confetti-pink","star"];
+      for(let i=0;i<46;i++){ const c=img(names[i%4], 18+Math.random()*16), x=Math.random()*innerWidth, d=1800+Math.random()*1500, sw=(Math.random()-.5)*160, r=(Math.random()-.5)*900;
+        run(c,[at(x,-30,1,0,1),at(x+sw*.5,innerHeight*.45,1,r*.5,1),at(x+sw,innerHeight+40,1,r,.9)],d,{delay:Math.random()*700, easing:"linear"}); } },
+    // a ring of sparkles (island unlocked, new best)
+    sparkle(x,y,big){ if(calm()) return; const n=big?14:8;
+      for(let i=0;i<n;i++){ const a=i/n*6.283+Math.random()*.3, R=(big?110:60)*(.7+Math.random()*.5), c=img(i%3?"sparkle":"star", big?34:24);
+        run(c,[at(x,y,.2,0,0),at(x+Math.cos(a)*R*.6,y+Math.sin(a)*R*.6,1.1,90,1),at(x+Math.cos(a)*R,y+Math.sin(a)*R,.3,180,0)],900+Math.random()*400,{delay:Math.random()*150}); } },
+    // dust poof where a decoration lands
+    dust(el){ if(calm()||!el) return; const [x,y]=centerOf(el);
+      for(let i=0;i<5;i++){ const a=i/5*6.283, c=img("dust",36); run(c,[at(x,y+8,.3,0,.9),at(x+Math.cos(a)*34,y+8+Math.sin(a)*12-6,1,30,.7),at(x+Math.cos(a)*48,y+6+Math.sin(a)*16-12,1.3,60,0)],650); } },
+    // splash at a point in the 3D world (dolphin diving)
+    splashAt(v){ if(calm() || !camera || document.hidden) return; if(camera.position.distanceTo(v)>90) return; const p=v.clone().project(camera); if(p.z>1||Math.abs(p.x)>1||Math.abs(p.y)>1) return;
+      const x=(p.x*.5+.5)*innerWidth, y=(-p.y*.5+.5)*innerHeight, size=Math.max(30, 2200/camera.position.distanceTo(v)); const c=img("splash",size);
+      run(c,[at(x,y-size*.2,.3,0,0),at(x,y-size*.35,1,0,1),at(x,y-size*.4,1.15,0,0)],700,{easing:"ease-out"}); },
+    screenOf(v){ const p=v.clone().project(camera); return p.z>1?null:[(p.x*.5+.5)*innerWidth,(-p.y*.5+.5)*innerHeight]; }
+  }; })();
 function islandItems(i){ const g=state.games[i]||{}; return [starsOf(i)>=1, !!g.sb, !!g.mm, !!g.wm, (g.sw||[]).length>=8]; }
 function islandPct(i){ const it=islandItems(i); return Math.round(it.filter(Boolean).length/it.length*100); }
 function setLast(mode){ if(cur<0) return; state.last={i:cur, mode}; save(); }
@@ -1736,6 +1780,7 @@ function renderResult(body){
   refreshLabels();
   const tq=panel.querySelector('[data-t="quiz"]'); if(tq){ tq.innerHTML=`闯关 <span class="lbl-stars" style="display:flex">${stars3(starsOf(cur))}</span>`; rubify(tq); }
   const msg = st===3?"满分！太棒了！<span class=ui-en data-b>Perfect score!</span>": st===2?"很好！差一点就满分。<span class=ui-en data-b>Great — almost perfect.</span>": st===1?"过关了！再练练可以拿更多星。<span class=ui-en data-b>Passed! Practise more for extra stars.</span>":"还差一点，回到「探索」复习一下再来。<span class=ui-en data-b>Almost — review in Explore and try again.</span>";
+  setTimeout(()=>{ const se=body.querySelector(".result .stars"); if(st===3) FX.confetti(); if(se && st>prev && st>0){ const r=se.getBoundingClientRect(); FX.sparkle(r.left+r.width/2, r.top+r.height/2, st===3); } }, 120);
   setHTML(body, `<div class="result">
     <div class="stars">${stars3(st)}</div>
     <div class="big">${sc} / ${n}</div>
@@ -2631,7 +2676,7 @@ function render3DFarm(i){
     else if(id==="seahorse") f=t=>{ ring(t*.15,-1.4+Math.sin(t*1.6+ph)*.2,R*.9); };
     else if(id==="octopus") f=t=>{ ring(t*.1,-1.9,R*.95); c.rotation.x=Math.sin(t*1.2+ph)*.08; };
     else if(id==="turtle") f=t=>{ ring(t*.5,-.5+Math.max(0,Math.sin(t*.4+ph))*.42,R*1.05); (c.userData.fl||[]).forEach((fl,j)=>fl.rotation.x=Math.sin(t*3+j)*.4); };
-    else if(id==="dolphin") f=t=>{ const a=a0+t*sp*1.6, RR=R*1.15; const j=Math.sin(t*1.3+ph); const y=j>.6 ? -.4+(j-.6)*7 : -.6; c.position.set(Math.cos(a)*RR,y,Math.sin(a)*RR); c.rotation.y=-a+(sp>0?-Math.PI/2:Math.PI/2); c.rotation.z=j>.6?Math.cos(t*1.3+ph)*1.2*(sp>0?1:1):0; };
+    else if(id==="dolphin") f=t=>{ const a=a0+t*sp*1.6, RR=R*1.15; const j=Math.sin(t*1.3+ph); if(c.userData.pj!==undefined && (c.userData.pj>.6)!==(j>.6) && o.group.visible){ const w=new THREE.Vector3(); c.getWorldPosition(w); w.y=.2; FX.splashAt(w); } c.userData.pj=j; const y=j>.6 ? -.4+(j-.6)*7 : -.6; c.position.set(Math.cos(a)*RR,y,Math.sin(a)*RR); c.rotation.y=-a+(sp>0?-Math.PI/2:Math.PI/2); c.rotation.z=j>.6?Math.cos(t*1.3+ph)*1.2*(sp>0?1:1):0; };
     else if(id==="shark") f=t=>{ ring(t*.7,-.35,R*1.35); };
     else if(id==="whale") f=t=>{ ring(t*.12,-.55,r*2.3); const sp2=c.userData.spout; if(sp2){ const s=Math.max(0,Math.sin(t*.6+ph)); sp2.scale.set(s,.2+s,s); sp2.visible=s>.05; } };
     else if(id==="crab"){ const [x,z]=beachSpot(); f=t=>{ const w=Math.sin(t*.8+ph)*.8; c.position.set(x+Math.sin(a0)*w, terrainH(o.sh,x,z)+.02, z-Math.cos(a0)*w); c.rotation.y=-a0; }; }
@@ -2654,7 +2699,7 @@ let buildTab="decor";
 function placeItem(k, id, body){ if(!itemOpen(BUILD.find(x=>x.id===id)||{tier:0})) return false; const slots=buildsOf(cur), free=state.teacher, it=BUILD.find(x=>x.id===id), old=slots[k] && BUILD.find(x=>x.id===slots[k]);
   if(!free && state.coins<it.cost){ toast("椰子币不够","Not enough coins"); return false; }
   if(!free){ state.coins-=it.cost; if(old) state.coins+=Math.floor(old.cost/2); }
-  slots[k]=id; save(); updateCoins(); render3DBuild(cur); toast(`建好了：${it.name}（${k+1} 号空地）`, `Built: ${it.en} on plot ${k+1}`); return true; }
+  slots[k]=id; save(); updateCoins(); render3DBuild(cur); toast(`建好了：${it.name}（${k+1} 号空地）`, `Built: ${it.en} on plot ${k+1}`); setTimeout(()=>FX.dust(document.querySelector(`[data-plot="${k}"]`)),30); return true; }
 function moveItem(from, to){ const slots=buildsOf(cur); [slots[from], slots[to]]=[slots[to], slots[from]]; save(); render3DBuild(cur); }
 function renderBuild(body){
   const free=state.teacher, open=farmOpen();
