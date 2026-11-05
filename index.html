@@ -404,7 +404,7 @@ textarea{resize:vertical;font-size:12px;font-family:ui-monospace,Menlo,monospace
       <button class="tbtn" id="bMe" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>我的成绩<span class=ui-en>My progress</span></span></button>
       <button class="tbtn" id="bPy" type="button" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M4 7h16M7 4v3M17 4v3M5 20l4-9 4 9M6.5 17h5M15 12h5M17.5 12v8"/></svg><span>拼音<span class=ui-en>Pinyin</span></span></button>
       <button class="tbtn" id="bEn" type="button" aria-pressed="true" title="English on/off"><svg viewBox="0 0 24 24"><path d="M4 6h7M4 12h6M4 18h7M4 6v12M14 18V9l6 9V9"/></svg><span>英文<span class=ui-en>English</span></span></button>
-      <button class="tbtn" id="bMusic" type="button" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg><span>音乐<span class=ui-en>Music</span></span></button>
+      <button class="tbtn" id="bMusic" type="button" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg><span>海风<span class=ui-en>Sea breeze</span></span></button>
       <button class="tbtn" id="bList" type="button"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg><span>地点清单<span class=ui-en>Islands</span></span></button>
       <button class="tbtn" id="bHome" type="button"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>回到全景<span class=ui-en>Overview</span></span></button>
       <button class="tbtn" id="bMotion" type="button" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M10 5v14M14 5v14"/></svg><span>暂停动态</span></button>
@@ -1001,7 +1001,7 @@ function terrainH(sh, x, z){
   return .12+(-4.6-.12)*smooth(1.0,1.42,t);
 }
 function buildTerrain(sh, tint){
-  const S=sh.r*2.9, N=HIGH()?110:70, g=new THREE.PlaneGeometry(S,S,N,N); g.rotateX(-Math.PI/2);
+  const S=sh.r*2.9, N=HIGH()?110:60, g=new THREE.PlaneGeometry(S,S,N,N); g.rotateX(-Math.PI/2);
   const p=g.attributes.position, col=new Float32Array(p.count*3), c=new THREE.Color();
   const G1=new THREE.Color(tint).offsetHSL(0,.06,-.03), G2=new THREE.Color(0x3fb53a), SAND=new THREE.Color(0xf7dd9c), WET=new THREE.Color(0xd8b878), DEEP=new THREE.Color(0x6fb9a4);
   for(let i=0;i<p.count;i++){ const x=p.getX(i), z=p.getZ(i), h=terrainH(sh,x,z); p.setY(i,h);
@@ -1033,7 +1033,7 @@ function scatter(g, sh, count, minT, maxT, geo, mat, colors, scaleR, rr){
   im.count=n; im.receiveShadow=true; g.add(im); return im;
 }
 function softCloud(rr, scale){ const g=new THREE.Group(), cm=M(0xffffff,{roughness:1, emissive:0xffffff, emissiveIntensity:.12, transparent:true, opacity:.97});
-  const n=6+Math.floor(rr()*4); for(let k=0;k<n;k++){ const r=(1.6+rr()*2.2)*scale; const b=new THREE.Mesh(new THREE.IcosahedronGeometry(r,3),cm); b.position.set((rr()-.5)*7*scale,(rr()-.2)*1.6*scale,(rr()-.5)*4*scale); b.scale.y=.72; g.add(b); }
+  const n=6+Math.floor(rr()*4); for(let k=0;k<n;k++){ const r=(1.6+rr()*2.2)*scale; const b=new THREE.Mesh(new THREE.IcosahedronGeometry(r,2),cm); b.position.set((rr()-.5)*7*scale,(rr()-.2)*1.6*scale,(rr()-.5)*4*scale); b.scale.y=.72; g.add(b); }
   return g; }
 
 function buildIsland(d, i){
@@ -1146,20 +1146,68 @@ function applyTheme(){ if(!scene) return; const dark=themeDark();
   if(bloomPass){ bloomPass.strength=dark?.7:.18; bloomPass.threshold=dark?.82:.97; } if(gradePass) gradePass.uniforms.uSat.value=dark?1.15:1.26;
 }
 
+// every per-frame animation, in one place (also used to find which objects move)
+function animateAll(t){
+  swayers.forEach(s=>{ s.o.rotation.z=Math.sin(t*1.1+s.ph)*s.amp; s.o.rotation.x=Math.cos(t*.9+s.ph)*s.amp*.6; });
+  routeDots.forEach(r=>{ r.m.position.y=.3+Math.sin(t*1.6+r.ph)*.12; });
+  seaBoats.forEach(f=>f(t));
+  isles.forEach(o=>{ o.anim.forEach(f=>f(t)); if(o.fanim) o.fanim.forEach(f=>f(t)); });
+}
+/* ---- performance: merge every mesh that never moves into one mesh per material ----
+   The islands are built from ~1,400 small meshes; drawing each one separately (twice, with shadows) is what made phones stutter.
+   Objects that animate are found by running the animations at a few times and seeing what changed; they keep their own
+   transform, and the static parts inside them are merged relative to them. */
+function findMoving(root, extra){
+  const objs=[]; root.traverse(o=>objs.push(o));
+  const snap=o=>o.position.x+","+o.position.y+","+o.position.z+","+o.quaternion.x+","+o.quaternion.y+","+o.quaternion.z+","+o.quaternion.w+","+o.scale.x+","+o.scale.y+","+o.scale.z+","+o.visible;
+  const base=new Map(objs.map(o=>[o,snap(o)])), moving=new Set(extra||[]);
+  [1.37, 4.91, 9.73].forEach(t=>{ try{ animateAll(t); }catch(e){} objs.forEach(o=>{ if(snap(o)!==base.get(o)) moving.add(o); }); });
+  try{ animateAll(simT); }catch(e){}
+  return moving; }
+function bakeStatic(root, moving){
+  root.updateMatrixWorld(true);
+  const inv=new THREE.Matrix4().copy(root.matrixWorld).invert(), groups=new Map(), subRoots=[], m4=new THREE.Matrix4();
+  (function walk(o){ o.children.forEach(c=>{
+    if(moving.has(c)){ subRoots.push(c); return; }
+    if(c.isMesh && !c.isInstancedMesh && !c.isSkinnedMesh && !Array.isArray(c.material) && c.visible && !c.morphTargetInfluences && c.geometry.attributes.position){
+      const k=c.material.uuid+"|"+(c.castShadow?1:0)+(c.receiveShadow?1:0)+"|"+(c.material.vertexColors&&c.geometry.attributes.color?"c":"");
+      (groups.get(k)||groups.set(k,[]).get(k)).push(c); }
+    if(c.children.length) walk(c); }); })(root);
+  groups.forEach(list=>{ if(list.length<2) return;
+    const geos=list.map(c=>{ let g=c.geometry.index?c.geometry.toNonIndexed():c.geometry.clone(); const keep=new THREE.BufferGeometry();
+      keep.setAttribute("position", g.attributes.position); if(g.attributes.normal) keep.setAttribute("normal", g.attributes.normal); else { keep.computeVertexNormals(); }
+      if(c.material.vertexColors && g.attributes.color) keep.setAttribute("color", g.attributes.color.itemSize===3?g.attributes.color:null);
+      m4.multiplyMatrices(inv, c.matrixWorld); keep.applyMatrix4(m4);
+      if(m4.determinant()<0){ ["position","normal","color"].forEach(n=>{ const a=keep.attributes[n]; if(!a) return; const s=a.itemSize, arr=a.array; for(let i=0;i<arr.length;i+=s*3) for(let j=0;j<s;j++){ const t=arr[i+s+j]; arr[i+s+j]=arr[i+2*s+j]; arr[i+2*s+j]=t; } }); }
+      return keep; });
+    if(geos.some(g=>!g.attributes.normal || (list[0].material.vertexColors && !g.attributes.color))) return;
+    const merged=THREE.BGU.mergeGeometries(geos, false); if(!merged) return; merged.computeBoundingSphere();
+    const mm=new THREE.Mesh(merged, list[0].material); mm.castShadow=list[0].castShadow; mm.receiveShadow=list[0].receiveShadow; mm.userData.baked=true; root.add(mm);
+    list.forEach(c=>{ c.parent.remove(c); }); });
+  // drop the now-empty helper groups so the scene graph stays small
+  (function prune(o){ [...o.children].forEach(c=>{ prune(c); if(c.type==="Group" && !c.children.length && !moving.has(c) && c!==root) o.remove(c); }); })(root);
+  subRoots.forEach(c=>bakeStatic(c, moving));
+}
+function bakeAll(){ try{
+  const keep=[]; isles.forEach(o=>{ keep.push(o.group, o.clouds); if(o.bgrp) keep.push(o.bgrp); if(o.fgrp) keep.push(o.fgrp); });
+  const moving=findMoving(scene, keep); isles.forEach(o=>moving.add(o.group));
+  [...scene.children].forEach(c=>{ if(c.isMesh) return; bakeStatic(c, moving); });
+}catch(e){ console.warn("bake skipped", e); } }
+function bakeGroup(g){ if(!g) return; try{ bakeStatic(g, findMoving(g, [])); }catch(e){ console.warn("bake skipped", e); } }
 function initScene(){
   const canvas=$("#scene"), hi=HIGH();
   SN=new THREE.SimplexNoise({ random: rng(42) });
   renderer=new THREE.WebGLRenderer({canvas, antialias:!hi, powerPreference:"high-performance"});
   renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, hi?2:1.5));
   renderer.outputColorSpace=THREE.SRGBColorSpace; renderer.toneMapping=THREE.ACESFilmicToneMapping;
-  renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  renderer.shadowMap.enabled=true; renderer.shadowMap.type=hi?THREE.PCFSoftShadowMap:THREE.PCFShadowMap; if(!hi) renderer.shadowMap.autoUpdate=false;
   scene=new THREE.Scene();
   camera=new THREE.PerspectiveCamera(40,1,.5,4000);
   controls=new THREE.OrbitControls(camera, canvas);
   controls.enableDamping=true; controls.dampingFactor=.08; controls.maxPolarAngle=1.3; controls.minDistance=14; controls.maxDistance=420; controls.screenSpacePanning=false;
   pv=new THREE.Vector3();
   hemi=new THREE.HemisphereLight(0xdff1ff,0x7f9a6a,1); scene.add(hemi);
-  sun=new THREE.DirectionalLight(0xfff0d6,2.9); sun.castShadow=true; sun.shadow.mapSize.set(hi?4096:1536, hi?4096:1536);
+  sun=new THREE.DirectionalLight(0xfff0d6,2.9); sun.castShadow=true; sun.shadow.mapSize.set(hi?2048:1536, hi?2048:1536);
   Object.assign(sun.shadow.camera,{left:-95,right:95,top:95,bottom:-95,near:10,far:420}); sun.shadow.bias=-.0004; sun.shadow.normalBias=.03; sun.shadow.radius=3;
   sun.target.position.set(CENTER.x,0,CENTER.z); scene.add(sun); scene.add(sun.target);
   sky=new THREE.Sky(); sky.scale.setScalar(3000); scene.add(sky);
@@ -1193,6 +1241,13 @@ function initScene(){
   requestAnimationFrame(loop);
 }
 
+// if this device still can't keep up, lower the resolution, then switch off shadows
+let perfAcc=0, perfN=0, perfStep=0;
+function perfWatch(dt){ if(perfStep>=3 || document.body.classList.contains("drawer-open")) return; perfAcc+=dt; perfN++; if(perfAcc<3) return;
+  const fps=perfN/perfAcc; perfAcc=0; perfN=0; if(fps>40) return;
+  if(perfStep===0){ perfStep=1; if(renderer.getPixelRatio()>1){ renderer.setPixelRatio(1); resize(); return; } }
+  if(perfStep===1){ perfStep=2; if(composer){ composer=null; return; } }
+  perfStep=3; renderer.shadowMap.enabled=false; scene.traverse(o=>{ if(o.material && !Array.isArray(o.material)) o.material.needsUpdate=true; }); }
 function zoomBy(f){ if(!camera) return; const t=controls.target.clone(), dir=camera.position.clone().sub(t); const L=Math.min(controls.maxDistance, Math.max(controls.minDistance, dir.length()*f)); go(t.clone().add(dir.setLength(L)), t, 320); }
 function aspect(){ return innerWidth/Math.max(1,innerHeight); }
 function setOverview(instant){
@@ -1224,11 +1279,13 @@ function loop(now){
   controls.update();
   ocean.material.uniforms.uTime.value=simT;
   grassMats.forEach(m=>{ if(m.userData.u) m.userData.u.uTime.value=simT; });
-  swayers.forEach(s=>{ s.o.rotation.z=Math.sin(simT*1.1+s.ph)*s.amp; s.o.rotation.x=Math.cos(simT*.9+s.ph)*s.amp*.6; });
-  routeDots.forEach(r=>{ r.m.position.y=.3+Math.sin(simT*1.6+r.ph)*.12; });
-  seaBoats.forEach(f=>f(simT));
-  isles.forEach((o,i)=>{ o.anim.forEach(f=>f(simT)); if(o.fanim) o.fanim.forEach(f=>f(simT)); const goal=isUnlocked(i)?0:1; if(Math.abs(o.cloudK-goal)>.001){ o.cloudK+=(goal-o.cloudK)*Math.min(1,dt*2.2); if(Math.abs(o.cloudK-goal)<.01) o.cloudK=goal; } o.clouds.visible=o.cloudK>.01; o.clouds.scale.setScalar(Math.max(.001,o.cloudK)); o.clouds.rotation.y=simT*.04; });
-  if(media && (media.stream) && (loop.n=(loop.n||0)+1)%4){ placeLabels(); return; }
+  animateAll(simT);
+  isles.forEach((o,i)=>{ const goal=isUnlocked(i)?0:1; if(Math.abs(o.cloudK-goal)>.001){ o.cloudK+=(goal-o.cloudK)*Math.min(1,dt*2.2); if(Math.abs(o.cloudK-goal)<.01) o.cloudK=goal; } o.clouds.visible=o.cloudK>.01; o.clouds.scale.setScalar(Math.max(.001,o.cloudK)); o.clouds.rotation.y=simT*.04; });
+  loop.n=(loop.n||0)+1;
+  if(media && (media.stream) && loop.n%4){ placeLabels(); return; }
+  if(document.body.classList.contains("drawer-open") && !fly && loop.n%2) return;   // a panel is open: 3D at half rate so scrolling stays smooth
+  perfWatch(dt);
+  if(!HIGH() && renderer.shadowMap.enabled) renderer.shadowMap.needsUpdate = loop.n%2===0;   // shadows refresh every other frame
   if(composer){ const f=.5+viewOff.y/Math.max(1,innerHeight); tiltH.uniforms.uFocus.value=f; tiltV.uniforms.uFocus.value=f; composer.render(); }
   else renderer.render(scene,camera);
   placeLabels();
@@ -2069,7 +2126,7 @@ function makeDecor(id, k, r){ const g=new THREE.Group(), rr=rng(k*13+id.length);
      swing:()=>swing(g), kite:()=>kite(g), trishaw:()=>trishaw(g), gazebo:()=>gazebo(g), kopi:()=>kopiStall(g),
      shop:()=>{ const s=shophouse(SHOP_COL()[k%6],2.4,2.6); s.scale.setScalar(.85); g.add(s); },
      stilt:()=>{ const s=stiltHouse(NY.cream,NY.tile,1.3,2.8,2.2); s.scale.setScalar(.8); g.add(s); },
-     perahu:()=>{ const b=perahu(k%2?C.gold:NY.lantern, k%2?NY.lantern:C.gold); g.add(b); } })[id]();
+     perahu:()=>{ const b=perahu(k%2?C.gold:NY.lantern, k%2?NY.lantern:C.gold); g.add(b); } })[id]?.();
   return g; }
 function render3DBuild(i){
   if(!scene || !isles[i]) return; const o=isles[i];
@@ -2081,6 +2138,7 @@ function render3DBuild(i){
     else { const R=o.r*.72, x=Math.cos(a)*R, z=Math.sin(a)*R; g.position.set(x, o.sh?terrainH(o.sh,x,z):2.2, z); g.rotation.y=-a+Math.PI/2; }
     o.bgrp.add(g); });
   o.bgrp.traverse(m=>{ if(m.isMesh){ m.castShadow=true; m.receiveShadow=true; } });
+  o.bgrp.children.forEach(bakeGroup);
 }
 
 /* ============================== 海洋养殖 Sea farm ============================== */
@@ -2219,6 +2277,7 @@ function render3DFarm(i){
     else if(id==="starfish"){ const a=a0, e=islandEdge(o.sh,a)*1.04, x=Math.cos(a)*e, z=Math.sin(a)*e; f=t=>{ c.position.set(x, Math.max(terrainH(o.sh,x,z), -1.5)+.05, z); c.rotation.y=ph; }; }
     const tl=c.userData.tail, ax=c.userData.tailAxis, sp2=({whale:1.1,fish:7,clown:8,shark:3,dolphin:3.4})[id]||3;
     o.fanim.push(t=>{ f(t); if(tl) tl.rotation[ax]=Math.sin(t*sp2+ph)*(ax==="z"?.32:.42); }); });
+  o.fgrp.children.forEach(bakeGroup);
 }
 
 /* ---------- build UI: island map with plots 1–6, drag & drop + tap ---------- */
@@ -2444,7 +2503,7 @@ const cloudState=()=>{ const c=Object.assign({}, state); delete c.teacher; retur
 document.addEventListener("visibilitychange",()=>{ if(document.hidden && auth && syncState==="wait"){ clearTimeout(syncTimer); syncNow(true); } });
 
 // replace the local state with a saved one and refresh everything on screen
-function adoptState(s){ state=Object.assign(freshState(), s||{}, {teacher:false}); try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} applyPy(); applyEn(); applyMusicBtn(); updateCoins(); refreshLabels(); if(scene) ISLANDS.forEach((_,i)=>{ render3DBuild(i); render3DFarm(i); }); }
+function adoptState(s){ const dev={gfx:state.gfx, music:state.music, vol:state.vol}; state=Object.assign(freshState(), s||{}, {teacher:false}); Object.keys(dev).forEach(k=>{ if(dev[k]!==undefined) state[k]=dev[k]; else delete state[k]; }); try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} applyPy(); applyEn(); applyMusicBtn(); updateCoins(); refreshLabels(); if(scene) ISLANDS.forEach((_,i)=>{ render3DBuild(i); render3DFarm(i); }); }
 function afterLogin(j, isNew){
   auth={token:j.token, cls:j.cls, sid:j.sid, nick:j.nick}; saveAuth(); remember(j.cls, j.sid);
   const local=state, sameOwner=local.owner===`${j.cls}/${j.sid}`, server=j.state;
@@ -2534,7 +2593,7 @@ if(!API){ const d=$("#syncDot"); if(d) d.hidden=true; }
 let started=false;
 function start3D(){ if(started) return; started=true;
   HAS3D = !!(window.THREE && THREE.OrbitControls) && webglOK();
-  if(HAS3D){ try{ buildLabels(); initScene(); ISLANDS.forEach((_,i)=>{ render3DBuild(i); render3DFarm(i); }); $("#zoomer").hidden=false; return; }catch(err){ console.error(err); HAS3D=false; } }
+  if(HAS3D){ try{ buildLabels(); initScene(); ISLANDS.forEach((_,i)=>{ render3DBuild(i); render3DFarm(i); }); bakeAll(); $("#zoomer").hidden=false; return; }catch(err){ console.error(err); HAS3D=false; } }
   $("#hint").hidden=true; $("#zoomer").hidden=true; refreshLabels(); openSide("list"); }
 if(window.THREE) start3D(); else { addEventListener("three-ready", start3D, {once:true}); setTimeout(start3D, 12000); }
 welcome();
