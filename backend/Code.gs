@@ -12,7 +12,7 @@
 
 const SH_CLASSES = '班级 Classes';
 const SH_STUDENTS = '学生 Students';
-const ISLANDS = ['M1','M2','M3','M4','M5','M6','M7','M8','M9'];
+const ISLANDS = ['C1','C2','C3','C4','C5','C6','C7','C8','C9'];   // one island = one Chapter
 const CLASS_HEADERS = ['代码 Code','名称 Name','开放 Active','建立 Created','学号名单 Student IDs'];
 const STUDENT_HEADERS = ['班级 Class','学号 Student ID','昵称 Nickname','salt','pinHash','建立 Created','最后登入 Last login','token','tokenExp','fails','lockUntil',
   '最后更新 Updated','总进度 Overall %','完成岛 Islands done','星星 Stars','椰子币 Coins'].concat(ISLANDS).concat(['summary','state']);

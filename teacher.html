@@ -78,12 +78,12 @@ td.isl[data-s="0"]{background:var(--s0)}td.isl[data-s="1"]{background:var(--s1)}
     </section>
     <section class="tiles" id="tiles"></section>
     <section class="card">
-      <h2>各岛通过率 <small>Share of students with at least 1 star on each island</small></h2>
+      <h2>各 Chapter 通过率 <small>Share of students with at least 1 star on each Chapter (island)</small></h2>
       <div class="chart" id="chart"></div>
     </section>
     <section class="card">
       <div class="row" style="justify-content:space-between"><h2 style="margin:0">学生进度 <small>Roster</small></h2><input id="search" placeholder="搜索学号或昵称 Search ID or nickname" style="width:220px"></div>
-      <div class="legend" style="margin:8px 0"><span>每岛星星 Stars per island:</span><span><i style="background:var(--s0)"></i>0</span><span><i style="background:var(--s1)"></i>1</span><span><i style="background:var(--s2)"></i>2</span><span><i style="background:var(--s3)"></i>3</span><span>🔒 未解锁 locked</span></div>
+      <div class="legend" style="margin:8px 0"><span>每个 Chapter 的星星 Stars per Chapter:</span><span><i style="background:var(--s0)"></i>0</span><span><i style="background:var(--s1)"></i>1</span><span><i style="background:var(--s2)"></i>2</span><span><i style="background:var(--s3)"></i>3</span><span>🔒 未解锁 locked</span></div>
       <div class="tablewrap"><table id="tbl"><thead></thead><tbody></tbody></table></div>
       <p class="note" id="empty" hidden>这个班还没有学生注册。把班级代码告诉学生，让他们在游戏里选「第一次来：注册」。<br>No students yet. Give students the class code and ask them to choose “New here: sign up”.</p>
     </section>
@@ -93,7 +93,7 @@ td.isl[data-s="0"]{background:var(--s0)}td.isl[data-s="1"]{background:var(--s1)}
 <script>
 "use strict";
 const API=(window.ISLES_API||"").trim(), $=s=>document.querySelector(s), esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const ISL=["M1","M2","M3","M4","M5","M6","M7","M8","M9"], ISL_NAME=["拼音灯塔","问候码头","日历钟楼","文莱住址村","家庭树林","国籍港口","交通车站","服饰街","终点舞台"];
+const ISL=["C1","C2","C3","C4","C5","C6","C7","C8","C9"], ISL_NAME=["拼音灯塔","问候码头","日历钟楼","文莱住址村","家庭树林","国籍港口","交通车站","服饰街","终点舞台"];
 let key=sessionStorage.getItem("isles-tkey")||"", classes=[], roster=[], listIds=[], sortBy={k:"pct",dir:-1};
 async function api(action, data){ const r=await fetch(API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(Object.assign({action,key},data||{}))}); return r.json(); }
 const ERR={unknown_action:"后台还是旧版本：请在 Apps Script 换上新的 Code.gs，然后「部署 → 管理部署 → 编辑（铅笔）→ 版本：新版本 → 部署」。The backend is still the old version — paste the new Code.gs and deploy a new version.", no_list:"这个班还没有学号名单。This class has no ID list yet.", no_class:"找不到这个班级。Class not found.", wrong_key:"密码不对。Wrong password.", no_teacher_password:"还没有设定老师密码。请在 Google 表格的「知识群岛」菜单里设定。No teacher password yet — set it from the sheet's 知识群岛 menu.", locked:"错太多次，请 15 分钟后再试。Too many tries — wait 15 minutes.", class_exists:"这个代码已经有了。That code already exists.", bad_class:"代码要 3–12 个英文字母或数字。3–12 letters or digits.", bad_pin:"密码要 4 位数字。PIN must be 4 digits.", no_student:"找不到这个学生。Student not found."};
@@ -140,7 +140,7 @@ function chart(){ const el=$("#chart"), n=roster.length;
   const vals=ISL.map((_,i)=>n?roster.filter(s=>((s.summary&&s.summary.islands||[])[i]||{}).s>=1).length/n:0);
   const W=900, H=260, L=44, R=10, T=14, B=44, iw=W-L-R, ih=H-T-B, bw=iw/9, gap=Math.min(26,bw*.36);
   const y=v=>T+ih*(1-v);
-  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="各岛通过率 pass rate by island">`;
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="各 Chapter 通过率 pass rate by Chapter">`;
   [0,.25,.5,.75,1].forEach(t=>{ s+=`<line x1="${L}" x2="${W-R}" y1="${y(t)}" y2="${y(t)}" stroke="var(--grid)" stroke-width="1"/><text x="${L-8}" y="${y(t)+4}" text-anchor="end" font-size="12" fill="var(--muted)">${Math.round(t*100)}%</text>`; });
   vals.forEach((v,i)=>{ const x=L+i*bw+gap/2, w=bw-gap, h=Math.max(v>0?3:0, ih*v), top=y(0)-h, r=Math.min(4,h/2,w/2);
     const path=h>0?`M${x},${y(0)} L${x},${top+r} Q${x},${top} ${x+r},${top} L${x+w-r},${top} Q${x+w},${top} ${x+w},${top+r} L${x+w},${y(0)} Z`:"";

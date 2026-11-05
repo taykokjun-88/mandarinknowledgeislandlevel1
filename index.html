@@ -394,7 +394,7 @@ textarea{resize:vertical;font-size:12px;font-family:ui-monospace,Menlo,monospace
 </head>
 <body>
 <div id="app">
-  <canvas id="scene" aria-label="三维知识群岛地图：九个岛屿，对应华语一的九个 Module"></canvas>
+  <canvas id="scene" aria-label="三维知识群岛地图：整个群岛是 Mandarin 1 这个 Module，九个岛屿就是九个 Chapter"></canvas>
   <div id="labels"></div>
 
   <header class="topbar">
@@ -435,7 +435,7 @@ textarea{resize:vertical;font-size:12px;font-family:ui-monospace,Menlo,monospace
   <div id="welcome" hidden><div class="wcard" role="dialog" aria-modal="true" aria-labelledby="wTitle">
     <div class="seal" aria-hidden="true" data-nopy>华</div>
     <h2 id="wTitle">欢迎来到 Mandarin 1的知识群岛<span class=ui-en data-b>Welcome to the Mandarin 1 Knowledge Isles</span></h2>
-    <p>九座南洋小岛，一座岛就是一个 Module。登岛学习、闯关拿星星、玩游戏赚椰子币，再用椰子币建设你自己的南洋岛。<span class=ui-en data-b>Nine Nanyang islands, one per Module. Study, win stars in quizzes, earn coconut coins in games, then build your own island.</span></p>
+    <p>整个群岛就是 Mandarin 1 这个 Module，九座南洋小岛就是九个 Chapter。登岛学习、闯关拿星星、玩游戏赚椰子币，再用椰子币建设你自己的南洋岛。<span class=ui-en data-b>The whole archipelago is the Mandarin 1 Module, and each of the nine Nanyang islands is one Chapter. Study, win stars in quizzes, earn coconut coins in games, then build your own island.</span></p>
     <label for="nickIn">你的昵称 Nickname</label>
     <input id="nickIn" maxlength="16" autocomplete="nickname" placeholder="例如 Ali、小明">
     <button class="btn" type="button" id="nickGo">出发<span class=ui-en>Let's go</span></button>
@@ -465,13 +465,13 @@ window.dispatchEvent(new Event("three-ready"));
 <script>
 "use strict";
 /* ============================================================
-   CONTENT — 9 islands = 9 Modules of the LEM-1401 / LM-1403 syllabus
+   CONTENT — the archipelago = the Mandarin 1 Module; 9 islands = its 9 Chapters
    v: [汉字, pinyin, English]   p: [中文, pinyin, English]
    tips: {r:"rule"} or {w:"wrong", ok:"right", why:"reason"}
    quiz: {q, a, d:[distractors], x:explanation, au:text-to-speak, apy:pinyin}
    ============================================================ */
 const ISLANDS = [
-{ no:"M1", name:"拼音灯塔", py:"Pīnyīn Dēngtǎ", en:"Pinyin Lighthouse", module:"语音基石与汉字基础", moduleEn:"Pinyin, Tones & Script Mechanics",
+{ no:"C1", name:"拼音灯塔", py:"Pīnyīn Dēngtǎ", en:"Pinyin Lighthouse", module:"语音基石与汉字基础", moduleEn:"Pinyin, Tones & Script Mechanics",
   weeks:[1,2], lesson:"Unit 1 Lesson 1《汉语拼音与基本笔画》", assess:"拼音发音与辨调小测",
   pos:[-60,30], grass:0x86c25e, lm:"lighthouse",
   spots:[
@@ -495,7 +495,7 @@ const ISLANDS = [
    {q:"听一听，你听到的是哪一个？", au:"马", apy:"mǎ", a:"mǎ（马）", d:["mā（妈）","má（麻）","mà（骂）"]},
    {q:"写 “国” 字，最后一笔是？", a:"最下面封口的横", d:["第一笔的竖","里面的点","右边的横折"], x:"先进人，后关门。"} ] },
 
-{ no:"M2", name:"问候码头", py:"Wènhòu Mǎtóu", en:"Greetings Pier", module:"问候礼貌与姓名表达", moduleEn:"Greetings, Courtesy & Names",
+{ no:"C2", name:"问候码头", py:"Wènhòu Mǎtóu", en:"Greetings Pier", module:"问候礼貌与姓名表达", moduleEn:"Greetings, Courtesy & Names",
   weeks:[3], lesson:"Unit 1 Lesson 2《问候》& Lesson 3《姓名》", assess:"校园初遇破冰问答",
   pos:[-38,8], grass:0x7ab85a, lm:"pier",
   spots:[
@@ -517,7 +517,7 @@ const ISLANDS = [
    {q:"听一听，你听到的是哪一个？", au:"再见", apy:"zàijiàn", a:"再见", d:["谢谢","你好","老师"]},
    {q:"“他” 和 “她” 的读音？", np:1, a:"一样，都读 tā", d:["“她”读 tà","“他”读 tǎ","完全不一样"]} ] },
 
-{ no:"M3", name:"日历钟楼", py:"Rìlì Zhōnglóu", en:"Calendar Clock Tower", module:"数字系统、日期与年龄", moduleEn:"Numbers, Calendar Dates & Age",
+{ no:"C3", name:"日历钟楼", py:"Rìlì Zhōnglóu", en:"Calendar Clock Tower", module:"数字系统、日期与年龄", moduleEn:"Numbers, Calendar Dates & Age",
   weeks:[4], lesson:"Unit 2 Lesson 4《数字与日期》", assess:"生日与年龄日历调查",
   pos:[-52,-18], grass:0x8cc063, lm:"clock",
   spots:[
@@ -542,7 +542,7 @@ const ISLANDS = [
    {q:"星期五的明天是？", a:"星期六", d:["星期四","星期天","星期一"]},
    {q:"听一听，你听到的日期是？", au:"十一月四号", apy:"shíyī yuè sì hào", a:"11月4号", d:["10月4号","11月14号","4月11号"]} ] },
 
-{ no:"M4", name:"文莱住址村", py:"Wénlái Zhùzhǐ Cūn", en:"Address Village", module:"联系方式与文莱居住地点", moduleEn:"Contact Details, Phone & Residence",
+{ no:"C4", name:"文莱住址村", py:"Wénlái Zhùzhǐ Cūn", en:"Address Village", module:"联系方式与文莱居住地点", moduleEn:"Contact Details, Phone & Residence",
   weeks:[5], lesson:"Unit 2 Lesson 5《电话号码与住址》", assess:"Quiz 1 随堂测验一 · 15%",
   pos:[-24,-34], grass:0x79b65c, lm:"village",
   spots:[
@@ -563,7 +563,7 @@ const ISLANDS = [
    {q:"哪一句是对的？", a:"我住在斯里巴加湾市。", d:["我在住斯里巴加湾市。","我住斯里巴加湾市在。","斯里巴加湾市住在我。"]},
    {q:"听一听，你听到的号码是？", au:"八七六幺四幺二", apy:"bā qī liù yāo sì yāo èr", a:"876-1412", d:["876-4142","867-1412","876-1422"]} ] },
 
-{ no:"M5", name:"家庭树林", py:"Jiātíng Shùlín", en:"Family Grove", module:"家庭结构与父母职业（上、下）", moduleEn:"Family, Classifier 口, Occupations & 也",
+{ no:"C5", name:"家庭树林", py:"Jiātíng Shùlín", en:"Family Grove", module:"家庭结构与父母职业（上、下）", moduleEn:"Family, Classifier 口, Occupations & 也",
   weeks:[6,7], lesson:"Unit 3 Lesson 6《家庭成员》& Lesson 7《职业与工作》", assess:"家庭树海报 · My Family 视频展示 15%",
   pos:[2,-14], grass:0x6fae55, lm:"tree",
   spots:[
@@ -586,7 +586,7 @@ const ISLANDS = [
    {q:"爷爷奶奶以前工作，现在不工作了，可以说？", a:"他们退休了。", d:["他们是家庭主妇。","他们是学生。","他们没有工作在。"]},
    {q:"听一听，你听到的是？", au:"我家有五口人", apy:"Wǒ jiā yǒu wǔ kǒu rén.", a:"我家有五口人。", d:["我家有四口人。","我家有九口人。","我家有五个哥哥。"]} ] },
 
-{ no:"M6", name:"国籍港口", py:"Guójí Gǎngkǒu", en:"Nationality Harbour", module:"国家国籍、多语言与注册表（上、下）", moduleEn:"Countries, Nationalities, Languages & Registration Form",
+{ no:"C6", name:"国籍港口", py:"Guójí Gǎngkǒu", en:"Nationality Harbour", module:"国家国籍、多语言与注册表（上、下）", moduleEn:"Countries, Nationalities, Languages & Registration Form",
   weeks:[8,9], lesson:"Unit 3 Lesson 8《国家与语言》·《学生个人中文注册表》", assess:"跨国身份角色扮演 · 个人注册表填报 10%",
   pos:[8,14], grass:0x84bd5f, lm:"port",
   spots:[
@@ -612,7 +612,7 @@ const ISLANDS = [
    {q:"“新加坡” 是？", a:"Singapore", d:["Malaysia","Japan","South Korea"]},
    {q:"听一听，你听到的是？", au:"你是哪国人", apy:"Nǐ shì nǎ guó rén?", a:"你是哪国人？", d:["你是中国人吗？","你住在哪儿？","你会说英语吗？"]} ] },
 
-{ no:"M7", name:"交通车站", py:"Jiāotōng Chēzhàn", en:"Transport Station", module:"校园交通与日常出行", moduleEn:"Transportation & Commuting to UBD",
+{ no:"C7", name:"交通车站", py:"Jiāotōng Chēzhàn", en:"Transport Station", module:"校园交通与日常出行", moduleEn:"Transportation & Commuting to UBD",
   weeks:[10,11], lesson:"Unit 4 Lesson 9《交通工具》", assess:"Listening Test 听力测验 · 20%",
   pos:[32,30], grass:0x7cb85e, lm:"bus",
   spots:[
@@ -636,7 +636,7 @@ const ISLANDS = [
    {q:"“船” 是？", a:"boat", d:["aeroplane","car","train"]},
    {q:"听一听，你听到的是？", au:"我开车去公司", apy:"Wǒ kāichē qù gōngsī.", a:"我开车去公司。", d:["我坐车去学校。","我骑车去公司。","我走路去公司。"]} ] },
 
-{ no:"M8", name:"服饰街", py:"Fúshì Jiē", en:"Colour & Clothing Street", module:"颜色服饰与文莱传统装束", moduleEn:"Colours, Clothing & Traditional Attire",
+{ no:"C8", name:"服饰街", py:"Fúshì Jiē", en:"Colour & Clothing Street", module:"颜色服饰与文莱传统装束", moduleEn:"Colours, Clothing & Traditional Attire",
   weeks:[12,13], lesson:"Unit 4 Lesson 10《颜色与衣服》", assess:"Reading Test 阅读测验 · 20%",
   pos:[48,4], grass:0x88c262, lm:"clothes",
   spots:[
@@ -662,7 +662,7 @@ const ISLANDS = [
    {q:"“裙子” 是？", a:"skirt", d:["trousers","hat","shirt"]},
    {q:"听一听，你听到的是？", au:"红色", apy:"hóngsè", a:"红色", d:["黄色","黑色","绿色"]} ] },
 
-{ no:"M9", name:"终点舞台", py:"Zhōngdiǎn Wǔtái", en:"Showcase Stage", module:"个人综合展示与结课评估", moduleEn:"Personal Showcase, Dining & Review",
+{ no:"C9", name:"终点舞台", py:"Zhōngdiǎn Wǔtái", en:"Showcase Stage", module:"个人综合展示与结课评估", moduleEn:"Personal Showcase, Dining & Review",
   weeks:[14], lesson:"综合拓展《全学期总复习与展示》", assess:"Final Oral Showcase 期末口语 · 20%",
   pos:[40,-26], grass:0x7fba5c, lm:"stage", mixed:true,
   spots:[
@@ -673,7 +673,7 @@ const ISLANDS = [
      p:[["你要什么？——我要一杯茶。","Nǐ yào shénme? — Wǒ yào yì bēi chá.","What would you like? — A cup of tea."],["请给我一碗面。","Qǐng gěi wǒ yì wǎn miàn.","A bowl of noodles, please."],["多少钱？——五块。","Duōshao qián? — Wǔ kuài.","How much? — Five dollars."]],
      tips:[{r:"杯：茶、咖啡、水　·　碗：米饭、面"}] },
    { h:"期末口试十问", en:"Ten questions to practise for the Final Oral",
-     p:[["你叫什么名字？","Nǐ jiào shénme míngzi?","M2"],["你今年多大？","Nǐ jīnnián duō dà?","M3"],["你的生日是几月几号？","Nǐ de shēngrì shì jǐ yuè jǐ hào?","M3"],["你住在哪儿？","Nǐ zhù zài nǎr?","M4"],["你家有几口人？","Nǐ jiā yǒu jǐ kǒu rén?","M5"],["你爸爸做什么工作？","Nǐ bàba zuò shénme gōngzuò?","M5"],["你是哪国人？","Nǐ shì nǎ guó rén?","M6"],["你会说什么语言？","Nǐ huì shuō shénme yǔyán?","M6"],["你每天怎么来大学？","Nǐ měitiān zěnme lái dàxué?","M7"],["你今天穿什么颜色的衣服？","Nǐ jīntiān chuān shénme yánsè de yīfu?","M8"]] } ],
+     p:[["你叫什么名字？","Nǐ jiào shénme míngzi?","C2"],["你今年多大？","Nǐ jīnnián duō dà?","C3"],["你的生日是几月几号？","Nǐ de shēngrì shì jǐ yuè jǐ hào?","C3"],["你住在哪儿？","Nǐ zhù zài nǎr?","C4"],["你家有几口人？","Nǐ jiā yǒu jǐ kǒu rén?","C5"],["你爸爸做什么工作？","Nǐ bàba zuò shénme gōngzuò?","C5"],["你是哪国人？","Nǐ shì nǎ guó rén?","C6"],["你会说什么语言？","Nǐ huì shuō shénme yǔyán?","C6"],["你每天怎么来大学？","Nǐ měitiān zěnme lái dàxué?","C7"],["你今天穿什么颜色的衣服？","Nǐ jīntiān chuān shénme yánsè de yīfu?","C8"]] } ],
   quiz:[
    {q:"一___茶", a:"杯", d:["碗","条","件"]},
    {q:"“多少钱？” 问的是？", a:"价钱（price）", d:["时间（time）","年龄（age）","名字（name）"]},
@@ -1537,7 +1537,7 @@ function renderPanel(){
   setHTML(panel, `
    <div class="d-head">
      <button class="d-close" type="button" id="pClose" aria-label="关闭">${X_SVG}</button>
-     <div class="chip"><b>${d.no}</b> Module ${cur+1}</div>
+     <div class="chip"><b>${d.no}</b> Chapter ${cur+1}</div>
      <h2 class="d-title">${d.name}</h2>
      <p class="d-sub"><span class="py">${d.py}</span> · ${d.en}</p>
      <dl class="meta"><dt>主题<span class=ui-en>Topic</span></dt><dd>${d.module} <span style="color:var(--muted)">${d.moduleEn}</span></dd><dt>课本<span class=ui-en>Textbook</span></dt><dd>${d.lesson}</dd></dl>
@@ -2195,7 +2195,7 @@ function arFinish(body){ const pass=gs.score>=Math.ceil(gs.qs.length*.6); if(pas
 function arClose(){ stopMedia(); const st=$("#arStage"); if(st){ st.hidden=true; st.innerHTML=""; } }
 
 /* ============================== 建设南洋岛 Build your Nanyang island ============================== */
-// 50 Nanyang decorations in 6 categories. tier = the island (0 = M1 … 8 = M9) that unlocks it; water:true items float near the shore.
+// 50 Nanyang decorations in 6 categories. tier = the island (0 = C1 … 8 = C9) that unlocks it; water:true items float near the shore.
 const DECOR_CATS=[["plant","植物","Plants"],["house","房屋","Buildings"],["street","街景","Street life"],["fun","休闲","Leisure"],["fest","节庆","Festivals"],["ride","交通","Transport"]];
 const BUILD = [
   // 植物 plants
@@ -2256,7 +2256,7 @@ const BUILD = [
   {id:"bullock",  cat:"ride",  tier:7, name:"牛车",     en:"bullock cart",   cost:28}
 ];
 // 世界 Worlds: World 1 = Mandarin 1 (this game). World 2 = 中国群岛 (Mandarin 2) is planned.
-const WORLDS=[{no:1, zh:"南洋群岛", en:"Nanyang Isles", course:"Mandarin 1", open:true},{no:2, zh:"中国群岛", en:"China Isles", course:"Mandarin 2", open:false}];
+const WORLDS=[{no:1, zh:"南洋群岛", en:"Nanyang Isles", course:"Mandarin 1 Module", open:true},{no:2, zh:"中国群岛", en:"China Isles", course:"Mandarin 2 Module", open:false}];
 const itemOpen = it => state.teacher || isUnlocked(it.tier);
 const tierLabel = t => ISLANDS[t].no;
 const SLOT_ANG=[.45,1.3,2.15,3.35,4.55,5.5];
@@ -2383,7 +2383,7 @@ function postBox(g){ g.add(cyl(.32,.34,1.2,24,0xc8102e,0,.6,0)); g.add(cyl(.38,.
   g.add(box(.3,.04,.05,0x222222,0,1.02,.32)); g.add(box(.16,.12,.02,C.gold,0,.75,.335)); g.add(cyl(.4,.42,.12,24,0x333333,0,.06,0)); }
 function streetLamp(g){ g.add(cyl(.18,.24,.3,12,0x2f3a3a,0,.15,0)); g.add(cyl(.06,.08,3.2,10,0x2f3a3a,0,1.75,0)); rodBetween(g,[0,3.2,0],[.55,3.45,0],.04,0x2f3a3a);
   g.add(cone(.28,.25,6,0x2f3a3a,.6,3.55,0)); g.add(mesh(new THREE.SphereGeometry(.17,16,10),0xfff1c1,.6,3.3,0,{emissive:0xffd27a,emissiveIntensity:1.8})); g.add(cone(.22,.3,6,0x2f3a3a,0,3.45,0)); }
-function signPost(g){ g.add(cyl(.07,.08,2.6,8,0xf6ecd6,0,1.3,0)); const arr=[["M1",0xc0141d,0],["M5",0x2f7d5b,1.6],["M9",0x2f6fb5,3.4]];
+function signPost(g){ g.add(cyl(.07,.08,2.6,8,0xf6ecd6,0,1.3,0)); const arr=[["C1",0xc0141d,0],["C5",0x2f7d5b,1.6],["C9",0x2f6fb5,3.4]];
   arr.forEach(([t,c,a],k)=>{ const p=new THREE.Group(); p.position.y=2.25-k*.45; p.rotation.y=a; g.add(p); p.add(box(1.1,.3,.06,c,.5,0,0)); const tip=cone(.21,.25,3,c,1.15,0,0); tip.rotation.z=-Math.PI/2; tip.scale.z=.3; p.add(tip); p.add(box(.6,.12,.02,0xffffff,.45,0,.04)); });
   g.add(ball(.1,C.gold,0,2.65,0)); }
 function hammock(g){ [-1.2,1.2].forEach(x=>{ g.add(cyl(.09,.11,2,10,NY.teak,x,1,0)); g.add(ball(.1,NY.teak,x,2,0)); });
@@ -2824,7 +2824,7 @@ function openSide(kind){
     const ob=$("#outBtn"); if(ob) ob.onclick=()=>logout(); const sb=$("#syncBtn"); if(sb) sb.onclick=async()=>{ await syncNow(); toast(syncState==="ok"?"已同步":"同步失败，稍后再试", syncState==="ok"?"Synced":"Sync failed — will retry"); }; const ib=$("#inBtn"); if(ib) ib.onclick=()=>{ side.hidden=true; updateOffsetGoal(); adoptState(null); refreshRoute(); welcome(true); };
     $("#nkSave").onclick=()=>{ const v=$("#nick2").value.trim(); if(!v) return; state.nick=v.slice(0,16); save(); openSide("me"); toast("昵称已保存","Nickname saved"); };
   } else if(kind==="list"){
-    setHTML(side, `<div class="d-head"><button class="d-close" type="button" id="sClose" aria-label="关闭">${X_SVG}</button><div class="chip">世界一 · 南洋群岛 · 9 Modules</div><h2 class="d-title">群岛航线<span class=ui-en data-b>Island route</span></h2><p class="d-sub">一座岛 = 一个 Module。按顺序闯关，云雾会一座一座散开。<span class=ui-en data-b>One island = one Module. Pass each quiz in order and the clouds clear one by one.</span></p></div>
+    setHTML(side, `<div class="d-head"><button class="d-close" type="button" id="sClose" aria-label="关闭">${X_SVG}</button><div class="chip">世界一 · 南洋群岛 · Mandarin 1 Module · 9 Chapters</div><h2 class="d-title">群岛航线<span class=ui-en data-b>Island route</span></h2><p class="d-sub">整个群岛 = 一个 Module，一座岛 = 一个 Chapter。按顺序闯关，云雾会一座一座散开。<span class=ui-en data-b>The archipelago is one Module; each island is one Chapter. Pass each quiz in order and the clouds clear one by one.</span></p></div>
       <div class="d-body"><div class="worlds">${WORLDS.map(w=>`<div class="world ${w.open?"on":"soon"}"><span class="wn">世界${"一二三"[w.no-1]}<span class=ui-en>World ${w.no}</span></span><b>${w.zh}<span class=ui-en>${w.en}</span></b><span class="wc">${w.course}${w.open?" · 进行中 now playing":" · 即将开放 coming soon"}</span></div>`).join("")}</div>${HAS3D?"":`<p class="notice">这台设备无法显示 3D 地图，不过可以直接从清单进入每座岛学习和闯关。<span class=ui-en data-b>This device can't show the 3D map, but you can open every island from this list.</span></p>`}<div class="list">${ISLANDS.map((d,i)=>{ const un=isUnlocked(i); return `<button class="li ${un?"":"locked"}" type="button" data-i="${i}"><span class="n">${d.no}</span><span><span class="nm">${d.name}</span><span class="ds">${d.module}</span></span><span class="rt">${un?`<span class="lbl-stars" style="display:flex">${stars3(starsOf(i))}</span>`:LOCK+"未解锁 Locked"}</span></button>`; }).join("")}</div></div>`);
     side.querySelectorAll(".li").forEach(b=>b.onclick=()=>openIsland(+b.dataset.i));
   } else {
@@ -2952,7 +2952,7 @@ function welcome(force){
   w.hidden=false; render();
 }
 function nickOnly(w){ w.hidden=false; rubify(w); const inp=$("#nickIn"); if(!inp) return; setTimeout(()=>inp.focus(),50);
-  const go=()=>{ const v=inp.value.trim(); if(!v){ inp.focus(); return; } state.nick=v.slice(0,16); save(); w.hidden=true; toast(`欢迎你，${state.nick}！先登上 M1「拼音灯塔」吧。`, `Welcome, ${state.nick}! Start at M1, the Pinyin Lighthouse.`); };
+  const go=()=>{ const v=inp.value.trim(); if(!v){ inp.focus(); return; } state.nick=v.slice(0,16); save(); w.hidden=true; toast(`欢迎你，${state.nick}！先登上 C1「拼音灯塔」吧。`, `Welcome, ${state.nick}! Start at C1, the Pinyin Lighthouse.`); };
   $("#nickGo").onclick=go; inp.onkeydown=e=>{ if(e.key==="Enter") go(); }; }
 
 $("#zIn").onclick=()=>zoomBy(.7);
