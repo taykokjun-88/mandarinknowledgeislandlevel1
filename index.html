@@ -1158,7 +1158,7 @@ function scatterCards(g, sh, kind, count, minT, maxT, sizeR, rr, avoid){
   const aRect=new Float32Array(count*4), aPh=new Float32Array(count), im=new THREE.InstancedMesh(geo, cardMat(kind), count), m4=new THREE.Matrix4(), q=new THREE.Quaternion(), v=new THREE.Vector3(), sc=new THREE.Vector3();
   let n=0, guard=0;
   while(n<count && guard++<count*10){ const a=rr()*Math.PI*2, d=Math.sqrt(rr())*sh.r*1.05, x=Math.cos(a)*d, z=Math.sin(a)*d, t=d/islandEdge(sh,a);
-    if(t<minT||t>maxT) continue; const h=terrainH(sh,x,z); if(h<1.4) continue; if(avoid && avoid.some(([px,pz])=>(px-x)*(px-x)+(pz-z)*(pz-z)<2.6)) continue;
+    if(t<minT||t>maxT) continue; const h=terrainH(sh,x,z); if(h<1.4) continue; if(avoid && avoid.some(([px,pz])=>(px-x)*(px-x)+(pz-z)*(pz-z)<6.3)) continue;   // keep about 2.5 units clear around each build plot
     const k=Math.floor(rr()*rects.length), r=rects[k], hgt=(sizeR[0]+rr()*(sizeR[1]-sizeR[0]))*(r[4]>1.4?.72:1), wid=hgt*r[4];
     m4.compose(v.set(x,h-.05,z),q,sc.set(wid,hgt,1)); im.setMatrixAt(n,m4); aRect.set([r[0],r[1],r[2],r[3]],n*4); aPh[n]=rr()*6.28; n++; }
   geo.setAttribute("aRect", new THREE.InstancedBufferAttribute(aRect,4)); geo.setAttribute("aPhase", new THREE.InstancedBufferAttribute(aPh,1));
@@ -1194,8 +1194,8 @@ function buildIsland(d, i){
   // grass tufts + flowers
   const hi=HIGH();
   const plots=SLOT_ANG.map(a=>[Math.cos(a)*r*.72, Math.sin(a)*r*.72]);   // keep the build plots clear
-  scatterCards(g, sh, "grass", hi?340:160, .42, .86, [.45,.95], rr, plots);
-  scatterCards(g, sh, "flowers", hi?70:34, .4, .84, [.55,.85], rr, plots);
+  scatterCards(g, sh, "grass", hi?170:90, .42, .9, [.45,.9], rr, plots);
+  scatterCards(g, sh, "flowers", hi?32:18, .4, .88, [.5,.8], rr, plots);
   const A=[]; const lm=LM[d.lm](A,r); lm.position.y=2.2; g.add(lm);
   // soft clouds over locked islands
   // magic mist over locked islands: hand-painted sprites that drift apart and fade when the island unlocks
@@ -2731,7 +2731,7 @@ function scooter(g){ const C1=0x8be0c0, CH=0xd8dde2;
 const DECOR_SPR={"palm": [245, 300, 0.013], "frang": [295, 283, 0.021], "flowers": [275, 248, 0.044], "banana": [282, 300, 0.019], "rambutan": [284, 300, 0.02], "durian": [295, 300, 0.02], "mango": [280, 297, 0.02], "orchid": [300, 262, 0.041], "bamboo": [261, 300, 0.017], "postbox": [183, 286, 0.021], "kopi": [275, 295, 0.024], "lamp": [93, 300, 0.026], "sign": [154, 286, 0.021], "coconut": [227, 300, 0.068], "satay": [283, 300, 0.029], "icecream": [220, 299, 0.064], "fruit": [280, 297, 0.034], "news": [273, 293, 0.02], "bench": [219, 198, 0.04], "swing": [202, 231, 0.03], "umbrella": [238, 224, 0.049], "seesaw": [231, 168, 0.161], "hammock": [228, 225, 0.036], "slide": [212, 220, 0.032], "takraw": [206, 184, 0.049], "pitcher": [229, 251, 0.056], "lantern": [240, 300, 0.035], "kite": [182, 300, 0.031], "pelita": [209, 261, 0.031], "orange": [195, 300, 0.046], "crackers": [100, 300, 0.052], "lion": [218, 260, 0.05], "ketupat": [204, 300, 0.025], "gong": [234, 273, 0.026]};   // [width px, height px, share of the picture below the item's base (its painted shadow)]
 const DECOR_H={palm:5,frang:3.2,flowers:1.5,banana:3.6,rambutan:4.2,durian:4.2,mango:4.2,orchid:1.6,bamboo:4.6,pitcher:1.7,
   postbox:1.7,kopi:2.9,lamp:3.8,sign:2.7,coconut:2.9,satay:2.5,icecream:2.9,fruit:2.3,news:2.4,
-  bench:1.3,swing:3.2,umbrella:2.6,seesaw:1.1,hammock:2,slide:2.4,takraw:1.6,
+  bench:1.7,swing:4.4,umbrella:3.2,seesaw:1.6,hammock:2.7,slide:3.2,takraw:2.1,
   lantern:3.4,kite:4.2,pelita:2.2,orange:2.3,crackers:3.3,lion:2.3,ketupat:3.3,gong:2.5};
 const decorTex={};
 function decorSprite(g, id, k){ const [pw,ph,pad]=DECOR_SPR[id], H=DECOR_H[id]||2.5, W=H*pw/ph;
