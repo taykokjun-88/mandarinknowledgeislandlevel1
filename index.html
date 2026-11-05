@@ -15,7 +15,7 @@
   --panel:#fffaf2; --panel-2:#f5ecdd; --ink:#2b1d16; --muted:#6e5d52; --line:rgba(90,55,30,.16);
   --red:#b3121c; --red-ink:#fffaf2; --gold:#a87a12; --gold-soft:#f4e4b8;
   --ok:#2c7a4b; --ok-soft:#dcefe2; --bad:#b3121c; --bad-soft:#f8dcdc;
-  --glass:rgba(255,250,242,.88); --shadow:0 12px 32px rgba(50,25,10,.18);
+  --glass:rgba(255,250,242,.94); --shadow:0 12px 32px rgba(50,25,10,.18);
   --tile-a:#2f7d6b; --tile-b:#f2b8b5; --tile-wash:rgba(47,125,107,.12); --outline:#e6cfc4;
   --sky:#bfe2ec; --fog:#cfe8ef; --sea:#1f7d98;
   --f-display:"Ma Shan Zheng","STKaiti","KaiTi",serif;
@@ -25,13 +25,13 @@
   --panel:#1d1715; --panel-2:#2a211d; --ink:#f6ece2; --muted:#bfae9f; --line:rgba(255,225,190,.14);
   --red:#e2474f; --red-ink:#1d1715; --gold:#e6b84c; --gold-soft:#4a3a1a;
   --ok:#62c98f; --ok-soft:#1f3a2b; --bad:#ff7070; --bad-soft:#4a2224;
-  --glass:rgba(29,23,21,.88); --shadow:0 12px 32px rgba(0,0,0,.45); --tile-a:#4fb39a; --tile-b:#7a3f45; --tile-wash:rgba(79,179,154,.14); --outline:#4a3833;
+  --glass:rgba(29,23,21,.94); --shadow:0 12px 32px rgba(0,0,0,.45); --tile-a:#4fb39a; --tile-b:#7a3f45; --tile-wash:rgba(79,179,154,.14); --outline:#4a3833;
   --sky:#142638; --fog:#16283a; --sea:#1b5574; color-scheme:dark;}}
 :root[data-theme="dark"]{
   --panel:#1d1715; --panel-2:#2a211d; --ink:#f6ece2; --muted:#bfae9f; --line:rgba(255,225,190,.14);
   --red:#e2474f; --red-ink:#1d1715; --gold:#e6b84c; --gold-soft:#4a3a1a;
   --ok:#62c98f; --ok-soft:#1f3a2b; --bad:#ff7070; --bad-soft:#4a2224;
-  --glass:rgba(29,23,21,.88); --shadow:0 12px 32px rgba(0,0,0,.45); --tile-a:#4fb39a; --tile-b:#7a3f45; --tile-wash:rgba(79,179,154,.14); --outline:#4a3833;
+  --glass:rgba(29,23,21,.94); --shadow:0 12px 32px rgba(0,0,0,.45); --tile-a:#4fb39a; --tile-b:#7a3f45; --tile-wash:rgba(79,179,154,.14); --outline:#4a3833;
   --sky:#142638; --fog:#16283a; --sea:#1b5574; color-scheme:dark;}
 [hidden]{display:none!important}
 html,body{height:100%}
@@ -43,7 +43,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 #labels{position:absolute;inset:0;pointer-events:none}
 
 /* island labels */
-.lbl{position:absolute;left:0;top:0;pointer-events:auto;display:flex;align-items:center;gap:6px;padding:5px 10px 5px 5px;border-radius:999px;border:1px solid var(--line);background:var(--glass);box-shadow:var(--shadow);white-space:nowrap;transform:translate(-50%,-100%);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.lbl{position:absolute;left:0;top:0;pointer-events:auto;display:flex;align-items:center;gap:6px;padding:5px 10px 5px 5px;border-radius:999px;border:1px solid var(--line);background:var(--glass);box-shadow:var(--shadow);white-space:nowrap;transform:translate(-50%,-100%)}
 .lbl:hover{border-color:var(--gold)}
 .lbl-no{font-size:11px;font-weight:700;letter-spacing:.04em;background:var(--red);color:var(--red-ink);border-radius:999px;padding:2px 7px}
 .lbl-name{font-family:var(--f-display);font-size:19px;line-height:1}
@@ -57,7 +57,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 
 /* top bar */
 .topbar{position:absolute;top:12px;left:16px;right:16px;display:flex;gap:10px;align-items:flex-start;justify-content:space-between;pointer-events:none;flex-wrap:wrap}
-.brand,.tools{pointer-events:auto;background:var(--glass);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:16px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.brand,.tools{pointer-events:auto;background:var(--glass);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:16px;}
 .brand{padding:10px 16px;display:flex;align-items:center;gap:14px;min-width:0}
 .seal{width:44px;height:44px;flex:none;border-radius:10px;background:var(--red);color:var(--red-ink);display:grid;place-items:center;font-family:var(--f-display);font-size:26px;line-height:1;transform:rotate(-4deg)}
 .brand h1{margin:0;font-family:var(--f-display);font-weight:400;font-size:26px;line-height:1.05;letter-spacing:.04em}
@@ -71,7 +71,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .tbtn[aria-pressed="true"]{background:var(--gold-soft)}
 
 @media (min-width:721px) and (orientation:landscape), (min-width:1101px){ body.drawer-open .topbar{right:auto;max-width:calc(100% - 492px)} body.drawer-open .brand p,body.drawer-open .tbtn span{display:none} body.drawer-open .tbtn{padding:9px} body.drawer-open .hint{display:none} }
-.zoomer{position:absolute;left:16px;top:calc(var(--top-h,150px) + 4px);display:flex;flex-direction:column;gap:4px;padding:5px;background:var(--glass);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);z-index:4;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.zoomer{position:absolute;left:16px;top:calc(var(--top-h,150px) + 4px);display:flex;flex-direction:column;gap:4px;padding:5px;background:var(--glass);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);z-index:4;}
 .zoomer button{width:42px;height:42px;border:0;border-radius:10px;background:transparent;display:grid;place-items:center;touch-action:manipulation}
 .zoomer button:hover{background:var(--panel-2)}
 .zoomer svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
@@ -760,7 +760,7 @@ function speak(text){
 /* ============================== 3D scene (three.js r160, modern stylized renderer) ============================== */
 let HAS3D = false;
 function webglOK(){ try{ const c=document.createElement("canvas"); return !!(c.getContext("webgl2")||c.getContext("webgl")); }catch(e){ return false; } }
-let renderer, scene, camera, controls, ocean, sun, hemi, sky, composer, bloomPass, tiltH, tiltV, gradePass, pmrem, SN;
+let skyRT=null, skyCam=null, renderer, scene, camera, controls, ocean, sun, hemi, sky, composer, bloomPass, tiltH, tiltV, gradePass, pmrem, SN;
 const CENTER = {x:-6, z:-2};
 const isles = [];            // per island: {group, clouds, cloudK, anim:[], r, shape}
 let routeDots = [];
@@ -1142,10 +1142,16 @@ function applyTheme(){ if(!scene) return; const dark=themeDark();
   wu.uDeep.value.set(dark?0x0b2a45:0x0565a8); wu.uMid.value.set(dark?0x14466a:0x0aa2cf); wu.uShallow.value.set(dark?0x2a8f95:0x2fe6d2); wu.uSky.value.set(dark?0x8a6f86:0xbfe4f2);
   // environment lighting from the sky
   if(pmrem){ const envScene=new THREE.Scene(); const s2=new THREE.Sky(); s2.scale.setScalar(1000); Object.keys(u).forEach(k=>{ if(s2.material.uniforms[k]) s2.material.uniforms[k].value=u[k].value.clone?u[k].value.clone():u[k].value; }); envScene.add(s2);
+    // the sky never changes while playing, so draw it once into a cube texture instead of shading it every frame
+    try{ if(!skyRT){ skyRT=new THREE.WebGLCubeRenderTarget(512,{type:THREE.HalfFloatType, generateMipmaps:false}); skyCam=new THREE.CubeCamera(1,5000,skyRT); }
+      skyCam.update(renderer, envScene); scene.background=skyRT.texture; sky.visible=false; }catch(e){ sky.visible=true; scene.background=null; }
     if(scene.environment) scene.environment.dispose(); scene.environment=pmrem.fromScene(envScene,0.04).texture; }
+  refreshShadows();
   if(bloomPass){ bloomPass.strength=dark?.7:.18; bloomPass.threshold=dark?.82:.97; } if(gradePass) gradePass.uniforms.uSat.value=dark?1.15:1.26;
 }
 
+let lastTouch=0; ["pointerdown","pointermove","wheel","touchmove"].forEach(ev=>addEventListener(ev,e=>{ if(ev!=="pointermove"||e.buttons||e.pointerType==="touch") lastTouch=performance.now(); },{passive:true}));
+function refreshShadows(){ if(renderer) renderer.shadowMap.needsUpdate=true; }
 // every per-frame animation, in one place (also used to find which objects move)
 function animateAll(t){
   swayers.forEach(s=>{ s.o.rotation.z=Math.sin(t*1.1+s.ph)*s.amp; s.o.rotation.x=Math.cos(t*.9+s.ph)*s.amp*.6; });
@@ -1200,7 +1206,7 @@ function initScene(){
   renderer=new THREE.WebGLRenderer({canvas, antialias:!hi, powerPreference:"high-performance"});
   renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, hi?2:1.5));
   renderer.outputColorSpace=THREE.SRGBColorSpace; renderer.toneMapping=THREE.ACESFilmicToneMapping;
-  renderer.shadowMap.enabled=true; renderer.shadowMap.type=hi?THREE.PCFSoftShadowMap:THREE.PCFShadowMap; if(!hi) renderer.shadowMap.autoUpdate=false;
+  renderer.shadowMap.enabled=true; renderer.shadowMap.type=hi?THREE.PCFSoftShadowMap:THREE.PCFShadowMap; renderer.shadowMap.autoUpdate=false;   // shadows are redrawn only when the scenery changes (see refreshShadows)
   scene=new THREE.Scene();
   camera=new THREE.PerspectiveCamera(40,1,.5,4000);
   controls=new THREE.OrbitControls(camera, canvas);
@@ -1277,15 +1283,13 @@ function loop(now){
   if(fly){ const k=Math.min(1,(now-fly.s)/fly.dur), e=ease(k); camera.position.lerpVectors(fly.p0,fly.p1,e); controls.target.lerpVectors(fly.t0,fly.t1,e); if(k>=1){ fly=null; controls.enabled=true; } }
   viewOff.x+=(viewOffGoal.x-viewOff.x)*Math.min(1,dt*7); viewOff.y+=(viewOffGoal.y-viewOff.y)*Math.min(1,dt*7); applyOffset();
   controls.update();
+  loop.n=(loop.n||0)+1; perfWatch(dt);
+  if(media && (media.stream) && loop.n%4){ placeLabels(); return; }
+  if(!fly && loop.n%2 && (document.body.classList.contains("drawer-open") || now-lastTouch>1500)) return;   // view is still or a panel is open: 30 fps is plenty
   ocean.material.uniforms.uTime.value=simT;
   grassMats.forEach(m=>{ if(m.userData.u) m.userData.u.uTime.value=simT; });
   animateAll(simT);
   isles.forEach((o,i)=>{ const goal=isUnlocked(i)?0:1; if(Math.abs(o.cloudK-goal)>.001){ o.cloudK+=(goal-o.cloudK)*Math.min(1,dt*2.2); if(Math.abs(o.cloudK-goal)<.01) o.cloudK=goal; } o.clouds.visible=o.cloudK>.01; o.clouds.scale.setScalar(Math.max(.001,o.cloudK)); o.clouds.rotation.y=simT*.04; });
-  loop.n=(loop.n||0)+1;
-  if(media && (media.stream) && loop.n%4){ placeLabels(); return; }
-  if(document.body.classList.contains("drawer-open") && !fly && loop.n%2) return;   // a panel is open: 3D at half rate so scrolling stays smooth
-  perfWatch(dt);
-  if(!HIGH() && renderer.shadowMap.enabled) renderer.shadowMap.needsUpdate = loop.n%2===0;   // shadows refresh every other frame
   if(composer){ const f=.5+viewOff.y/Math.max(1,innerHeight); tiltH.uniforms.uFocus.value=f; tiltV.uniforms.uFocus.value=f; composer.render(); }
   else renderer.render(scene,camera);
   placeLabels();
@@ -1301,7 +1305,8 @@ function refreshLabels(){ ISLANDS.forEach((d,i)=>{ const un=isUnlocked(i), b=lbl
   if(scene) refreshRoute(); }
 let pv = null;
 function placeLabels(){ const w=innerWidth,h=innerHeight; ISLANDS.forEach((d,i)=>{ const b=lbls[i]; pv.set(d.pos[0], isUnlocked(i)?17:19, d.pos[1]).project(camera);
-  if(i===cur||pv.z>1||pv.x<-1.2||pv.x>1.2||pv.y<-1.2||pv.y>1.2){ b.style.display="none"; return; } b.style.display=""; b.style.transform=`translate(${(pv.x*.5+.5)*w}px,${(-pv.y*.5+.5)*h}px) translate(-50%,-100%)`; }); }
+  const hide=i===cur||pv.z>1||pv.x<-1.2||pv.x>1.2||pv.y<-1.2||pv.y>1.2; if(b._h!==hide){ b._h=hide; b.style.display=hide?"none":""; } if(hide) return;
+  const t=`translate3d(${Math.round((pv.x*.5+.5)*w)}px,${Math.round((-pv.y*.5+.5)*h)}px,0) translate(-50%,-100%)`; if(b._t!==t){ b._t=t; b.style.transform=t; } }); }
 
 /* ============================== pinyin (ruby over every hanzi) ============================== */
 const HAS_PY = !!(window.pinyinPro && pinyinPro.pinyin);
@@ -2138,7 +2143,7 @@ function render3DBuild(i){
     else { const R=o.r*.72, x=Math.cos(a)*R, z=Math.sin(a)*R; g.position.set(x, o.sh?terrainH(o.sh,x,z):2.2, z); g.rotation.y=-a+Math.PI/2; }
     o.bgrp.add(g); });
   o.bgrp.traverse(m=>{ if(m.isMesh){ m.castShadow=true; m.receiveShadow=true; } });
-  o.bgrp.children.forEach(bakeGroup);
+  o.bgrp.children.forEach(bakeGroup); refreshShadows();
 }
 
 /* ============================== 海洋养殖 Sea farm ============================== */
@@ -2593,7 +2598,7 @@ if(!API){ const d=$("#syncDot"); if(d) d.hidden=true; }
 let started=false;
 function start3D(){ if(started) return; started=true;
   HAS3D = !!(window.THREE && THREE.OrbitControls) && webglOK();
-  if(HAS3D){ try{ buildLabels(); initScene(); ISLANDS.forEach((_,i)=>{ render3DBuild(i); render3DFarm(i); }); bakeAll(); $("#zoomer").hidden=false; return; }catch(err){ console.error(err); HAS3D=false; } }
+  if(HAS3D){ try{ buildLabels(); initScene(); ISLANDS.forEach((_,i)=>{ render3DBuild(i); render3DFarm(i); }); bakeAll(); refreshShadows(); $("#zoomer").hidden=false; return; }catch(err){ console.error(err); HAS3D=false; } }
   $("#hint").hidden=true; $("#zoomer").hidden=true; refreshLabels(); openSide("list"); }
 if(window.THREE) start3D(); else { addEventListener("three-ready", start3D, {once:true}); setTimeout(start3D, 12000); }
 welcome();
