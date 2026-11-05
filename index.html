@@ -273,7 +273,7 @@ button.gcard:hover{border-color:var(--gold)}
 .imap{position:relative;width:min(100%,250px,27vh);aspect-ratio:1;margin:0 auto;border-radius:50%;background:radial-gradient(circle,#2fe0cf 0 58%,#1aa8c8 72%,transparent 73%)}
 .iland{position:absolute;inset:16%;border-radius:47% 53% 50% 50%/52% 48% 52% 48%;background:radial-gradient(circle at 45% 40%,#79cf5a 0 55%,#f4dca0 68%)}
 .icore{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:var(--f-display);font-size:18px;color:#24401c;opacity:.7;pointer-events:none;text-align:center}
-.plot{position:absolute;transform:translate(-50%,-50%);width:27%;min-height:52px;border-radius:14px;border:2px dashed rgba(255,255,255,.85);background:rgba(255,255,255,.28);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:4px;color:#24301f;font-size:13px;touch-action:none}
+.plot{position:absolute;transform:translate(-50%,-50%);width:27%;min-width:62px;min-height:48px;white-space:nowrap;line-height:1.1;border-radius:14px;border:2px dashed rgba(255,255,255,.85);background:rgba(255,255,255,.28);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:4px;color:#24301f;font-size:13px;touch-action:none}
 .plot i{font-style:normal;font-weight:800;font-size:11px;background:#24301f;color:#fff;border-radius:999px;padding:0 6px}
 .plot.on{border-style:solid;border-color:var(--ok);background:rgba(255,255,255,.92)}
 .worlds{display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -287,7 +287,8 @@ button.gcard:hover{border-color:var(--gold)}
 .item.lockd{opacity:.55;filter:grayscale(.7)}.lockp{font-size:11.5px;color:var(--muted)}.lockp .ui-en{display:block}
 .plot.sel,.item.sel{box-shadow:0 0 0 3px var(--gold)}
 .plot.over{border-color:var(--gold);background:var(--gold-soft);transform:translate(-50%,-50%) scale(1.08)}
-.plot .ph{font-size:12px;opacity:.85}
+.plot .ph{font-size:12px;opacity:.85}.plot .ph .ui-en{display:block;font-size:10px}.plot b{font-size:12px;white-space:nowrap}
+.imap-wrap.nostick{position:static;box-shadow:none}
 .item.off{opacity:.45}
 .item{cursor:grab;user-select:none;-webkit-user-select:none}
 .dragging{opacity:.35}
@@ -2663,9 +2664,15 @@ function renderBuild(body){
   if(buildTab==="farm") renderFarm($("#bView"), body); else renderDecor($("#bView"), body);
 }
 let decorCat="all", seaCat="all";
+// keep the island map pinned on top only when the panel is tall enough; otherwise it would cover the shop
+function fitMapSticky(view){ const wrap=view.querySelector(".imap-wrap"), sc=SHEET_MQ.matches?view.closest(".drawer"):view.closest(".d-body"); if(!wrap||!sc) return;
+  wrap.classList.remove("nostick"); if(wrap.offsetHeight > sc.clientHeight*.5) wrap.classList.add("nostick"); }
+// after choosing an item: bring the plots into view so the student can tap one
+function showMap(view){ const wrap=view.querySelector(".imap-wrap"); if(!wrap || !wrap.classList.contains("nostick")) return; const sc=SHEET_MQ.matches?view.closest(".drawer"):view.closest(".d-body"); if(!sc) return;
+  const top=wrap.getBoundingClientRect().top-sc.getBoundingClientRect().top+sc.scrollTop-(SHEET_MQ.matches?70:8); sc.scrollTo({top, behavior:"smooth"}); }
 // scroll so the shop list starts right below the sticky island map
 function showShop(view){ const shop=view.querySelector(".shop"), wrap=view.querySelector(".imap-wrap"); if(!shop) return; const sc=SHEET_MQ.matches?view.closest(".drawer"):view.closest(".d-body"); if(!sc) return;
-  const top=shop.getBoundingClientRect().top-sc.getBoundingClientRect().top+sc.scrollTop-(wrap?wrap.offsetHeight:0)-24; if(sc.scrollTop<top) sc.scrollTo({top, behavior:"smooth"}); }
+  const pinned=wrap && !wrap.classList.contains("nostick"); const top=shop.getBoundingClientRect().top-sc.getBoundingClientRect().top+sc.scrollTop-(pinned?wrap.offsetHeight:SHEET_MQ.matches?70:0)-24; if(sc.scrollTop<top) sc.scrollTo({top, behavior:"smooth"}); }
 // category tabs; the number shows how many items in that category are unlocked
 function catBar(cats, cur, list, key){ const tab=(id,zh,en)=>{ const all=list.filter(x=>id==="all"||x.cat===id), open=all.filter(itemOpen).length;
     return `<button type="button" class="cat" data-${key}="${id}" aria-pressed="${cur===id}"><b>${zh} <small>${open}/${all.length}</small></b><span class=ui-en>${en}</span></button>`; };
@@ -2682,8 +2689,9 @@ function renderDecor(view, body){
       return `<div class="item ${can?"":"off"} ${open?"":"lockd"} ${sel?"sel":""}" role="button" tabindex="0" data-b="${it.id}" aria-disabled="${!can}"><b>${it.name}</b><span class="en">${it.en}</span>${open?`<span class="price"><span class="coin sm" aria-hidden="true"></span>${it.cost}</span>`:`<span class="price lockp">🔒 ${tierLabel(it.tier)} 解锁<span class=ui-en>Unlocks at ${tierLabel(it.tier)}</span></span>`}</div>`; }).join("")}</div>`);
   view.querySelectorAll("[data-dc]").forEach(b=>b.onclick=()=>{ decorCat=b.dataset.dc; bSel=null; renderDecor(view, body); showShop(view); });
   const rerender=()=>renderDecor(view, body);
+  fitMapSticky(view);
   // tap behaviour
-  view.querySelectorAll("[data-b]").forEach(el=>{ el.addEventListener("click",()=>{ if(el.dataset.dragged){ delete el.dataset.dragged; return; } const id=el.dataset.b, it=BUILD.find(x=>x.id===id); if(!itemOpen(it)){ toast(`到 ${tierLabel(it.tier)} 岛就能解锁「${it.name}」`, `Unlocks when you reach ${tierLabel(it.tier)}`); return; } if(!free && state.coins<it.cost){ toast("椰子币不够","Not enough coins"); return; } bSel={kind:"shop", id}; rerender(); }); el.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); el.click(); } }); });
+  view.querySelectorAll("[data-b]").forEach(el=>{ el.addEventListener("click",()=>{ if(el.dataset.dragged){ delete el.dataset.dragged; return; } const id=el.dataset.b, it=BUILD.find(x=>x.id===id); if(!itemOpen(it)){ toast(`到 ${tierLabel(it.tier)} 岛就能解锁「${it.name}」`, `Unlocks when you reach ${tierLabel(it.tier)}`); return; } if(!free && state.coins<it.cost){ toast("椰子币不够","Not enough coins"); return; } bSel={kind:"shop", id}; rerender(); showMap(view); }); el.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); el.click(); } }); });
   view.querySelectorAll("[data-plot]").forEach(el=>el.addEventListener("click",()=>{ if(el.dataset.dragged){ delete el.dataset.dragged; return; } const k=+el.dataset.plot;
     if(bSel&&bSel.kind==="shop"){ if(placeItem(k,bSel.id,body)) bSel=null; rerender(); return; }
     if(bSel&&bSel.kind==="plot"&&bSel.k!==k){ moveItem(bSel.k,k); bSel=null; rerender(); return; }
@@ -2962,7 +2970,7 @@ $("#bHome").onclick=()=>{ closePanel(); side.hidden=true; updateOffsetGoal(); if
 $("#bMotion").onclick=()=>setAnim(!animOn);
 addEventListener("keydown",e=>{ if(e.key==="Escape"){ if(!panel.hidden) closePanel(); else if(!side.hidden){ side.hidden=true; updateOffsetGoal(); } } });
 function fitTop(){ const t=$(".topbar"); if(t) document.documentElement.style.setProperty("--top-h", Math.ceil(t.getBoundingClientRect().bottom+8)+"px"); }
-addEventListener("resize",()=>{ resize(); fitTop(); updateOffsetGoal(); });
+addEventListener("resize",()=>{ resize(); fitTop(); updateOffsetGoal(); const bv=document.getElementById("bView"); if(bv && bv.querySelector(".imap-wrap")) fitMapSticky(bv); });
 
 /* ============================== boot ============================== */
 document.querySelectorAll(".tbtn").forEach(b=>{ const t=b.querySelector("span"); if(t) b.title=t.textContent.replace(/([^\x00-\x7F])([A-Za-z])/,"$1 $2"); });
