@@ -2456,7 +2456,7 @@ function openSide(kind){
           <div class="row"><button class="btn ghost" type="button" id="ld">读取进度码<span class=ui-en>Load code</span></button></div>
           <p class="sw-msg" id="codeMsg" style="text-align:left"></p></section>
         ${API?`<section class="spot"><h3 class="spot-h" style="margin:0">我的账号<span class=ui-en>My account</span></h3>
-          ${auth?`<p class="sw-msg" style="text-align:left">班级 ${esc(auth.cls)} · 昵称 ${esc(auth.nick)} · 进度自动存到云端。<span class=ui-en data-b>Class ${esc(auth.cls)} · nickname ${esc(auth.nick)} · progress saves to the cloud.</span></p><div class="row"><button class="btn ghost" type="button" id="syncBtn">立刻同步<span class=ui-en>Sync now</span></button><button class="btn ghost" type="button" id="outBtn">登出<span class=ui-en>Log out</span></button></div><p class="sw-msg" style="text-align:left">在共用的 iPad 上玩完，请记得登出。<span class=ui-en data-b>Log out when you finish on a shared iPad.</span></p>`
+          ${auth?`<p class="sw-msg" style="text-align:left">班级 ${esc(auth.cls)} · 学号 ${esc(auth.sid)} · 进度自动存到云端。<span class=ui-en data-b>Class ${esc(auth.cls)} · Student ID ${esc(auth.sid)} · progress saves to the cloud.</span></p><div class="row"><button class="btn ghost" type="button" id="syncBtn">立刻同步<span class=ui-en>Sync now</span></button><button class="btn ghost" type="button" id="outBtn">登出<span class=ui-en>Log out</span></button></div><p class="sw-msg" style="text-align:left">在共用的 iPad 上玩完，请记得登出。<span class=ui-en data-b>Log out when you finish on a shared iPad.</span></p>`
           :`<p class="sw-msg" style="text-align:left">现在是离线模式，进度只存在这台设备。<span class=ui-en data-b>Offline mode: progress is saved on this device only.</span></p><div class="row"><button class="btn" type="button" id="inBtn">登入 / 注册<span class=ui-en>Log in / sign up</span></button></div>`}</section>`:""}
         <section class="spot"><h3 class="spot-h" style="margin:0">我的昵称 <span class="en">Nickname</span></h3>
           <div class="row"><input id="nick2" maxlength="16" value="${esc(state.nick||"")}" aria-label="昵称"><button class="btn ghost" type="button" id="nkSave">保存<span class=ui-en>Save</span></button></div></section>
@@ -2505,15 +2505,17 @@ function openSide(kind){
 function setAnim(on){ animOn=on; const b=$("#bMotion"); b.setAttribute("aria-pressed",String(!on)); const s=b.querySelector("span"); s.innerHTML=on?"暂停动态<span class=ui-en>Pause</span>":"恢复动态<span class=ui-en>Resume</span>"; rubify(s); b.querySelector("svg").innerHTML=on?'<path d="M10 5v14M14 5v14"/>':'<path d="M8 5v14l11-7z"/>'; }
 
 /* ---------- welcome / nickname ---------- */
-/* ============================== 登入与云端同步 Login + cloud sync (class code + nickname + 4-digit PIN) ============================== */
+/* ============================== 登入与云端同步 Login + cloud sync (class code + Student ID + 4-digit PIN) ============================== */
 const API=(window.ISLES_API||"").trim();
 const AUTH_KEY="m1-isles-auth";
-let auth=(()=>{ try{ return JSON.parse(localStorage.getItem(AUTH_KEY))||null; }catch(e){ return null; } })();
+let auth=(()=>{ try{ const a=JSON.parse(localStorage.getItem(AUTH_KEY)); return a&&a.sid?a:null; }catch(e){ return null; } })();
 const saveAuth=()=>{ try{ auth?localStorage.setItem(AUTH_KEY,JSON.stringify(auth)):localStorage.removeItem(AUTH_KEY); }catch(e){} };
 async function api(action, data){ const r=await fetch(API,{method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify(Object.assign({action},data||{})), redirect:"follow"}); if(!r.ok) throw new Error("http "+r.status); return r.json(); }
 const AUTH_MSG={ bad_class:["班级代码要 3–12 个英文字母或数字。","The class code is 3–12 letters or digits."], no_class:["找不到这个班级代码，请问老师。","That class code doesn't exist — ask your teacher."], class_closed:["这个班级已经关闭，请问老师。","This class is closed — ask your teacher."],
-  bad_nick:["请输入昵称（最多 16 个字）。","Enter a nickname (up to 16 characters)."], bad_pin:["密码要 4 位数字。","The PIN must be 4 digits."], bad_input:["请填好班级代码、昵称和 4 位数字密码。","Fill in the class code, nickname and 4-digit PIN."],
-  nick_taken:["这个昵称在班上已经有人用了。换一个，或者改用“登入”。","That nickname is taken in this class. Pick another, or log in instead."], no_student:["找不到这个昵称。第一次来的话请先“注册”。","Nickname not found. If you're new, sign up first."],
+  bad_nick:["请输入昵称（最多 16 个字）。","Enter a nickname (up to 16 characters)."], bad_pin:["密码要 4 位数字。","The PIN must be 4 digits."], bad_input:["请填好班级代码、学号和 4 位数字密码。","Fill in the class code, Student ID and 4-digit PIN."],
+  bad_sid:["学号要 5–12 个英文字母或数字，例如 25B0082。","The Student ID is 5–12 letters or digits, e.g. 25B0082."], sid_taken:["这个学号已经注册过了，请改用“登入”。忘记密码的话请老师帮你重设。","This Student ID already has an account — log in instead. Your teacher can reset a forgotten PIN."],
+  not_on_list:["这个学号不在班级名单里。请检查学号，或问老师。","This Student ID isn't on the class list. Check it, or ask your teacher."],
+  no_student:["找不到这个学号。第一次来的话请先“注册”。","Student ID not found. If you're new, sign up first."],
   wrong_pin:["密码不对。","Wrong PIN."], locked:["错太多次了，请 10 分钟后再试，或请老师帮你重设密码。","Too many tries — wait 10 minutes or ask your teacher to reset your PIN."], busy:["服务器忙，请再试一次。","The server is busy — try again."], network:["连不上服务器。可以先离线玩，之后再登入。","Can't reach the server. You can play offline and log in later."] };
 const authMsg=(code, extra)=>{ const m=AUTH_MSG[code]||AUTH_MSG.network; return `${m[0]}${extra||""}<span class=ui-en data-b>${m[1]}</span>`; };
 
@@ -2536,14 +2538,14 @@ document.addEventListener("visibilitychange",()=>{ if(document.hidden && auth &&
 // replace the local state with a saved one and refresh everything on screen
 function adoptState(s){ state=Object.assign(freshState(), s||{}, {teacher:false}); try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} applyPy(); applyEn(); applyMusicBtn(); updateCoins(); refreshLabels(); if(scene) ISLANDS.forEach((_,i)=>{ render3DBuild(i); render3DFarm(i); }); }
 function afterLogin(j, isNew){
-  auth={token:j.token, cls:j.cls, nick:j.nick}; saveAuth(); remember(j.cls, j.nick);
-  const local=state, sameOwner=local.owner===`${j.cls}/${j.nick}`, server=j.state;
+  auth={token:j.token, cls:j.cls, sid:j.sid, nick:j.nick}; saveAuth(); remember(j.cls, j.sid);
+  const local=state, sameOwner=local.owner===`${j.cls}/${j.sid}`, server=j.state;
   if(server && (!sameOwner || !(local.updatedAt>server.updatedAt))) adoptState(server);          // the cloud copy wins unless this device has newer work by the same student
   else if(!server && local.owner && !sameOwner) adoptState(null);                                   // another student's progress on a shared device — start fresh
-  state.owner=`${j.cls}/${j.nick}`; state.nick=j.nick; save(); setSync("ok"); scheduleSync();
+  state.owner=`${j.cls}/${j.sid}`; state.nick=j.nick; save(); setSync("ok"); scheduleSync();
   $("#welcome").hidden=true;
   toast(isNew?`欢迎你，${j.nick}！你的进度会自动存到云端。`:`欢迎回来，${j.nick}！`, isNew?`Welcome, ${j.nick}! Your progress now saves to the cloud.`:`Welcome back, ${j.nick}!`); }
-const remember=(c,n)=>{ try{ localStorage.setItem("m1-isles-last", JSON.stringify({c,n})); }catch(e){} };
+const remember=(c,s)=>{ try{ localStorage.setItem("m1-isles-last", JSON.stringify({c,s})); }catch(e){} };
 const remembered=()=>{ try{ return JSON.parse(localStorage.getItem("m1-isles-last"))||{}; }catch(e){ return {}; } };
 async function logout(){ if(auth){ try{ await syncNow(); }catch(e){} try{ api("logout",{token:auth.token}); }catch(e){} } auth=null; saveAuth(); adoptState(null); setSync("off"); side.hidden=true; updateOffsetGoal(); welcome(true); }
 
@@ -2551,7 +2553,7 @@ async function logout(){ if(auth){ try{ await syncNow(); }catch(e){} try{ api("l
 function welcome(force){
   const w=$("#welcome");
   if(!API){ if(state.nick && !force){ w.hidden=true; return; } return nickOnly(w); }
-  if(auth && !force){ w.hidden=true; setSync("busy"); api("load",{token:auth.token}).then(j=>{ if(j.ok){ if(j.state && !(state.owner===`${j.cls}/${j.nick}` && state.updatedAt>j.state.updatedAt)) adoptState(j.state); state.owner=`${j.cls}/${j.nick}`; save(); setSync("ok"); } else { auth=null; saveAuth(); welcome(true); } }).catch(()=>setSync("err")); return; }
+  if(auth && !force){ w.hidden=true; setSync("busy"); api("load",{token:auth.token}).then(j=>{ if(j.ok){ if(j.state && !(state.owner===`${j.cls}/${j.sid}` && state.updatedAt>j.state.updatedAt)) adoptState(j.state); state.owner=`${j.cls}/${j.sid}`; if(j.nick) state.nick=j.nick; save(); setSync("ok"); } else { auth=null; saveAuth(); welcome(true); } }).catch(()=>setSync("err")); return; }
   if(!auth && state.offline && !force){ w.hidden=true; setSync("off"); return; }
   const last=remembered(); let mode="login";
   const render=()=>{ setHTML(w, `<div class="wcard" role="dialog" aria-modal="true" aria-labelledby="wTitle">
@@ -2559,27 +2561,28 @@ function welcome(force){
       <h2 id="wTitle">${mode==="login"?"登入":"注册新账号"} Mandarin 1的知识群岛<span class=ui-en data-b>${mode==="login"?"Log in":"Create your account"}</span></h2>
       <div class="seg" role="tablist"><button type="button" class="segb" data-m="login" aria-selected="${mode==="login"}">登入<span class=ui-en>Log in</span></button><button type="button" class="segb" data-m="signup" aria-selected="${mode==="signup"}">第一次来：注册<span class=ui-en>New here: sign up</span></button></div>
       <label for="lgCls">班级代码<span class=ui-en>Class code</span></label><input id="lgCls" maxlength="12" autocapitalize="characters" autocomplete="off" placeholder="例如 MANDARIN1A" value="${esc(last.c||"")}">
-      <label for="lgNick">昵称<span class=ui-en>Nickname</span></label><input id="lgNick" maxlength="16" autocomplete="nickname" placeholder="例如 Ali、小明" value="${esc(mode==="login"?(last.n||""):"")}">
+      <label for="lgSid">学号<span class=ui-en>Student ID</span></label><input id="lgSid" maxlength="14" autocapitalize="characters" autocomplete="username" spellcheck="false" placeholder="例如 25B0082" value="${esc(last.s||"")}">
+      ${mode==="signup"?`<label for="lgNick">昵称（在游戏里显示）<span class=ui-en>Nickname (shown in the game)</span></label><input id="lgNick" maxlength="16" autocomplete="nickname" placeholder="例如 Ali、小明" value="">`:""}
       <label for="lgPin">${mode==="login"?"4 位数字密码":"自己设一个 4 位数字密码"}<span class=ui-en>${mode==="login"?"4-digit PIN":"Choose a 4-digit PIN"}</span></label><input id="lgPin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="${mode==="login"?"current-password":"new-password"}" placeholder="••••">
       ${mode==="signup"?`<label for="lgPin2">再输入一次密码<span class=ui-en>Type the PIN again</span></label><input id="lgPin2" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="new-password" placeholder="••••">`:""}
       <p class="lgmsg" id="lgMsg" role="alert"></p>
       <button class="btn" type="button" id="lgGo">${mode==="login"?"登入":"注册并出发"}<span class=ui-en>${mode==="login"?"Log in":"Sign up and start"}</span></button>
       <button class="btn ghost" type="button" id="lgOff">先不登入，离线玩<span class=ui-en>Play offline for now</span></button>
-      <small>${mode==="signup"?"不需要邮箱或真实姓名。请记住你的昵称和密码；忘记的话请老师帮你重设。":"进度会自动存到云端，在 iPad、电脑、手机都能继续。"}<span class=ui-en data-b>${mode==="signup"?"No email or real name needed. Remember your nickname and PIN — your teacher can reset a forgotten PIN.":"Progress saves to the cloud, so you can carry on from any device."}</span></small>
+      <small>${mode==="signup"?"请填写你自己正确的学号：学号不在班级名单里的记录会被删除。请记住你的密码；忘记的话请老师帮你重设。":"用学号和密码登入。进度会自动存到云端，在 iPad、电脑、手机都能继续。"}<span class=ui-en data-b>${mode==="signup"?"Use your own, correct Student ID: records whose ID isn't on the class list will be deleted. Remember your PIN — your teacher can reset a forgotten one.":"Log in with your Student ID and PIN. Progress saves to the cloud, so you can carry on from any device."}</span></small>
     </div>`);
     w.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>{ mode=b.dataset.m; render(); });
-    const go=async()=>{ const cls=$("#lgCls").value.trim().toUpperCase(), nick=$("#lgNick").value.trim(), pin=$("#lgPin").value.trim(), m=$("#lgMsg");
-      if(!/^[A-Z0-9]{3,12}$/.test(cls)) return setHTML(m, authMsg("bad_class")); if(!nick) return setHTML(m, authMsg("bad_nick")); if(!/^\d{4}$/.test(pin)) return setHTML(m, authMsg("bad_pin"));
+    const go=async()=>{ const cls=$("#lgCls").value.trim().toUpperCase(), sid=$("#lgSid").value.replace(/[\s\-_.]/g,"").toUpperCase(), nick=mode==="signup"?$("#lgNick").value.trim():"", pin=$("#lgPin").value.trim(), m=$("#lgMsg");
+      if(!/^[A-Z0-9]{3,12}$/.test(cls)) return setHTML(m, authMsg("bad_class")); if(!/^[A-Z0-9]{5,12}$/.test(sid)) return setHTML(m, authMsg("bad_sid")); if(mode==="signup" && !nick) return setHTML(m, authMsg("bad_nick")); if(!/^\d{4}$/.test(pin)) return setHTML(m, authMsg("bad_pin"));
       if(mode==="signup" && $("#lgPin2").value.trim()!==pin) return setHTML(m, `两次输入的密码不一样。<span class=ui-en data-b>The two PINs don't match.</span>`);
       const b=$("#lgGo"); b.disabled=true; setHTML(m, `连接中…<span class=ui-en>Connecting…</span>`);
-      try{ const j=await api(mode==="login"?"login":"register",{cls, nick, pin});
+      try{ const j=await api(mode==="login"?"login":"register",mode==="login"?{cls, sid, pin}:{cls, sid, nick, pin});
         if(j.ok){ state.offline=false; afterLogin(j, mode==="signup"); return; }
         setHTML(m, authMsg(j.error, j.error==="wrong_pin"&&j.left!=null?`还有 ${j.left} 次机会。`:"")); }
       catch(e){ setHTML(m, authMsg("network")); }
       b.disabled=false; };
     $("#lgGo").onclick=go; w.querySelectorAll("input").forEach(i=>i.onkeydown=e=>{ if(e.key==="Enter") go(); });
-    $("#lgOff").onclick=()=>{ state.offline=true; if(!state.nick) state.nick=($("#lgNick").value.trim()||"同学").slice(0,16); save(); w.hidden=true; setSync("off"); toast("离线模式：进度只存在这台设备。","Offline: progress is saved on this device only."); };
-    setTimeout(()=>{ const f=last.c?(mode==="login"&&last.n?$("#lgPin"):$("#lgNick")):$("#lgCls"); f&&f.focus(); },60);
+    $("#lgOff").onclick=()=>{ state.offline=true; if(!state.nick) state.nick=((mode==="signup"&&$("#lgNick").value.trim())||"同学").slice(0,16); save(); w.hidden=true; setSync("off"); toast("离线模式：进度只存在这台设备。","Offline: progress is saved on this device only."); };
+    setTimeout(()=>{ const f=!last.c?$("#lgCls"):!last.s?$("#lgSid"):mode==="login"?$("#lgPin"):$("#lgNick"); f&&f.focus(); },60);
   };
   w.hidden=false; render();
 }
