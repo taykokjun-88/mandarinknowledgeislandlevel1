@@ -276,6 +276,15 @@ button.gcard:hover{border-color:var(--gold)}
 .plot{position:absolute;transform:translate(-50%,-50%);width:27%;min-height:52px;border-radius:14px;border:2px dashed rgba(255,255,255,.85);background:rgba(255,255,255,.28);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:4px;color:#24301f;font-size:13px;touch-action:none}
 .plot i{font-style:normal;font-weight:800;font-size:11px;background:#24301f;color:#fff;border-radius:999px;padding:0 6px}
 .plot.on{border-style:solid;border-color:var(--ok);background:rgba(255,255,255,.92)}
+.worlds{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.world{border:1px solid var(--line);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;background:var(--panel)}
+.world .wn{font-size:12px;color:var(--muted)}.world b{font-size:17px}.world b .ui-en{display:block;font-size:12px;font-weight:400;color:var(--muted)}.world .wc{font-size:12px;color:var(--muted)}
+.world.on{border-color:var(--red);box-shadow:inset 0 0 0 1px var(--red)}.world.soon{opacity:.6;border-style:dashed}
+.cats{display:flex;flex-wrap:nowrap;gap:6px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:2px}.cats::-webkit-scrollbar{display:none}.cat{flex:none}
+.cat{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;padding:5px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+.cat .ui-en{font-size:11px;color:var(--muted)}.cat small{font-size:11px;color:var(--muted)}
+.cat[aria-pressed="true"]{background:var(--red);border-color:var(--red);color:var(--red-ink)}.cat[aria-pressed="true"] .ui-en,.cat[aria-pressed="true"] small{color:var(--red-ink);opacity:.85}
+.item.lockd{opacity:.55;filter:grayscale(.7)}.lockp{font-size:11.5px;color:var(--muted)}.lockp .ui-en{display:block}
 .plot.sel,.item.sel{box-shadow:0 0 0 3px var(--gold)}
 .plot.over{border-color:var(--gold);background:var(--gold-soft);transform:translate(-50%,-50%) scale(1.08)}
 .plot .ph{font-size:12px;opacity:.85}
@@ -1588,6 +1597,9 @@ function showAfter(body){
   $("#qNext").onclick=()=>{ quiz.k++; quiz.last=null; renderQuiz(body); speakIfListen(); };
   $("#qNext").focus();
 }
+// what reaching island t adds to the shop (shown on the quiz result)
+function newRewards(t){ const d=BUILD.filter(x=>x.tier===t), c=SEA.filter(x=>x.tier===t); if(!d.length&&!c.length) return "";
+  return `<p class="unlock" style="margin:0">🎁 新摆设：${d.map(x=>x.name).join("、")||"—"}${c.length?`；新海洋生物：${c.map(x=>x.zh).join("、")}`:""}${t===3?"（海洋养殖开放了！）":""}<span class=ui-en data-b>New in the shop: ${d.map(x=>x.en).join(", ")}${c.length?`; sea creatures: ${c.map(x=>x.en).join(", ")}`:""}${t===3?" — the sea farm is now open!":""}</span></p>`; }
 function renderResult(body){
   const n=quiz.qs.length, sc=quiz.score, r=sc/n, st=r>=1?3:r>=.8?2:r>=.6?1:0;
   const prev=starsOf(cur), wasLocked=cur<8 && !isUnlocked(cur+1);
@@ -1604,7 +1616,7 @@ function renderResult(body){
     <div class="big">${sc} / ${n}</div>
     <p style="margin:0">${msg}</p>
     ${st>prev&&prev>0?`<p style="margin:0;color:var(--muted)">刷新最佳成绩：${prev} → ${st} 颗星<span class=ui-en data-b>New best: ${prev} → ${st} stars</span></p>`:""}
-    ${newly?`<p class="unlock" style="margin:0">云雾散开了！新岛屿已解锁：${ISLANDS[cur+1].no}「${ISLANDS[cur+1].name}」<span class=ui-en data-b>The clouds have cleared — new island unlocked!</span></p>`:""}
+    ${newly?`<p class="unlock" style="margin:0">云雾散开了！新岛屿已解锁：${ISLANDS[cur+1].no}「${ISLANDS[cur+1].name}」<span class=ui-en data-b>The clouds have cleared — new island unlocked!</span></p>${newRewards(cur+1)}`:""}
     ${cur===8&&st>0?`<p class="unlock" style="margin:0">恭喜你走完整个学期的知识群岛！<span class=ui-en data-b>Congratulations — you've sailed the whole semester!</span></p>`:""}
     <div class="row" style="justify-content:center;margin-top:8px">
       <button class="btn ghost" type="button" id="rAgain">再挑战一次<span class=ui-en>Try again</span></button>
@@ -2059,24 +2071,70 @@ function arFinish(body){ const pass=gs.score>=Math.ceil(gs.qs.length*.6); if(pas
 function arClose(){ stopMedia(); const st=$("#arStage"); if(st){ st.hidden=true; st.innerHTML=""; } }
 
 /* ============================== 建设南洋岛 Build your Nanyang island ============================== */
+// 50 Nanyang decorations in 6 categories. tier = the island (0 = M1 … 8 = M9) that unlocks it; water:true items float near the shore.
+const DECOR_CATS=[["plant","植物","Plants"],["house","房屋","Buildings"],["street","街景","Street life"],["fun","休闲","Leisure"],["fest","节庆","Festivals"],["ride","交通","Transport"]];
 const BUILD = [
-  {id:"palm",     name:"椰子树", en:"coconut palm",  cost:10},
-  {id:"frang",    name:"鸡蛋花", en:"frangipani",    cost:10},
-  {id:"banana",   name:"香蕉树", en:"banana tree",   cost:10},
-  {id:"flowers",  name:"花坛",   en:"flower bed",    cost:8},
-  {id:"bench",    name:"长椅",   en:"bench",         cost:8},
-  {id:"durian",   name:"榴莲树", en:"durian tree",   cost:15},
-  {id:"rambutan", name:"红毛丹树", en:"rambutan tree", cost:15},
-  {id:"lantern",  name:"红灯笼", en:"red lanterns",  cost:15},
-  {id:"swing",    name:"秋千",   en:"swing",         cost:12},
-  {id:"kite",     name:"风筝",   en:"wau kite",      cost:12},
-  {id:"trishaw",  name:"三轮车", en:"trishaw",       cost:20},
-  {id:"perahu",   name:"小船",   en:"perahu boat",   cost:20},
-  {id:"gazebo",   name:"凉亭",   en:"pavilion",      cost:25},
-  {id:"kopi",     name:"咖啡摊", en:"kopi stall",    cost:25},
-  {id:"shop",     name:"店屋",   en:"shophouse",     cost:30},
-  {id:"stilt",    name:"高脚屋", en:"stilt house",   cost:30}
+  // 植物 plants
+  {id:"palm",     cat:"plant", tier:0, name:"椰子树",   en:"coconut palm",   cost:10},
+  {id:"frang",    cat:"plant", tier:0, name:"鸡蛋花",   en:"frangipani",     cost:10},
+  {id:"flowers",  cat:"plant", tier:0, name:"花坛",     en:"flower bed",     cost:8},
+  {id:"banana",   cat:"plant", tier:1, name:"香蕉树",   en:"banana tree",    cost:10},
+  {id:"rambutan", cat:"plant", tier:2, name:"红毛丹树", en:"rambutan tree",  cost:15},
+  {id:"durian",   cat:"plant", tier:3, name:"榴莲树",   en:"durian tree",    cost:15},
+  {id:"mango",    cat:"plant", tier:4, name:"芒果树",   en:"mango tree",     cost:15},
+  {id:"orchid",   cat:"plant", tier:5, name:"胡姬花",   en:"orchids",        cost:18},
+  {id:"bamboo",   cat:"plant", tier:6, name:"竹子",     en:"bamboo",         cost:18},
+  {id:"pitcher",  cat:"plant", tier:7, name:"猪笼草",   en:"pitcher plant",  cost:22},
+  // 房屋 buildings
+  {id:"shop",     cat:"house", tier:3, name:"店屋",     en:"shophouse",      cost:30},
+  {id:"stilt",    cat:"house", tier:4, name:"高脚屋",   en:"stilt house",    cost:30},
+  {id:"kampung",  cat:"house", tier:5, name:"马来屋",   en:"kampung house",  cost:32},
+  {id:"temple",   cat:"house", tier:6, name:"小庙",     en:"Chinese temple", cost:35},
+  {id:"fishhut",  cat:"house", tier:6, name:"渔夫小屋", en:"fisherman's hut",cost:28},
+  {id:"mosque",   cat:"house", tier:8, name:"清真寺",   en:"mosque",         cost:45},
+  {id:"waterhouse",cat:"house",tier:8, name:"水村屋",   en:"water-village house", cost:40, water:true},
+  {id:"clock",    cat:"house", tier:8, name:"钟楼",     en:"clock tower",    cost:40},
+  // 街景 street life
+  {id:"postbox",  cat:"street",tier:0, name:"邮筒",     en:"post box",       cost:8},
+  {id:"kopi",     cat:"street",tier:1, name:"咖啡摊",   en:"kopi stall",     cost:25},
+  {id:"lamp",     cat:"street",tier:1, name:"路灯",     en:"street lamp",    cost:10},
+  {id:"sign",     cat:"street",tier:1, name:"路牌",     en:"signpost",       cost:10},
+  {id:"coconut",  cat:"street",tier:2, name:"椰子水摊", en:"coconut stall",  cost:20},
+  {id:"satay",    cat:"street",tier:3, name:"沙爹摊",   en:"satay stall",    cost:22},
+  {id:"icecream", cat:"street",tier:4, name:"冰淇淋车", en:"ice-cream cart", cost:20},
+  {id:"fruit",    cat:"street",tier:5, name:"水果摊",   en:"fruit stall",    cost:22},
+  {id:"news",     cat:"street",tier:5, name:"报摊",     en:"newsstand",      cost:18},
+  // 休闲 leisure
+  {id:"bench",    cat:"fun",   tier:0, name:"长椅",     en:"bench",          cost:8},
+  {id:"swing",    cat:"fun",   tier:0, name:"秋千",     en:"swing",          cost:12},
+  {id:"umbrella", cat:"fun",   tier:1, name:"沙滩伞",   en:"beach umbrella", cost:12},
+  {id:"seesaw",   cat:"fun",   tier:2, name:"跷跷板",   en:"seesaw",         cost:12},
+  {id:"hammock",  cat:"fun",   tier:2, name:"吊床",     en:"hammock",        cost:12},
+  {id:"slide",    cat:"fun",   tier:3, name:"滑梯",     en:"slide",          cost:15},
+  {id:"gazebo",   cat:"fun",   tier:4, name:"凉亭",     en:"pavilion",       cost:25},
+  {id:"takraw",   cat:"fun",   tier:5, name:"藤球场",   en:"sepak takraw court", cost:20},
+  // 节庆 festivals
+  {id:"lantern",  cat:"fest",  tier:0, name:"红灯笼",   en:"red lanterns",   cost:15},
+  {id:"kite",     cat:"fest",  tier:1, name:"风筝",     en:"wau kite",       cost:12},
+  {id:"pelita",   cat:"fest",  tier:2, name:"油灯",     en:"pelita oil lamps", cost:12},
+  {id:"orange",   cat:"fest",  tier:3, name:"年桔",     en:"mandarin orange tree", cost:15},
+  {id:"crackers", cat:"fest",  tier:4, name:"鞭炮",     en:"firecrackers",   cost:15},
+  {id:"lion",     cat:"fest",  tier:5, name:"舞狮",     en:"lion dance",     cost:25},
+  {id:"ketupat",  cat:"fest",  tier:6, name:"开斋节拱门", en:"Hari Raya arch", cost:20},
+  {id:"gong",     cat:"fest",  tier:7, name:"铜锣",     en:"gong set",       cost:25},
+  // 交通 transport
+  {id:"bike",     cat:"ride",  tier:0, name:"脚踏车",   en:"bicycle",        cost:10},
+  {id:"trishaw",  cat:"ride",  tier:2, name:"三轮车",   en:"trishaw",        cost:20},
+  {id:"perahu",   cat:"ride",  tier:3, name:"小船",     en:"perahu boat",    cost:20, water:true},
+  {id:"scooter",  cat:"ride",  tier:4, name:"摩托车",   en:"scooter",        cost:22},
+  {id:"watertaxi",cat:"ride",  tier:6, name:"水上的士", en:"water taxi",     cost:25, water:true},
+  {id:"bus",      cat:"ride",  tier:6, name:"巴士",     en:"vintage bus",    cost:30},
+  {id:"bullock",  cat:"ride",  tier:7, name:"牛车",     en:"bullock cart",   cost:28}
 ];
+// 世界 Worlds: World 1 = Mandarin 1 (this game). World 2 = 中国群岛 (Mandarin 2) is planned.
+const WORLDS=[{no:1, zh:"南洋群岛", en:"Nanyang Isles", course:"Mandarin 1", open:true},{no:2, zh:"中国群岛", en:"China Isles", course:"Mandarin 2", open:false}];
+const itemOpen = it => state.teacher || isUnlocked(it.tier);
+const tierLabel = t => ISLANDS[t].no;
 const SLOT_ANG=[.45,1.3,2.15,3.35,4.55,5.5];
 const SHOP_COL=()=>[NY.pink,NY.mint,NY.butter,NY.sky,NY.peach,NY.lilac];
 function buildsOf(i){ return state.build[i] || (state.build[i]=Array(SLOT_ANG.length).fill(null)); }
@@ -2085,12 +2143,14 @@ function buildsOf(i){ return state.build[i] || (state.build[i]=Array(SLOT_ANG.le
 /* --- decoration models v2 (each built standing on y=0, front facing +z) --- */
 const put=(g,o,f)=>{ if(f) f(o); g.add(o); return o; };
 const rodBetween=(g,a,b,r,col)=>{ const A=new THREE.Vector3(...a), B=new THREE.Vector3(...b), len=A.distanceTo(B); const m=cyl(r,r,len,10,col); m.position.copy(A).lerp(B,.5); m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), B.clone().sub(A).normalize()); g.add(m); return m; };
-function fruitTree(g, leaf, fruit, spiky){ const t=new THREE.Group(); g.add(t);
+function fruitTree(g, leaf, fruit, spiky, oval){ const t=new THREE.Group(); g.add(t);
   rodBetween(t,[0,0,0],[.15,2.2,0],.26,0x6d4a2d); rodBetween(t,[.15,2,0],[.8,2.8,.2],.12,0x6d4a2d); rodBetween(t,[.1,2,0],[-.7,2.9,-.2],.12,0x6d4a2d);
   [[0,3.2,0,1.55],[1,2.9,.3,1.1],[-.9,3,-.3,1.15],[.15,4,-.1,1.1],[.2,2.7,.9,.95]].forEach(([x,y,z,r])=>t.add(ball(r,leaf,x,y,z)));
   const rr=rng(Math.floor(leaf/7)+(spiky?3:7));
-  for(let k=0;k<12;k++){ const a=rr()*6.28, R=1.25+rr()*.25, y=2.25+rr()*.9; const fx=Math.cos(a)*R, fz=Math.sin(a)*R;
-    if(spiky){ const f=mesh(new THREE.IcosahedronGeometry(.28,1),fruit,fx,y,fz,{flatShading:true}); f.scale.y=1.25; t.add(f); rodBetween(t,[fx,y+.28,fz],[fx*.9,y+.6,fz*.9],.025,0x6d4a2d); }
+  // fruit hangs on the outside of the lower canopy so it can be seen
+  for(let k=0;k<16;k++){ const a=k/16*6.28+rr()*.3, R=1.05+rr()*.4, y=1.55+rr()*.3; const fx=Math.cos(a)*R, fz=Math.sin(a)*R;
+    if(oval){ const f=mesh(new THREE.SphereGeometry(.19,12,10),fruit,fx,y-.12,fz); f.scale.set(.8,1.35,.8); t.add(f); rodBetween(t,[fx,y+.1,fz],[fx*.9,y+.35,fz*.9],.015,0x4b6b2a); }
+    else if(spiky){ const f=mesh(new THREE.IcosahedronGeometry(.28,1),fruit,fx,y,fz,{flatShading:true}); f.scale.y=1.25; t.add(f); rodBetween(t,[fx,y+.28,fz],[fx*.9,y+.6,fz*.9],.025,0x6d4a2d); }
     else { for(let c=0;c<3;c++) t.add(ball(.14,fruit,fx+(c-1)*.16,y-(c%2)*.12,fz+(c%2)*.1)); } }
   swayers.push({o:t, ph:leaf%7, amp:.012}); }
 function flowerBed(g){ g.add(cyl(1.35,1.45,.5,28,0xc99d72,0,.25,0)); g.add(cyl(1.38,1.38,.08,28,0xe0c09a,0,.52,0)); g.add(cyl(1.22,1.22,.08,28,0x4b311e,0,.5,0));
@@ -2142,13 +2202,130 @@ function kopiStall(g){ const BODY=0x2a9d8f;
   g.add(cyl(.12,.1,.24,14,0xf1f1f1,-.6,1.45,0)); g.add(cyl(.12,.1,.24,14,0xf1f1f1,-.25,1.45,.15)); g.add(cyl(.2,.24,.35,14,0xb5651d,.45,1.5,0)); put(g, cyl(.03,.02,.3,6,0xb5651d,.68,1.62,0), m=>m.rotation.z=-1);
   [[1.9,.9],[1.9,-.7]].forEach(([x,z])=>{ g.add(cyl(.38,.38,.06,18,0xe9e1d4,x,.78,z)); g.add(cyl(.05,.05,.78,8,0x333333,x,.39,z)); [[.55,0],[-.55,0]].forEach(([dx,dz])=>{ g.add(cyl(.18,.18,.05,14,0xe63946,x+dx,.48,z+dz)); g.add(cyl(.03,.03,.46,6,0x333333,x+dx,.23,z+dz)); }); }); }
 
+/* --- decoration models v3: the rest of the 50 Nanyang items (each stands on y=0, front faces +z, about 2.5 wide) --- */
+const potOf=(g,r=.55,h=.5,col=0xb5651d)=>{ g.add(cyl(r,r*.78,h,18,col,0,h/2,0)); g.add(cyl(r*1.06,r*1.06,.08,18,0xd08a4a,0,h,0)); g.add(cyl(r*.95,r*.95,.04,18,0x4b311e,0,h-.02,0)); return h; };
+const flame=(g,x,y,z,s=1)=>{ const f=mesh(new THREE.ConeGeometry(.07*s,.2*s,8),0xffb02e,x,y,z,{emissive:0xff8a00,emissiveIntensity:2}); g.add(f); return f; };
+function bambooClump(g){ const rr=rng(31); for(let k=0;k<7;k++){ const a=k*2.4, d=k?.25+rr()*.45:0, x=Math.cos(a)*d, z=Math.sin(a)*d, H=3.2+rr()*1.6, t=new THREE.Group(); t.position.set(x,0,z); t.rotation.z=(rr()-.5)*.12; t.rotation.x=(rr()-.5)*.12; g.add(t);
+    const segs=Math.round(H/.55); for(let s=0;s<segs;s++){ t.add(cyl(.075,.08,.53,10,s%2?0x7fb24a:0x6fa33f,0,s*.55+.27,0)); t.add(cyl(.09,.09,.04,10,0x5d8a33,0,s*.55+.54,0)); }
+    for(let l=0;l<5;l++){ const lf=cone(.06,.75,4,0x5fa83c,0,H-l*.45,0); lf.rotation.z=(l%2?1:-1)*1.1; lf.rotation.y=l*1.3; lf.scale.x=.4; t.add(lf); }
+    swayers.push({o:t, ph:k*1.7, amp:.02}); } }
+function orchidPots(g){ [[-.75,0],[.75,0],[0,-.55]].forEach(([x,z],i)=>{ const p=new THREE.Group(); p.position.set(x,0,z); g.add(p); const h=potOf(p,.38,.42,[0x2a9d8f,0xe0c09a,0xb5651d][i]);
+    for(let s=0;s<3;s++){ const a=s*2.1+i, sx=Math.cos(a)*.15, sz=Math.sin(a)*.15; rodBetween(p,[sx,h,sz],[sx*2.2,h+1.1,sz*2.2],.018,0x3f7a2a);
+      for(let f=0;f<4;f++){ const fx=sx*(2.2-f*.25)+.08*f, fy=h+1.05-f*.18, fz=sz*(2.2-f*.25); const c=[0xb85cff,0xff7ac2,0xffffff][(i+s)%3];
+        for(let pe=0;pe<5;pe++){ const pa=pe/5*6.28; const m=mesh(new THREE.SphereGeometry(.07,8,6),c,fx+Math.cos(pa)*.06,fy+Math.sin(pa)*.06,fz,{emissive:c,emissiveIntensity:.08}); m.scale.z=.4; p.add(m); } p.add(ball(.03,0xffd23f,fx,fy,fz+.03)); } }
+    for(let l=0;l<3;l++){ const lf=mesh(new THREE.SphereGeometry(.22,10,6),0x3d8b3a,Math.cos(l*2)*.18,h+.08,Math.sin(l*2)*.18); lf.scale.set(1.3,.18,.5); lf.rotation.y=l*2; p.add(lf); } }); }
+function pitcherPlant(g){ const h=potOf(g,.6,.5,0x8a5a35); for(let k=0;k<5;k++){ const a=k/5*6.28+.4, R=.38+(k%2)*.12, x=Math.cos(a)*R, z=Math.sin(a)*R, H=.55+(k%3)*.2;
+    rodBetween(g,[x*.4,h,z*.4],[x,h+H*.4,z],.02,0x4a7a2a); const cup=cyl(.13,.08,H,14,k%2?0xa83a3a:0x7fa33a,x,h+H*.4+H/2,z); g.add(cup); g.add(cyl(.14,.14,.05,14,0xd9534f,x,h+H*.4+H,z));
+    const lid=box(.22,.03,.2,0x6a9a2a,x-.02,h+H*.4+H+.12,z-.06); lid.rotation.x=-.6; g.add(lid); }
+  for(let l=0;l<6;l++){ const lf=mesh(new THREE.SphereGeometry(.35,10,6),0x4f9e3a,Math.cos(l)*.3,h+.12,Math.sin(l)*.3); lf.scale.set(1.2,.12,.35); lf.rotation.y=l; g.add(lf); } }
+function kampungHouse(g){ const s=stiltHouse(0xc9a06a, NY.attap, 1.2, 2.8, 2.2); s.scale.setScalar(.82); g.add(s);
+  for(let k=0;k<5;k++) g.add(box(.7,.06,.24,NY.teak,0,.2+k*.21,1.95-k*.2)); rodBetween(g,[-.38,0,2.15],[-.38,1.15,1.05],.03,NY.teak); rodBetween(g,[.38,0,2.15],[.38,1.15,1.05],.03,NY.teak);
+  g.add(box(2.6,.08,.08,0xf6ecd6,0,2.3,.95)); }
+function waterHouse(g){ const s=stiltHouse(NY.sky, NY.tile, 2.6, 2.8, 2.2); s.scale.setScalar(.8); s.position.y=-1.4; g.add(s);
+  g.add(box(.6,.1,2.4,NY.teak,0,.72,2.1)); [[-.28,1.2],[.28,1.2],[-.28,3],[.28,3]].forEach(([x,z])=>g.add(cyl(.06,.06,2.4,6,NY.teak,x,-.5,z))); }
+function mosque(g){ g.add(box(2.6,.25,2.6,0xe9e1d4,0,.12,0)); g.add(box(2,1.5,2,0xf7f2ea,0,1,0));
+  for(let k=0;k<3;k++) g.add(box(.35,.75,.06,0x2f7d5b,-.6+k*.6,.85,1.02)); g.add(box(2.1,.15,2.1,C.gold,0,1.8,0));
+  g.add(cyl(.75,.8,.45,24,0xf7f2ea,0,2.1,0)); const d=new THREE.Mesh(new THREE.SphereGeometry(.85,28,16,0,Math.PI*2,0,Math.PI/2),M(0xe8b923,{metalness:.55,roughness:.3})); d.position.y=2.3; d.scale.y=1.2; g.add(d); g.add(cone(.06,.5,8,C.gold,0,3.55,0));
+  [-1.1,1.1].forEach(x=>{ g.add(cyl(.16,.2,3.2,12,0xf7f2ea,x,1.6,-1.1)); g.add(cyl(.24,.24,.12,12,C.gold,x,2.6,-1.1)); const md=new THREE.Mesh(new THREE.SphereGeometry(.2,16,8,0,Math.PI*2,0,Math.PI/2),M(0xe8b923,{metalness:.55,roughness:.3})); md.position.set(x,3.2,-1.1); md.scale.y=1.4; g.add(md); }); }
+function temple(g){ g.add(box(2.6,.3,2,0xbcb3a5,0,.15,0)); g.add(box(2.2,1.4,1.6,0xc0141d,0,1,0)); g.add(box(.7,1,.06,0x6e4426,0,.8,.81)); [-.75,.75].forEach(x=>g.add(cyl(.09,.09,1.4,10,C.gold,x,1,.85)));
+  const roof=prism(2.9,1.25,0x2a7d4f,0,2.05,0,.55); g.add(roof); g.add(box(3.1,.1,.1,C.gold,0,2.6,0)); [-1.5,1.5].forEach(x=>{ const t=cone(.12,.5,6,C.gold,x,2.75,0); t.rotation.z=x>0?-.6:.6; g.add(t); });
+  g.add(box(.8,.18,.25,C.gold,0,2.15,.82)); g.add(cyl(.32,.26,.35,16,0xd9a521,0,.42,1.35)); for(let k=0;k<3;k++){ g.add(cyl(.01,.01,.4,4,0x8a3a1a,-.08+k*.08,.75,1.35)); g.add(ball(.02,0xff5a1a,-.08+k*.08,.96,1.35,{emissive:0xff3a00,emissiveIntensity:2})); } }
+function fishHut(g){ [[-1,-.8],[1,-.8],[-1,.8],[1,.8]].forEach(([x,z])=>g.add(cyl(.07,.08,.5,6,NY.teak,x,.25,z))); g.add(box(2.3,.12,1.9,NY.teak,0,.55,0)); g.add(box(2,1.2,1.6,0xb08a5a,0,1.2,0));
+  g.add(box(.5,.8,.05,0x5a3a20,0,1.05,.82)); g.add(prism(2.5,1.25,NY.attap,0,2.2,0,.6));
+  rodBetween(g,[1.4,0,1.1],[1.4,1.6,1.1],.04,NY.teak); rodBetween(g,[2.2,0,.2],[2.2,1.6,.2],.04,NY.teak); rodBetween(g,[1.4,1.55,1.1],[2.2,1.55,.2],.03,NY.teak);
+  const net=new THREE.Mesh(new THREE.PlaneGeometry(1.2,1.1,6,6),new THREE.MeshStandardMaterial({color:0x3a6d8a,wireframe:true})); net.position.set(1.8,1,.65); net.rotation.y=-.85; g.add(net); }
+function clockTower(g){ g.add(box(1.5,.3,1.5,0xbcb3a5,0,.15,0)); g.add(box(1.1,3.2,1.1,0xf6ecd6,0,1.9,0)); g.add(box(1.25,.15,1.25,C.white,0,3.5,0)); g.add(box(1,.9,1,0xf6ecd6,0,4,0));
+  [[0,.51],[0,-.51],[.51,0],[-.51,0]].forEach(([x,z])=>{ const f=cyl(.32,.32,.04,24,0xffffff,x,4.05,z); if(z) f.rotation.x=Math.PI/2; else f.rotation.z=Math.PI/2; g.add(f);
+    const o=x?[Math.sign(x)*.03,0]:[0,Math.sign(z)*.03]; g.add(box(x?.02:.04,.22,x?.04:.02,0x222222,x+o[0],4.13,z+o[1])); g.add(box(x?.02:.16,.04,x?.16:.02,0x222222,x+o[0],4.05,z+o[1])); });
+  const rf=cone(.85,1,4,C.roof,0,4.95,0); rf.rotation.y=Math.PI/4; g.add(rf); g.add(cone(.05,.4,6,C.gold,0,5.6,0)); for(let k=0;k<3;k++) g.add(box(.3,.55,.05,0x2f7d5b,0,1+k*.9,.56)); }
+function sateStall(g){ g.add(box(2,.8,.9,0x6e4426,0,.4,0)); g.add(box(1.7,.2,.6,0x333333,0,.9,0)); for(let k=0;k<12;k++){ g.add(box(.04,.04,.7,0xc8a25a,-.75+k*.135,1.05,0)); g.add(box(.08,.07,.22,0x8a3a1a,-.75+k*.135,1.07,.05)); }
+  for(let k=0;k<3;k++){ const s=mesh(new THREE.SphereGeometry(.18,10,8),0xdddddd,-.3+k*.3,1.5+k*.25,0,{transparent:true,opacity:.35}); g.add(s); }
+  [[-1,-.45],[1,-.45]].forEach(([x,z])=>g.add(cyl(.035,.035,2.2,6,0xdddddd,x,1.1,z))); const aw=box(2.4,.08,1.3,0xe63946,0,2.2,.15); aw.rotation.x=.18; g.add(aw); g.add(box(1.4,.35,.05,0xffd23f,0,1.95,-.45)); }
+function coconutStall(g){ g.add(box(1.8,.75,1,0x2a9d8f,0,.55,0)); [-.65,.65].forEach(x=>{ const w=new THREE.Mesh(new THREE.TorusGeometry(.2,.06,8,16),M(0x222222)); w.position.set(x,.2,.52); g.add(w); });
+  for(let k=0;k<9;k++){ const x=-.6+(k%3)*.6, z=-.25+Math.floor(k/3)*.25; g.add(ball(.2,0x5f9e2f,x,1.1+(k%2)*.05,z)); } g.add(ball(.2,0x5f9e2f,0,1.38,0));
+  const top=ball(.2,0x5f9e2f,.55,1.38,.1); g.add(top); g.add(cyl(.01,.01,.35,4,0xff5a8a,.55,1.65,.1));
+  g.add(cyl(.04,.04,2.4,6,0xdddddd,-.85,1.2,-.4)); const um=cone(1.3,.6,8,0xffd23f,-.85,2.55,-.4); g.add(um); }
+function iceCreamCart(g){ g.add(box(1.6,.9,.9,0xf3b9b2,0,.85,0)); g.add(box(1.65,.1,.95,0xffffff,0,1.33,0)); [-.55,.55].forEach(x=>{ const w=new THREE.Mesh(new THREE.TorusGeometry(.32,.05,8,20),M(0x333333)); w.position.set(x,.32,.5); g.add(w); });
+  g.add(box(.9,.35,.05,0x9fcbe9,0,.95,.46)); for(let k=0;k<3;k++){ g.add(cone(.08,.25,10,0xd9a066,-.3+k*.3,1.5,0)); g.add(ball(.1,[0xff8ac2,0xfff3c4,0x8be0c0][k],-.3+k*.3,1.66,0)); }
+  g.add(cyl(.03,.03,1.6,6,0xdddddd,.7,1.9,-.3)); const um=cone(1,.5,12,0x9fcbe9,.7,2.75,-.3); g.add(um); for(let k=0;k<6;k++) g.add(ball(.07,0xffffff,.7+Math.cos(k)*.95,2.5,-.3+Math.sin(k)*.95)); }
+function fruitStall(g){ g.add(box(2.4,.75,1.1,0x8a5a35,0,.38,0)); const cols=[0xf4b400,0xd62839,0x7fb24a,0xff8c1a,0x6a2c70,0xffe066];
+  for(let k=0;k<6;k++){ const x=-.95+(k%3)*.95, z=-.25+Math.floor(k/3)*.5; g.add(box(.8,.18,.42,0xc9a06a,x,.85,z)); for(let f=0;f<6;f++) g.add(ball(.09,cols[k],x-.25+(f%3)*.25,.98,z-.08+Math.floor(f/3)*.16)); }
+  [[-1.15,-.5],[1.15,-.5],[-1.15,.5],[1.15,.5]].forEach(([x,z])=>g.add(cyl(.035,.035,2.1,6,NY.teak,x,1.05,z))); for(let k=0;k<6;k++){ const st=box(2.6/6,.07,1.4,k%2?0xffffff:0x2f7d5b,-1.3+2.6/12+k*2.6/6,2.12,0); st.rotation.x=.1; g.add(st); } }
+function newsStand(g){ g.add(box(1.6,1.6,1,0x2f7d5b,0,.8,0)); g.add(box(1.8,.12,1.2,C.cream,0,1.66,0)); g.add(box(1.2,.5,.06,0xffffff,0,1.3,.51));
+  for(let r=0;r<3;r++) for(let c=0;c<4;c++){ const p=box(.26,.34,.03,[0xffffff,0xffd23f,0xe63946,0x9fcbe9][(r+c)%4],-.45+c*.3,.3+r*.36,.53); p.rotation.x=-.12; g.add(p); }
+  g.add(box(.9,.25,.05,C.red,0,1.95,.4)); }
+function postBox(g){ g.add(cyl(.32,.34,1.2,24,0xc8102e,0,.6,0)); g.add(cyl(.38,.38,.1,24,0xa50d25,0,1.25,0)); const top=new THREE.Mesh(new THREE.SphereGeometry(.36,24,10,0,Math.PI*2,0,Math.PI/2),M(0xc8102e)); top.position.y=1.3; top.scale.y=.6; g.add(top);
+  g.add(box(.3,.04,.05,0x222222,0,1.02,.32)); g.add(box(.16,.12,.02,C.gold,0,.75,.335)); g.add(cyl(.4,.42,.12,24,0x333333,0,.06,0)); }
+function streetLamp(g){ g.add(cyl(.18,.24,.3,12,0x2f3a3a,0,.15,0)); g.add(cyl(.06,.08,3.2,10,0x2f3a3a,0,1.75,0)); rodBetween(g,[0,3.2,0],[.55,3.45,0],.04,0x2f3a3a);
+  g.add(cone(.28,.25,6,0x2f3a3a,.6,3.55,0)); g.add(mesh(new THREE.SphereGeometry(.17,16,10),0xfff1c1,.6,3.3,0,{emissive:0xffd27a,emissiveIntensity:1.8})); g.add(cone(.22,.3,6,0x2f3a3a,0,3.45,0)); }
+function signPost(g){ g.add(cyl(.07,.08,2.6,8,0xf6ecd6,0,1.3,0)); const arr=[["M1",0xc0141d,0],["M5",0x2f7d5b,1.6],["M9",0x2f6fb5,3.4]];
+  arr.forEach(([t,c,a],k)=>{ const p=new THREE.Group(); p.position.y=2.25-k*.45; p.rotation.y=a; g.add(p); p.add(box(1.1,.3,.06,c,.5,0,0)); const tip=cone(.21,.25,3,c,1.15,0,0); tip.rotation.z=-Math.PI/2; tip.scale.z=.3; p.add(tip); p.add(box(.6,.12,.02,0xffffff,.45,0,.04)); });
+  g.add(ball(.1,C.gold,0,2.65,0)); }
+function hammock(g){ [-1.2,1.2].forEach(x=>{ g.add(cyl(.09,.11,2,10,NY.teak,x,1,0)); g.add(ball(.1,NY.teak,x,2,0)); });
+  const hm=new THREE.Group(); hm.position.y=1.55; g.add(hm);
+  const geo=new THREE.PlaneGeometry(2.3,.8,20,6); geo.rotateX(-Math.PI/2); const pa=geo.attributes.position;
+  for(let i=0;i<pa.count;i++){ const x=pa.getX(i), z=pa.getZ(i), u=(x+1.15)/2.3; pa.setY(i, -Math.sin(u*Math.PI)*.65 + (z*z)*.5*Math.sin(u*Math.PI)); pa.setZ(i, z*(.55+.45*Math.sin(u*Math.PI))); }
+  geo.computeVertexNormals(); const cloth=new THREE.Mesh(geo, M(0xf28c28,{roughness:.85, side:THREE.DoubleSide})); hm.add(cloth);
+  [-.75,0,.75].forEach(x=>{ const u=(x+1.15)/2.3, y=-Math.sin(u*Math.PI)*.65, w=.8*(.55+.45*Math.sin(u*Math.PI)); const st=box(.1,.02,w,0x2a9d8f,x,y+.02,0); st.rotation.z=Math.cos(u*Math.PI)*.9; hm.add(st); });
+  [-1,1].forEach(s=>{ rodBetween(hm,[s*1.15,0,-.22],[s*1.2,.25,0],.012,0xe0c09a); rodBetween(hm,[s*1.15,0,.22],[s*1.2,.25,0],.012,0xe0c09a); });
+  seaBoats.push(t=>{ hm.rotation.x=Math.sin(t*1.1)*.1; }); }
+function beachUmbrella(g){ g.add(cyl(.04,.04,2.4,8,0xffffff,0,1.2,0)); const cols=[0xe63946,0xffffff]; for(let k=0;k<8;k++){ const s=new THREE.Mesh(new THREE.ConeGeometry(1.5,.55,8,1,true,k/8*6.283,6.283/8),M(cols[k%2],{side:THREE.DoubleSide})); s.position.y=2.45; g.add(s); }
+  [[-.7,.7],[.7,.7]].forEach(([x,z])=>{ const c=new THREE.Group(); c.position.set(x,0,z); g.add(c); c.add(box(.55,.06,1.1,0x2a9d8f,0,.35,0)); const back=box(.55,.06,.5,0x2a9d8f,0,.55,-.6); back.rotation.x=-.9; c.add(back); [[-.25,-.45],[.25,-.45],[-.25,.45],[.25,.45]].forEach(([a,b])=>c.add(cyl(.02,.02,.35,4,0xdddddd,a,.17,b))); }); }
+function slide(g){ [[-.4,-.8],[.4,-.8],[-.4,-.1],[.4,-.1]].forEach(([x,z])=>g.add(cyl(.05,.05,1.9,8,0x2f6fb5,x,.95,z))); g.add(box(.9,.1,.8,0xffd23f,0,1.9,-.45));
+  for(let k=0;k<6;k++) g.add(box(.7,.05,.08,0x2f6fb5,0,.3+k*.3,-.85)); const r=box(.8,.08,2.4,0xe63946,0,1,.75); r.rotation.x=.72; g.add(r); [-.42,.42].forEach(x=>{ const s=box(.06,.18,2.4,0xe63946,x,1.07,.75); s.rotation.x=.72; g.add(s); });
+  [-.42,.42].forEach(x=>rodBetween(g,[x,1.9,-.85],[x,2.4,-.85],.03,0x2f6fb5)); rodBetween(g,[-.42,2.4,-.85],[.42,2.4,-.85],.03,0x2f6fb5); }
+function seesaw(g){ g.add(cone(.35,.6,4,0x2f6fb5,0,.3,0)); const p=new THREE.Group(); p.position.y=.62; g.add(p); p.add(box(3,.1,.35,0xffd23f,0,0,0)); [-1.3,1.3].forEach(x=>{ p.add(box(.35,.08,.4,0xe63946,x,.08,0)); rodBetween(p,[x+(x>0?-.2:.2),.05,-.15],[x+(x>0?-.2:.2),.4,-.15],.025,0x333333); rodBetween(p,[x+(x>0?-.2:.2),.4,-.15],[x+(x>0?-.2:.2),.4,.15],.025,0x333333); });
+  seaBoats.push(t=>{ p.rotation.z=Math.sin(t*1.4)*.22; }); }
+function takraw(g){ [-1.3,1.3].forEach(x=>g.add(cyl(.05,.05,1.6,8,0xdddddd,x,.8,0))); const net=new THREE.Mesh(new THREE.PlaneGeometry(2.6,.7,10,3),new THREE.MeshStandardMaterial({color:0xffffff,wireframe:true})); net.position.y=1.2; g.add(net); g.add(box(2.6,.06,.03,0xffffff,0,1.55,0));
+  g.add(box(3.2,.02,2.4,0x2f7d5b,0,.01,0)); g.add(box(3.2,.025,.04,0xffffff,0,.02,0));
+  const ballG=new THREE.Group(); g.add(ballG); const b=new THREE.Mesh(new THREE.IcosahedronGeometry(.16,1),new THREE.MeshStandardMaterial({color:0xd9a521,wireframe:true})); ballG.add(b); ballG.add(ball(.12,0xe0b04a,0,0,0));
+  seaBoats.push(t=>{ const u=(t*.5)%1; ballG.position.set(0, 1.9+Math.sin(u*Math.PI)*.8, -1+u*2); ballG.rotation.x=t*3; }); }
+function pelita(g){ for(let k=0;k<5;k++){ const x=-1.2+k*.6, h=.9+(k%2)*.35; g.add(cyl(.05,.05,h,8,0xb08a4a,x,h/2,0)); g.add(cyl(.09,.07,.14,10,0x8a6a2a,x,h+.07,0)); flame(g,x,h+.24,0); } }
+function lionDance(g){ g.add(cyl(.5,.55,.25,16,0x6e4426,0,.12,0)); g.add(cyl(.18,.2,.7,10,0x6e4426,0,.6,0)); const h=new THREE.Group(); h.position.y=1.5; g.add(h);
+  const head=ball(.6,0xd81e28,0,0,0); head.scale.set(1,.9,1.05); h.add(head); h.add(ball(.12,0xffffff,-.22,.25,.48)); h.add(ball(.12,0xffffff,.22,.25,.48)); h.add(ball(.06,0x111111,-.22,.25,.58)); h.add(ball(.06,0x111111,.22,.25,.58));
+  h.add(ball(.15,C.gold,0,.55,.2)); const jaw=box(.7,.12,.45,0xffd23f,0,-.35,.35); h.add(jaw); h.add(box(.75,.08,.08,0xffffff,0,-.25,.6)); for(let k=0;k<5;k++) h.add(ball(.07,0xffffff,-.3+k*.15,.55,-.2-k*.08));
+  const tail=new THREE.Mesh(new THREE.ConeGeometry(.6,1.2,12,1,true),M(0xd81e28,{side:THREE.DoubleSide})); tail.rotation.x=Math.PI/2; tail.position.z=-.9; h.add(tail);
+  g.add(cyl(.45,.45,.55,20,0xc0141d,1.25,.4,.3)); g.add(cyl(.46,.46,.04,20,0xf6ecd6,1.25,.69,.3)); seaBoats.push(t=>{ h.rotation.x=Math.sin(t*2.6)*.12; h.position.y=1.5+Math.abs(Math.sin(t*2.6))*.12; }); }
+function firecrackers(g){ g.add(cyl(.06,.07,3.2,8,NY.teak,0,1.6,0)); rodBetween(g,[0,3.1,0],[.7,3.2,0],.04,NY.teak);
+  for(let k=0;k<14;k++){ [-1,1].forEach(s=>{ const c=cyl(.05,.05,.22,8,0xd81e28,.7+s*.09,2.95-k*.17,0); c.rotation.z=s*.6; g.add(c); }); g.add(cyl(.015,.015,.17,4,C.gold,.7,2.95-k*.17,0)); } g.add(cone(.16,.25,8,C.gold,.7,.48,0)); }
+function ketupatArch(g){ [-1.3,1.3].forEach(x=>g.add(cyl(.08,.1,2.6,8,0xd9a521,x,1.3,0))); const arc=new THREE.Mesh(new THREE.TorusGeometry(1.3,.08,8,24,Math.PI),M(0x2f7d5b)); arc.position.y=2.6; g.add(arc);
+  for(let k=0;k<7;k++){ const a=Math.PI*(k+.5)/7, x=Math.cos(a)*1.3, y=2.6+Math.sin(a)*1.3; g.add(cyl(.01,.01,.3,4,0xdddddd,x,y-.2,0)); const kt=box(.24,.24,.24,k%2?0x7fb24a:0xd9c05a,x,y-.45,0); kt.rotation.set(.6,0,Math.PI/4); g.add(kt); } }
+function orangeTree(g){ const h=potOf(g,.55,.55,0xc0141d); g.add(cyl(.06,.08,.6,8,0x6e4426,0,h+.3,0)); const b=ball(.8,0x2f7d32,0,h+1.1,0); b.scale.y=.9; g.add(b);
+  for(let k=0;k<18;k++){ const a=k*2.4, y=Math.sin(k)*.5, r=Math.sqrt(.64-y*y*.8); g.add(ball(.1,0xff8c1a,Math.cos(a)*r*.98,h+1.1+y*.85,Math.sin(a)*r*.98)); }
+  for(let k=0;k<4;k++){ const a=k*1.6+.4; g.add(box(.12,.2,.02,0xd81e28,Math.cos(a)*.6,h+.75,Math.sin(a)*.6+.1,{emissive:0x400000})); } g.add(box(.9,.25,.04,C.gold,0,h*.5,.56)); }
+function gongSet(g){ [-1,1].forEach(x=>g.add(cyl(.08,.1,2.2,8,0x6e4426,x,1.1,0))); g.add(box(2.4,.15,.15,0xc0141d,0,2.15,0)); const gg=new THREE.Group(); gg.position.y=2.07; g.add(gg); gg.add(cyl(.01,.01,.3,4,0x333333,0,-.15,0));
+  put(gg,cyl(.6,.6,.08,28,C.gold,0,-.85,0,{metalness:.6,roughness:.3}),m=>m.rotation.x=Math.PI/2); gg.add(ball(.13,0xb8860b,0,-.85,.06,{metalness:.6,roughness:.3}));
+  g.add(box(2.2,.5,.5,0x6e4426,0,.25,.6)); for(let k=0;k<5;k++){ g.add(cyl(.17,.17,.08,16,C.gold,-.8+k*.4,.54,.6,{metalness:.6,roughness:.3})); g.add(ball(.06,0xb8860b,-.8+k*.4,.6,.6)); }
+  seaBoats.push(t=>{ gg.rotation.x=Math.sin(t*1.3)*.06; }); }
+function bicycle(g){ const wheel=(z)=>{ const w=new THREE.Group(); w.position.set(0,.42,z); w.add(new THREE.Mesh(new THREE.TorusGeometry(.4,.04,8,24),M(0x222222))); for(let s=0;s<6;s++){ const sp=cyl(.01,.01,.78,4,0xcccccc); sp.rotation.x=s/6*Math.PI; w.add(sp); } w.rotation.y=Math.PI/2; g.add(w); return w; };
+  wheel(-.62); wheel(.62); const F=0x2a9d8f; rodBetween(g,[0,.42,-.62],[0,.95,-.1],.03,F); rodBetween(g,[0,.42,-.62],[0,.45,.1],.03,F); rodBetween(g,[0,.45,.1],[0,.95,-.1],.03,F); rodBetween(g,[0,.95,-.1],[0,1,.45],.03,F); rodBetween(g,[0,.42,.62],[0,1.15,.45],.03,F);
+  g.add(box(.2,.06,.3,0x333333,0,1.02,-.12)); rodBetween(g,[-.3,1.15,.45],[.3,1.15,.45],.025,0x333333); g.add(box(.35,.25,.3,0xc9a06a,0,1.05,.7)); }
+function waterTaxi(g){ const b=perahu(0x2a9d8f, C.gold, false); g.add(b); g.add(box(.3,.4,.3,0x333333,0,.4,-1.9)); g.add(cyl(.03,.03,.5,6,0x555555,0,.05,-2.05)); [-.3,.3].forEach(x=>g.add(box(.25,.3,.25,0xffd23f,x,.4,.6))); seaBoats.push(t=>{ b.rotation.z=Math.sin(t*1.6)*.05; }); }
+function oldBus(g){ const B=0xf6dc8c; g.add(box(1.5,1.3,3.4,B,0,1,0)); g.add(box(1.52,.25,3.42,0x2f7d5b,0,.5,0)); g.add(box(1.4,.2,3.2,0xffffff,0,1.72,0));
+  for(let k=0;k<4;k++) [-.76,.76].forEach(x=>g.add(box(.04,.45,.55,0x9fcbe9,x,1.25,-1.1+k*.72))); g.add(box(1.2,.45,.04,0x9fcbe9,0,1.25,1.71)); g.add(box(1.3,.35,.5,B,0,.6,1.9));
+  [[-.65,-1],[.65,-1],[-.65,1.1],[.65,1.1]].forEach(([x,z])=>{ const w=cyl(.3,.3,.2,16,0x222222,x,.3,z); w.rotation.z=Math.PI/2; g.add(w); }); [-.45,.45].forEach(x=>g.add(ball(.09,0xfff1c1,x,.7,2.16,{emissive:0xffd27a,emissiveIntensity:.8}))); g.add(box(1,.22,.04,0xc0141d,0,1.6,1.72)); }
+function bullockCart(g){ const cart=new THREE.Group(); cart.position.z=-.5; g.add(cart); cart.add(box(1.4,.5,1.6,0x8a5a35,0,.95,0)); const roof=new THREE.Mesh(new THREE.CylinderGeometry(.85,.85,1.7,16,1,true,0,Math.PI),M(NY.attap,{side:THREE.DoubleSide})); roof.rotation.x=Math.PI/2; roof.rotation.y=Math.PI/2; roof.position.y=1.2; cart.add(roof);
+  [-.78,.78].forEach(x=>{ const w=new THREE.Mesh(new THREE.TorusGeometry(.55,.07,8,20),M(0x5a3a20)); w.position.set(x,.55,0); w.rotation.y=Math.PI/2; cart.add(w); for(let s=0;s<6;s++){ const sp=cyl(.02,.02,1.1,4,0x5a3a20,x,.55,0); sp.rotation.x=s/6*Math.PI; cart.add(sp); } });
+  rodBetween(g,[-.2,.75,.3],[-.1,.9,1.3],.04,0x5a3a20); rodBetween(g,[.2,.75,.3],[.1,.9,1.3],.04,0x5a3a20);
+  const ox=new THREE.Group(); ox.position.z=1.6; g.add(ox); const body=ball(.45,0x8b6b4a,0,.95,0); body.scale.set(.85,.85,1.5); ox.add(body); ox.add(ball(.28,0x8b6b4a,0,1.15,.75)); ox.add(ball(.13,0xd9c7a3,0,1.05,1)); [-1,1].forEach(s=>{ const hn=cone(.05,.3,6,0xeeeeee,s*.2,1.42,.75); hn.rotation.z=-s*.8; ox.add(hn); }); ox.add(ball(.25,0xa5845f,0,1.35,-.05));
+  [[-.22,-.4],[.22,-.4],[-.22,.4],[.22,.4]].forEach(([x,z])=>ox.add(cyl(.07,.06,.6,8,0x7a5a3a,x,.3,z))); seaBoats.push(t=>{ ox.children[1].rotation.x=Math.sin(t*1.5)*.15; }); }
+function scooter(g){ const C1=0x8be0c0; const body=ball(.5,C1,0,.55,-.35); body.scale.set(.7,.6,1.1); g.add(body); g.add(box(.4,.08,.7,0x333333,0,.9,-.4)); g.add(box(.5,.1,.6,C1,0,.4,.25)); g.add(box(.45,.8,.15,C1,0,.75,.6));
+  rodBetween(g,[0,1.1,.65],[0,1.35,.6],.04,0x777777); rodBetween(g,[-.32,1.35,.6],[.32,1.35,.6],.03,0x333333); g.add(ball(.1,0xfff1c1,0,1.2,.72,{emissive:0xffd27a,emissiveIntensity:.8}));
+  [-.6,.75].forEach(z=>{ const w=new THREE.Mesh(new THREE.TorusGeometry(.2,.08,8,16),M(0x222222)); w.position.set(0,.22,z); w.rotation.y=Math.PI/2; g.add(w); }); g.add(box(.35,.3,.3,0xc9a06a,0,1.05,-.85)); }
+
 function makeDecor(id, k, r){ const g=new THREE.Group(), rr=rng(k*13+id.length);
   ({ palm:()=>palm(g,0,0,1,rr), frang:()=>frangipani(g,0,0), banana:()=>banana(g,0,0,.95), flowers:()=>flowerBed(g), bench:()=>bench(g),
      durian:()=>fruitTree(g,0x3f8f3a,0x9db83a,true), rambutan:()=>fruitTree(g,0x4a9e3f,0xd62839,false), lantern:()=>lanterns(g,-1.6,0,1.6,0,3,4),
      swing:()=>swing(g), kite:()=>kite(g), trishaw:()=>trishaw(g), gazebo:()=>gazebo(g), kopi:()=>kopiStall(g),
      shop:()=>{ const s=shophouse(SHOP_COL()[k%6],2.4,2.6); s.scale.setScalar(.85); g.add(s); },
      stilt:()=>{ const s=stiltHouse(NY.cream,NY.tile,1.3,2.8,2.2); s.scale.setScalar(.8); g.add(s); },
-     perahu:()=>{ const b=perahu(k%2?C.gold:NY.lantern, k%2?NY.lantern:C.gold); g.add(b); } })[id]?.();
+     perahu:()=>{ const b=perahu(k%2?C.gold:NY.lantern, k%2?NY.lantern:C.gold); g.add(b); },
+     mango:()=>fruitTree(g,0x2c6e2f,0xf4b400,false,true), orchid:()=>orchidPots(g), bamboo:()=>bambooClump(g), pitcher:()=>pitcherPlant(g),
+     kampung:()=>kampungHouse(g), temple:()=>temple(g), fishhut:()=>fishHut(g), mosque:()=>mosque(g), waterhouse:()=>waterHouse(g), clock:()=>clockTower(g),
+     postbox:()=>postBox(g), lamp:()=>streetLamp(g), sign:()=>signPost(g), coconut:()=>coconutStall(g), satay:()=>sateStall(g), icecream:()=>iceCreamCart(g), fruit:()=>fruitStall(g), news:()=>newsStand(g),
+     umbrella:()=>beachUmbrella(g), seesaw:()=>seesaw(g), hammock:()=>hammock(g), slide:()=>slide(g), takraw:()=>takraw(g),
+     pelita:()=>pelita(g), orange:()=>orangeTree(g), crackers:()=>firecrackers(g), lion:()=>lionDance(g), ketupat:()=>ketupatArch(g), gong:()=>gongSet(g),
+     bike:()=>bicycle(g), scooter:()=>scooter(g), watertaxi:()=>waterTaxi(g), bus:()=>oldBus(g), bullock:()=>bullockCart(g) })[id]?.();
   return g; }
 function render3DBuild(i){
   if(!scene || !isles[i]) return; const o=isles[i];
@@ -2156,7 +2333,8 @@ function render3DBuild(i){
   while(o.bgrp.children.length) o.bgrp.remove(o.bgrp.children[0]);
   buildsOf(i).forEach((id,k)=>{ if(!id) return; const a=SLOT_ANG[k];
     const g=makeDecor(id,k,o.r);
-    if(id==="perahu"){ const RR=o.r*1.5; g.position.set(Math.cos(a)*RR,.25,Math.sin(a)*RR); g.rotation.y=-a; }
+    const it=BUILD.find(x=>x.id===id);
+    if(it&&it.water){ const RR=o.r*(id==="waterhouse"?1.32:1.5); g.position.set(Math.cos(a)*RR,id==="waterhouse"?0:.25,Math.sin(a)*RR); g.rotation.y=id==="waterhouse"?-a+Math.PI/2:-a; }
     else { const R=o.r*.72, x=Math.cos(a)*R, z=Math.sin(a)*R; g.position.set(x, o.sh?terrainH(o.sh,x,z):2.2, z); g.rotation.y=-a+Math.PI/2; }
     o.bgrp.add(g); });
   o.bgrp.traverse(m=>{ if(m.isMesh){ m.castShadow=true; m.receiveShadow=true; } });
@@ -2164,19 +2342,29 @@ function render3DBuild(i){
 }
 
 /* ============================== 海洋养殖 Sea farm ============================== */
+// 20 sea creatures in 5 groups; tier = the island that unlocks it (the farm itself opens with 4 islands = M4)
+const SEA_CATS=[["fish","鱼","Fish"],["shell","虾蟹","Shellfish"],["soft","软体","Soft-bodied"],["reef","海底","Seabed"],["big","大型动物","Big animals"]];
 const SEA = [
-  {id:"fish",     zh:"鱼",     en:"fish",       cost:5},
-  {id:"shrimp",   zh:"虾",     en:"shrimp",     cost:5},
-  {id:"starfish", zh:"海星",   en:"starfish",   cost:6},
-  {id:"crab",     zh:"螃蟹",   en:"crab",       cost:8},
-  {id:"clown",    zh:"小丑鱼", en:"clownfish",  cost:8},
-  {id:"jelly",    zh:"水母",   en:"jellyfish",  cost:10},
-  {id:"seahorse", zh:"海马",   en:"seahorse",   cost:10},
-  {id:"octopus",  zh:"章鱼",   en:"octopus",    cost:12},
-  {id:"turtle",   zh:"海龟",   en:"sea turtle", cost:15},
-  {id:"dolphin",  zh:"海豚",   en:"dolphin",    cost:20},
-  {id:"shark",    zh:"鲨鱼",   en:"shark",      cost:20},
-  {id:"whale",    zh:"鲸鱼",   en:"whale",      cost:30}
+  {id:"fish",     cat:"fish",  tier:3, zh:"鱼",     en:"fish",        cost:5},
+  {id:"clown",    cat:"fish",  tier:3, zh:"小丑鱼", en:"clownfish",   cost:8},
+  {id:"seahorse", cat:"fish",  tier:4, zh:"海马",   en:"seahorse",    cost:10},
+  {id:"puffer",   cat:"fish",  tier:6, zh:"河豚",   en:"pufferfish",  cost:12},
+  {id:"manta",    cat:"fish",  tier:7, zh:"魔鬼鱼", en:"manta ray",   cost:18},
+  {id:"shark",    cat:"fish",  tier:8, zh:"鲨鱼",   en:"shark",       cost:20},
+  {id:"shrimp",   cat:"shell", tier:3, zh:"虾",     en:"shrimp",      cost:5},
+  {id:"crab",     cat:"shell", tier:3, zh:"螃蟹",   en:"crab",        cost:8},
+  {id:"hermit",   cat:"shell", tier:4, zh:"寄居蟹", en:"hermit crab", cost:8},
+  {id:"lobster",  cat:"shell", tier:5, zh:"龙虾",   en:"lobster",     cost:12},
+  {id:"jelly",    cat:"soft",  tier:4, zh:"水母",   en:"jellyfish",   cost:10},
+  {id:"octopus",  cat:"soft",  tier:5, zh:"章鱼",   en:"octopus",     cost:12},
+  {id:"squid",    cat:"soft",  tier:5, zh:"鱿鱼",   en:"squid",       cost:12},
+  {id:"starfish", cat:"reef",  tier:3, zh:"海星",   en:"starfish",    cost:6},
+  {id:"urchin",   cat:"reef",  tier:6, zh:"海胆",   en:"sea urchin",  cost:10},
+  {id:"coral",    cat:"reef",  tier:6, zh:"珊瑚",   en:"coral",       cost:12},
+  {id:"turtle",   cat:"big",   tier:6, zh:"海龟",   en:"sea turtle",  cost:15},
+  {id:"dolphin",  cat:"big",   tier:7, zh:"海豚",   en:"dolphin",     cost:20},
+  {id:"whale",    cat:"big",   tier:8, zh:"鲸鱼",   en:"whale",       cost:30},
+  {id:"dugong",   cat:"big",   tier:8, zh:"儒艮",   en:"dugong",      cost:25}
 ];
 const FARM_MAX=10;
 const farmOpen = () => state.teacher || ISLANDS.filter((_,i)=>isUnlocked(i)).length>=4;
@@ -2273,6 +2461,31 @@ function creature(id){
   else if(id==="whale"){ const b=mesh(new THREE.SphereGeometry(1,28,18),0x3a6ea5); b.scale.set(2.6,1,1.2); g.add(b); const belly=mesh(new THREE.SphereGeometry(1,24,14),0xdfe7f2,.2,-.25,0); belly.scale.set(2.2,.7,.95); g.add(belly);
     const tl=mesh(new THREE.SphereGeometry(.6,14,8),0x3a6ea5,-2.7,.3,0); tl.scale.set(.35,.18,1.6); g.add(tl); eye(1.9,.15,.75,.08); eye(1.9,.15,-.75,.08);
     const sp=new THREE.Mesh(new THREE.ConeGeometry(.35,1.6,12,1,true), new THREE.MeshStandardMaterial({color:0xffffff, transparent:true, opacity:.7, side:THREE.DoubleSide})); sp.position.set(1,1.6,0); sp.rotation.z=Math.PI; g.add(sp); g.userData.spout=sp; }
+  else if(id==="puffer"){ const b=mesh(new THREE.SphereGeometry(.5,24,16),0xe8c35a); g.add(b); const bl=mesh(new THREE.SphereGeometry(.49,24,16,0,Math.PI*2,Math.PI*.55,Math.PI*.45),0xfff6dc); g.add(bl);
+    for(let k=0;k<36;k++){ const y=1-2*(k+.5)/36, r=Math.sqrt(1-y*y), a=k*2.4; const d=new THREE.Vector3(Math.cos(a)*r,y,Math.sin(a)*r); if(d.x>.7) continue; const sp=cone(.04,.2,4,0xb8913a); sp.position.copy(d).multiplyScalar(.52); sp.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d); g.add(sp); }
+    for(let k=0;k<5;k++){ const s=mesh(new THREE.SphereGeometry(.07,8,6),0x6b4f20,-.1+(k%3)*.18,.3+(k%2)*.08,(k-2)*.15); s.scale.y=.3; g.add(s); }
+    eye(.4,.15,.2,.08); eye(.4,.15,-.2,.08); const tl=new THREE.Group(); tl.position.x=-.5; g.add(tl); const tf=cone(.2,.35,4,0xe8c35a,-.15,0,0); tf.rotation.z=Math.PI/2; tf.scale.z=.3; tl.add(tf); g.userData.tail=tl; g.userData.tailAxis="y"; }
+  else if(id==="squid"){ const b=mesh(new THREE.ConeGeometry(.3,1.3,20),0xf2a7b6); b.rotation.z=Math.PI/2; b.position.x=.55; g.add(b); const hd=mesh(new THREE.SphereGeometry(.28,16,12),0xf2a7b6,-.1,0,0); hd.scale.set(.9,1,1); g.add(hd);
+    [-1,1].forEach(s=>{ const f=mesh(new THREE.SphereGeometry(.3,12,8),0xe58ea1,.95,0,s*.15); f.scale.set(.8,.08,1.2); g.add(f); }); eye(-.05,.12,.24,.08); eye(-.05,.12,-.24,.08);
+    for(let k=0;k<8;k++){ const a=k/8*6.28, pts=[]; for(let j=0;j<5;j++){ const u=j/4; pts.push(new THREE.Vector3(-.3-u*.9, Math.sin(a)*.12*(1+u)+Math.sin(u*4+k)*.05, Math.cos(a)*.12*(1+u))); } g.add(mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),10,.04,6),0xf2a7b6)); } }
+  else if(id==="lobster"){ for(let k=0;k<6;k++){ const s=mesh(new THREE.SphereGeometry(.2-.015*k,14,10),0xd1401f,.35-k*.22,0,0); s.scale.set(.9,.7,1); g.add(s); } const head=mesh(new THREE.SphereGeometry(.28,16,12),0xd1401f,.55,.02,0); head.scale.set(1.3,.75,.9); g.add(head);
+    const tf=mesh(new THREE.SphereGeometry(.22,12,8),0xb5341a,-.95,0,0); tf.scale.set(.4,.12,1); g.add(tf); eye(.85,.18,.1,.04); eye(.85,.18,-.1,.04);
+    [-1,1].forEach(s=>{ rodBetween(g,[.7,.05,s*.12],[1.1,.1,s*.45],.05,0xb5341a); const cl=mesh(new THREE.SphereGeometry(.2,12,8),0xd1401f,1.3,.1,s*.55); cl.scale.set(1.5,.6,.8); g.add(cl); rodBetween(g,[.85,.15,s*.06],[1.9,.5,s*.5],.012,0xb5341a); for(let k=0;k<3;k++) rodBetween(g,[.3-k*.18,-.05,s*.12],[.3-k*.18,-.25,s*.38],.02,0xb5341a); }); }
+  else if(id==="urchin"){ g.add(mesh(new THREE.SphereGeometry(.35,18,12),0x3a1f4f)); for(let k=0;k<48;k++){ const y=1-2*(k+.5)/48, r=Math.sqrt(1-y*y), a=k*2.4; if(y<-.3) continue; const d=new THREE.Vector3(Math.cos(a)*r,y,Math.sin(a)*r); const sp=cone(.025,.55,4,0x5a2a7a); sp.position.copy(d).multiplyScalar(.55); sp.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d); g.add(sp); } }
+  else if(id==="coral"){ const rr=rng(17); const cols=[0xff7f7f,0xff9f4a,0xc77dff,0xffd166];
+    const branch=(x,z,col,h0)=>{ const pts=[[x,0,z]]; for(let k=0;k<4;k++){ const p=pts[pts.length-1]; const q=[p[0]+(rr()-.5)*.35,p[1]+.28+rr()*.15,p[2]+(rr()-.5)*.35]; rodBetween(g,p,q,.07-k*.012,col); pts.push(q); if(k>0 && rr()<.6){ const q2=[q[0]+(rr()-.5)*.4,q[1]+.25,q[2]+(rr()-.5)*.4]; rodBetween(g,q,q2,.04,col); g.add(ball(.05,col,...q2)); } } g.add(ball(.06,col,...pts[pts.length-1])); };
+    for(let k=0;k<5;k++) branch(Math.cos(k*1.3)*.45,Math.sin(k*1.3)*.45,cols[k%4]); const brain=ball(.35,0xe0a96d,.2,.15,-.5); brain.scale.y=.6; g.add(brain); for(let k=0;k<4;k++) g.add(ball(.18,0x7fd3c6,-.6+k*.12,.08,.4-k*.1)); }
+  else if(id==="manta"){ const body=mesh(new THREE.SphereGeometry(.5,20,12),0x2c3e50,0,0,0); body.scale.set(1.2,.25,.8); g.add(body); const bel=mesh(new THREE.SphereGeometry(.48,20,12),0xf1f3f5,0,-.03,0); bel.scale.set(1.15,.2,.75); g.add(bel);
+    const wings=[]; [-1,1].forEach(s=>{ const w=new THREE.Group(); w.position.z=s*.3; g.add(w); const sh=new THREE.Shape(); sh.moveTo(.55,0); sh.quadraticCurveTo(.35,s*.9,-.05,s*1.55); sh.quadraticCurveTo(-.25,s*.7,-.55,0); sh.lineTo(.55,0);
+      const geo=new THREE.ExtrudeGeometry(sh,{depth:.06,bevelEnabled:true,bevelSize:.03,bevelThickness:.02,bevelSegments:1}); geo.rotateX(Math.PI/2); const wm=new THREE.Mesh(geo,M(0x2c3e50,{side:THREE.DoubleSide})); w.add(wm); wings.push(w); });
+    [-1,1].forEach(s=>{ const h=cone(.08,.35,6,0x2c3e50,.75,0,s*.2); h.rotation.z=-Math.PI/2; g.add(h); }); rodBetween(g,[-.55,0,0],[-1.8,0,0],.02,0x2c3e50); g.userData.wings=wings; }
+  else if(id==="dugong"){ const prof=u=>Math.pow(Math.sin(Math.PI*Math.min(u,.96)),.5)*(.25+.75*smooth(0,.45,u))*(1-.2*smooth(.88,1,u));
+    g.add(streamBody(2.6,.55,prof,0x8f8a86,0xc9c2bb,.95,1)); const sn=mesh(new THREE.SphereGeometry(.22,16,10),0xa8a29c,1.3,-.12,0); sn.scale.set(.8,.9,1.2); g.add(sn); eyeBall(g,1.05,.12,.28,.04); eyeBall(g,1.05,.12,-.28,.04);
+    [-1,1].forEach(s=>{ const pf=finMesh([[0,0],[-.15,-.05],[-.35,-.2],[-.1,-.1],[.1,0]],0x8f8a86,.05); pf.position.set(.6,-.25,s*.4); pf.rotation.set(s*1.2,0,-.3); g.add(pf); });
+    const tail=new THREE.Group(); tail.position.set(-1.28,0,0); g.add(tail); const fl=finMesh([[0,0],[-.2,.35],[-.45,.6],[-.3,0],[-.45,-.6],[-.2,-.35]],0x8f8a86,.06); fl.rotation.x=Math.PI/2; tail.add(fl); g.userData.tail=tail; g.userData.tailAxis="z"; }
+  else if(id==="hermit"){ const sh=new THREE.Group(); sh.position.set(-.1,.35,0); g.add(sh); for(let k=0;k<5;k++){ const r=.34-k*.06; const t=mesh(new THREE.TorusGeometry(r,r*.55,10,18),k%2?0xe9c9a0:0xd8a878,0,k*.12,0); t.rotation.x=Math.PI/2; sh.add(t); } sh.add(cone(.08,.25,10,0xd8a878,0,.65,0)); sh.rotation.z=.5;
+    const bd=mesh(new THREE.SphereGeometry(.18,12,8),0xff7b54,.3,.18,0); bd.scale.set(1.2,.7,1); g.add(bd); eye(.45,.35,.08,.035); eye(.45,.35,-.08,.035); rodBetween(g,[.4,.2,.08],[.45,.35,.08],.012,0xff7b54); rodBetween(g,[.4,.2,-.08],[.45,.35,-.08],.012,0xff7b54);
+    [-1,1].forEach(s=>{ for(let k=0;k<3;k++){ rodBetween(g,[.25-k*.1,.15,s*.1],[.3-k*.12,0,s*.32],.025,0xff7b54); } const c=mesh(new THREE.SphereGeometry(.1,10,8),0xff7b54,.5,.14,s*.15); c.scale.set(1.4,.8,.8); g.add(c); }); }
   g.traverse(m=>{ if(m.isMesh){ m.castShadow=false; m.receiveShadow=false; } });
   return g; }
 
@@ -2296,8 +2509,15 @@ function render3DFarm(i){
     else if(id==="shark") f=t=>{ ring(t*.7,-.35,R*1.35); };
     else if(id==="whale") f=t=>{ ring(t*.12,-.55,r*2.3); const sp2=c.userData.spout; if(sp2){ const s=Math.max(0,Math.sin(t*.6+ph)); sp2.scale.set(s,.2+s,s); sp2.visible=s>.05; } };
     else if(id==="crab"){ const [x,z]=beachSpot(); f=t=>{ const w=Math.sin(t*.8+ph)*.8; c.position.set(x+Math.sin(a0)*w, terrainH(o.sh,x,z)+.02, z-Math.cos(a0)*w); c.rotation.y=-a0; }; }
+    else if(id==="puffer") f=t=>{ ring(t*.5,-.8+Math.sin(t*1.4+ph)*.15,R*.95); const k=1+Math.max(0,Math.sin(t*.5+ph))*.25; c.scale.setScalar(k); };
+    else if(id==="squid") f=t=>{ ring(t*.45,-1+Math.sin(t*2+ph)*.2,R*1.05); c.scale.x=1+Math.sin(t*4+ph)*.08; };
+    else if(id==="lobster") f=t=>{ ring(t*.25,-1.7,R*.9); };
+    else if(id==="manta") f=t=>{ ring(t*.35,-.7+Math.sin(t*.8+ph)*.2,R*1.2); (c.userData.wings||[]).forEach((w,j)=>w.rotation.x=(j?1:-1)*Math.sin(t*2.2+ph)*.35); };
+    else if(id==="dugong") f=t=>{ ring(t*.18,-1.1+Math.sin(t*.7+ph)*.15,R*1.15); };
+    else if(id==="hermit"){ const [x,z]=beachSpot(); f=t=>{ const w=Math.sin(t*.5+ph)*.6; c.position.set(x+Math.sin(a0)*w, terrainH(o.sh,x,z)+.02, z-Math.cos(a0)*w); c.rotation.y=-a0+(Math.cos(t*.5+ph)>0?0:Math.PI); }; }
+    else if(id==="urchin"||id==="coral"){ const a=a0, e=islandEdge(o.sh,a)*1.08, x=Math.cos(a)*e, z=Math.sin(a)*e; f=t=>{ c.position.set(x, Math.max(terrainH(o.sh,x,z), -1.6)+.02, z); c.rotation.y=ph; }; }
     else if(id==="starfish"){ const a=a0, e=islandEdge(o.sh,a)*1.04, x=Math.cos(a)*e, z=Math.sin(a)*e; f=t=>{ c.position.set(x, Math.max(terrainH(o.sh,x,z), -1.5)+.05, z); c.rotation.y=ph; }; }
-    const tl=c.userData.tail, ax=c.userData.tailAxis, sp2=({whale:1.1,fish:7,clown:8,shark:3,dolphin:3.4})[id]||3;
+    const tl=c.userData.tail, ax=c.userData.tailAxis, sp2=({whale:1.1,fish:7,clown:8,shark:3,dolphin:3.4,dugong:1.2,puffer:6})[id]||3;
     o.fanim.push(t=>{ f(t); if(tl) tl.rotation[ax]=Math.sin(t*sp2+ph)*(ax==="z"?.32:.42); }); });
   o.fgrp.children.forEach(bakeGroup);
 }
@@ -2305,7 +2525,7 @@ function render3DFarm(i){
 /* ---------- build UI: island map with plots 1–6, drag & drop + tap ---------- */
 let bSel=null;   // {kind:"shop", id} | {kind:"plot", k}
 let buildTab="decor";
-function placeItem(k, id, body){ const slots=buildsOf(cur), free=state.teacher, it=BUILD.find(x=>x.id===id), old=slots[k] && BUILD.find(x=>x.id===slots[k]);
+function placeItem(k, id, body){ if(!itemOpen(BUILD.find(x=>x.id===id)||{tier:0})) return false; const slots=buildsOf(cur), free=state.teacher, it=BUILD.find(x=>x.id===id), old=slots[k] && BUILD.find(x=>x.id===slots[k]);
   if(!free && state.coins<it.cost){ toast("椰子币不够","Not enough coins"); return false; }
   if(!free){ state.coins-=it.cost; if(old) state.coins+=Math.floor(old.cost/2); }
   slots[k]=id; save(); updateCoins(); render3DBuild(cur); toast(`建好了：${it.name}（${k+1} 号空地）`, `Built: ${it.en} on plot ${k+1}`); return true; }
@@ -2318,18 +2538,25 @@ function renderBuild(body){
   body.querySelectorAll("[data-bt]").forEach(b=>b.onclick=()=>{ buildTab=b.dataset.bt; bSel=null; renderBuild(body); });
   if(buildTab==="farm") renderFarm($("#bView"), body); else renderDecor($("#bView"), body);
 }
+let decorCat="all", seaCat="all";
+// category tabs; the number shows how many items in that category are unlocked
+function catBar(cats, cur, list, key){ const tab=(id,zh,en)=>{ const all=list.filter(x=>id==="all"||x.cat===id), open=all.filter(itemOpen).length;
+    return `<button type="button" class="cat" data-${key}="${id}" aria-pressed="${cur===id}">${zh}<span class=ui-en>${en}</span><small>${open}/${all.length}</small></button>`; };
+  return `<div class="cats" role="group" aria-label="类别 Categories">${tab("all","全部","All")}${cats.map(([id,zh,en])=>tab(id,zh,en)).join("")}</div>`; }
 function renderDecor(view, body){
   const slots=buildsOf(cur), free=state.teacher;
   const plotHTML=slots.map((id,k)=>{ const a=SLOT_ANG[k], it=id&&BUILD.find(x=>x.id===id), x=50+Math.cos(a)*36, y=50+Math.sin(a)*36, sel=bSel&&bSel.kind==="plot"&&bSel.k===k;
     return `<button class="plot ${it?"on":""} ${sel?"sel":""}" type="button" data-plot="${k}" style="left:${x}%;top:${y}%"><i>${k+1}</i>${it?`<b>${it.name}</b>`:'<span class="ph">空地<span class=ui-en>Empty</span></span>'}</button>`; }).join("");
   setHTML(view, `<p class="notice">把商店里的东西<b>拖</b>到 1–6 号空地上，或者先点东西、再点空地。已经建好的东西也可以拖到别的空地，互相交换位置。<span class=ui-en data-b>Drag an item from the shop onto plots 1–6, or tap an item then tap a plot. Drag built items between plots to move or swap them.</span></p>
     <div class="imap-wrap"><div class="imap" aria-label="我的岛 My island"><div class="iland"></div><div class="icore">${esc(ISLANDS[cur].name)}</div>${plotHTML}</div>
-    <div class="row" id="selBar">${bSel&&bSel.kind==="plot"&&slots[bSel.k]?`<span class="sw-msg">已选 ${bSel.k+1} 号：${BUILD.find(x=>x.id===slots[bSel.k]).name} · 点另一块空地移动<span class=ui-en>Selected — tap another plot to move</span></span><button class="btn ghost sm" type="button" id="rmSel">拆除<span class=ui-en>Remove</span></button>`: bSel&&bSel.kind==="shop"?`<span class="sw-msg">已选「${BUILD.find(x=>x.id===bSel.id).name}」· 点一块空地放下<span class=ui-en>Selected — tap a plot to place it</span></span>`:""}</div></div>
-    <h3 class="spot-h" style="margin:0">南洋商店<span class=ui-en>Nanyang shop</span> <span class="en">${BUILD.length} 种摆设 · ${BUILD.length} items</span></h3>
-    <div class="shop">${BUILD.map(it=>{ const can=free||state.coins>=it.cost, sel=bSel&&bSel.kind==="shop"&&bSel.id===it.id; return `<div class="item ${can?"":"off"} ${sel?"sel":""}" role="button" tabindex="0" data-b="${it.id}" aria-disabled="${!can}"><b>${it.name}</b><span class="en">${it.en}</span><span class="price"><span class="coin sm" aria-hidden="true"></span>${it.cost}</span></div>`; }).join("")}</div>`);
+    <div class="row" id="selBar">${bSel&&bSel.kind==="plot"&&slots[bSel.k]?`<span class="sw-msg">已选 ${bSel.k+1} 号：${BUILD.find(x=>x.id===slots[bSel.k]).name} · 点另一块空地移动<span class=ui-en>Selected — tap another plot to move</span></span><button class="btn ghost sm" type="button" id="rmSel">拆除<span class=ui-en>Remove</span></button>`: bSel&&bSel.kind==="shop"?`<span class="sw-msg">已选「${BUILD.find(x=>x.id===bSel.id).name}」· 点一块空地放下<span class=ui-en>Selected — tap a plot to place it</span></span>`:""}</div>${catBar(DECOR_CATS, decorCat, BUILD, "dc")}</div>
+    <h3 class="spot-h" style="margin:0">南洋商店<span class=ui-en>Nanyang shop</span> <span class="en">已解锁 ${BUILD.filter(itemOpen).length}/${BUILD.length} 种 · ${BUILD.filter(itemOpen).length}/${BUILD.length} unlocked</span></h3>
+    <div class="shop">${BUILD.filter(it=>decorCat==="all"||it.cat===decorCat).sort((a,b)=>(itemOpen(b)-itemOpen(a))||(a.tier-b.tier)).map(it=>{ const open=itemOpen(it), can=open&&(free||state.coins>=it.cost), sel=bSel&&bSel.kind==="shop"&&bSel.id===it.id;
+      return `<div class="item ${can?"":"off"} ${open?"":"lockd"} ${sel?"sel":""}" role="button" tabindex="0" data-b="${it.id}" aria-disabled="${!can}"><b>${it.name}</b><span class="en">${it.en}</span>${open?`<span class="price"><span class="coin sm" aria-hidden="true"></span>${it.cost}</span>`:`<span class="price lockp">🔒 ${tierLabel(it.tier)} 解锁<span class=ui-en>Unlocks at ${tierLabel(it.tier)}</span></span>`}</div>`; }).join("")}</div>`);
+  view.querySelectorAll("[data-dc]").forEach(b=>b.onclick=()=>{ decorCat=b.dataset.dc; bSel=null; renderDecor(view, body); });
   const rerender=()=>renderDecor(view, body);
   // tap behaviour
-  view.querySelectorAll("[data-b]").forEach(el=>{ el.addEventListener("click",()=>{ if(el.dataset.dragged){ delete el.dataset.dragged; return; } const id=el.dataset.b, it=BUILD.find(x=>x.id===id); if(!free && state.coins<it.cost){ toast("椰子币不够","Not enough coins"); return; } bSel={kind:"shop", id}; rerender(); }); el.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); el.click(); } }); });
+  view.querySelectorAll("[data-b]").forEach(el=>{ el.addEventListener("click",()=>{ if(el.dataset.dragged){ delete el.dataset.dragged; return; } const id=el.dataset.b, it=BUILD.find(x=>x.id===id); if(!itemOpen(it)){ toast(`到 ${tierLabel(it.tier)} 岛就能解锁「${it.name}」`, `Unlocks when you reach ${tierLabel(it.tier)}`); return; } if(!free && state.coins<it.cost){ toast("椰子币不够","Not enough coins"); return; } bSel={kind:"shop", id}; rerender(); }); el.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); el.click(); } }); });
   view.querySelectorAll("[data-plot]").forEach(el=>el.addEventListener("click",()=>{ if(el.dataset.dragged){ delete el.dataset.dragged; return; } const k=+el.dataset.plot;
     if(bSel&&bSel.kind==="shop"){ if(placeItem(k,bSel.id,body)) bSel=null; rerender(); return; }
     if(bSel&&bSel.kind==="plot"&&bSel.k!==k){ moveItem(bSel.k,k); bSel=null; rerender(); return; }
@@ -2367,9 +2594,12 @@ function renderFarm(view, body){
   setHTML(view, `<p class="notice">买一种海洋生物，它就会在这座岛的周围游来游去。点名字可以听读音。每座岛最多 ${FARM_MAX} 只。<span class=ui-en data-b>Buy a sea creature and it will swim around this island. Tap a name to hear it. Up to ${FARM_MAX} per island.</span></p>
     <h3 class="spot-h" style="margin:0">我的海洋<span class=ui-en>My sea</span> <span class="en">${list.length}/${FARM_MAX}</span></h3>
     <div class="mysea">${list.length?Object.keys(counts).map(id=>{ const c=SEA.find(x=>x.id===id); return `<span class="seachip"><button type="button" class="say" data-say="${c.zh}">${c.zh}</button><span class="en">${c.en} ×${counts[id]}</span><button type="button" class="rmc" data-rm="${id}" aria-label="放走一只 ${c.en}">－</button></span>`; }).join(""):'<span class="sw-msg">还没有养海洋生物。<span class=ui-en>No sea creatures yet.</span></span>'}</div>
-    <h3 class="spot-h" style="margin:0">海洋生物<span class=ui-en>Sea creatures</span> <span class="en">${SEA.length} 种 · ${SEA.length} kinds</span></h3>
-    <div class="shop">${SEA.map(c=>{ const can=(free||state.coins>=c.cost)&&list.length<FARM_MAX; return `<button class="item" type="button" data-sea="${c.id}" ${can?"":"disabled"}><b>${c.zh}</b><span class="en">${c.en}</span><span class="price"><span class="coin sm" aria-hidden="true"></span>${c.cost}</span></button>`; }).join("")}</div>`);
-  view.querySelectorAll("[data-sea]").forEach(b=>b.onclick=()=>{ const c=SEA.find(x=>x.id===b.dataset.sea); if(list.length>=FARM_MAX) return; if(!free){ if(state.coins<c.cost) return; state.coins-=c.cost; }
+    <h3 class="spot-h" style="margin:0">海洋生物<span class=ui-en>Sea creatures</span> <span class="en">已解锁 ${SEA.filter(itemOpen).length}/${SEA.length} 种 · ${SEA.filter(itemOpen).length}/${SEA.length} unlocked</span></h3>
+    ${catBar(SEA_CATS, seaCat, SEA, "sc")}
+    <div class="shop">${SEA.filter(c=>seaCat==="all"||c.cat===seaCat).sort((a,b)=>(itemOpen(b)-itemOpen(a))||(a.tier-b.tier)).map(c=>{ const open=itemOpen(c), can=open&&(free||state.coins>=c.cost)&&list.length<FARM_MAX;
+      return `<button class="item ${open?"":"lockd"}" type="button" data-sea="${c.id}" ${can?"":"disabled"}><b>${c.zh}</b><span class="en">${c.en}</span>${open?`<span class="price"><span class="coin sm" aria-hidden="true"></span>${c.cost}</span>`:`<span class="price lockp">🔒 ${tierLabel(c.tier)} 解锁<span class=ui-en>Unlocks at ${tierLabel(c.tier)}</span></span>`}</button>`; }).join("")}</div>`);
+  view.querySelectorAll("[data-sc]").forEach(b=>b.onclick=()=>{ seaCat=b.dataset.sc; renderFarm(view, body); });
+  view.querySelectorAll("[data-sea]").forEach(b=>b.onclick=()=>{ const c=SEA.find(x=>x.id===b.dataset.sea); if(list.length>=FARM_MAX || !itemOpen(c)) return; if(!free){ if(state.coins<c.cost) return; state.coins-=c.cost; }
     list.push(c.id); save(); updateCoins(); render3DFarm(cur); speak(c.zh); toast(`养了一只${c.zh}！`, `You now have a ${c.en}!`); renderFarm(view, body); });
   view.querySelectorAll("[data-rm]").forEach(b=>b.onclick=()=>{ const id=b.dataset.rm, j=list.lastIndexOf(id); if(j<0) return; list.splice(j,1); const c=SEA.find(x=>x.id===id); if(!free) state.coins+=Math.floor(c.cost/2); save(); updateCoins(); render3DFarm(cur); toast(`放走了一只${c.zh}`, `Released a ${c.en}`); renderFarm(view, body); });
 }
@@ -2459,8 +2689,8 @@ function openSide(kind){
     const ob=$("#outBtn"); if(ob) ob.onclick=()=>logout(); const sb=$("#syncBtn"); if(sb) sb.onclick=async()=>{ await syncNow(); toast(syncState==="ok"?"已同步":"同步失败，稍后再试", syncState==="ok"?"Synced":"Sync failed — will retry"); }; const ib=$("#inBtn"); if(ib) ib.onclick=()=>{ side.hidden=true; updateOffsetGoal(); adoptState(null); refreshRoute(); welcome(true); };
     $("#nkSave").onclick=()=>{ const v=$("#nick2").value.trim(); if(!v) return; state.nick=v.slice(0,16); save(); openSide("me"); toast("昵称已保存","Nickname saved"); };
   } else if(kind==="list"){
-    setHTML(side, `<div class="d-head"><button class="d-close" type="button" id="sClose" aria-label="关闭">${X_SVG}</button><div class="chip">地点清单 · 9 Modules</div><h2 class="d-title">群岛航线<span class=ui-en data-b>Island route</span></h2><p class="d-sub">一座岛 = 一个 Module。按顺序闯关，云雾会一座一座散开。<span class=ui-en data-b>One island = one Module. Pass each quiz in order and the clouds clear one by one.</span></p></div>
-      <div class="d-body">${HAS3D?"":`<p class="notice">这台设备无法显示 3D 地图，不过可以直接从清单进入每座岛学习和闯关。<span class=ui-en data-b>This device can't show the 3D map, but you can open every island from this list.</span></p>`}<div class="list">${ISLANDS.map((d,i)=>{ const un=isUnlocked(i); return `<button class="li ${un?"":"locked"}" type="button" data-i="${i}"><span class="n">${d.no}</span><span><span class="nm">${d.name}</span><span class="ds">${d.module}</span></span><span class="rt">${un?`<span class="lbl-stars" style="display:flex">${stars3(starsOf(i))}</span>`:LOCK+"未解锁 Locked"}</span></button>`; }).join("")}</div></div>`);
+    setHTML(side, `<div class="d-head"><button class="d-close" type="button" id="sClose" aria-label="关闭">${X_SVG}</button><div class="chip">世界一 · 南洋群岛 · 9 Modules</div><h2 class="d-title">群岛航线<span class=ui-en data-b>Island route</span></h2><p class="d-sub">一座岛 = 一个 Module。按顺序闯关，云雾会一座一座散开。<span class=ui-en data-b>One island = one Module. Pass each quiz in order and the clouds clear one by one.</span></p></div>
+      <div class="d-body"><div class="worlds">${WORLDS.map(w=>`<div class="world ${w.open?"on":"soon"}"><span class="wn">世界${"一二三"[w.no-1]}<span class=ui-en>World ${w.no}</span></span><b>${w.zh}<span class=ui-en>${w.en}</span></b><span class="wc">${w.course}${w.open?" · 进行中 now playing":" · 即将开放 coming soon"}</span></div>`).join("")}</div>${HAS3D?"":`<p class="notice">这台设备无法显示 3D 地图，不过可以直接从清单进入每座岛学习和闯关。<span class=ui-en data-b>This device can't show the 3D map, but you can open every island from this list.</span></p>`}<div class="list">${ISLANDS.map((d,i)=>{ const un=isUnlocked(i); return `<button class="li ${un?"":"locked"}" type="button" data-i="${i}"><span class="n">${d.no}</span><span><span class="nm">${d.name}</span><span class="ds">${d.module}</span></span><span class="rt">${un?`<span class="lbl-stars" style="display:flex">${stars3(starsOf(i))}</span>`:LOCK+"未解锁 Locked"}</span></button>`; }).join("")}</div></div>`);
     side.querySelectorAll(".li").forEach(b=>b.onclick=()=>openIsland(+b.dataset.i));
   } else {
     setHTML(side, `<div class="d-head"><button class="d-close" type="button" id="sClose" aria-label="关闭">${X_SVG}</button><div class="chip">设置 Settings</div><h2 class="d-title">设置<span class=ui-en data-b>Settings</span></h2><p class="d-sub">进度只保存在这台设备的浏览器里。<span class=ui-en data-b>Progress is saved in this browser only.</span></p></div>
