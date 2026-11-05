@@ -798,7 +798,7 @@ function rng(seed){ return ()=>{ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imu
 
 // chibi figure: capsule body, big round head, hair cap, tiny eyes
 /* ---- Q-version Nanyang kids (assets/sprites/kid-*.webp: 6 frames 3x2 — 0 stand, 1 wave, 2-5 walk to the right) ---- */
-const KIDS=["kid-malay-boy","kid-malay-girl","kid-chinese-boy","kid-chinese-girl"];
+const KIDS=["kid-malay-boy","kid-thai-girl","kid-chinese-boy","kid-vietnamese-girl","kid-dusun-boy","kid-malay-girl","kid-chinese-girl"];   // Brunei / Nanyang: Malay, Chinese, Thai, Vietnamese, Dusun
 const kidTex={}, kidList=[];
 function kidAtlas(name){ if(!kidTex[name]){ kidTex[name]={base:null, wait:[]}; new THREE.TextureLoader().load(`assets/sprites/${name}.webp`, t=>{ t.colorSpace=THREE.SRGBColorSpace; kidTex[name].base=t; kidTex[name].wait.forEach(fn=>fn(t)); kidTex[name].wait=[]; }); } return kidTex[name]; }
 // a kid standing on the ground at the group's origin, about h tall; mode: "stand" | "wave" | "walk"
@@ -917,6 +917,7 @@ const LM = {
     g.add(dock);
     // two kids greeting each other at the dock: 你好！
     const p1=kidSprite("kid-malay-boy",2.3,"wave"); p1.position.set(-1.1,0,3.4); const p2=kidSprite("kid-chinese-girl",2.2,"wave"); p2.position.set(1.1,0,3.4); g.add(p1,p2); p2.userData.kid.ph=1.6;
+    const p3=kidSprite("kid-thai-girl",2.2,"stand"); p3.position.set(2.9,0,4.2); g.add(p3);   // frame 0 = a polite wai greeting
     return g; },
   clock(A){ const g=new THREE.Group();
     // colonial Nanyang clock tower: whitewash, arched openings, green roof
