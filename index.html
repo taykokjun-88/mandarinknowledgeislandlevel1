@@ -270,7 +270,7 @@ button.gcard:hover{border-color:var(--gold)}
 .subtab[aria-selected="true"]{border-color:var(--gold);background:var(--gold-soft)}
 .subtab .ui-en{display:block;margin:0}
 .imap-wrap{position:sticky;top:-16px;z-index:3;background:var(--panel);padding:8px 0;display:flex;flex-direction:column;gap:6px;box-shadow:0 10px 12px -10px rgba(0,0,0,.25)}
-.imap{position:relative;width:min(100%,300px,34vh);aspect-ratio:1;margin:0 auto;border-radius:50%;background:radial-gradient(circle,#2fe0cf 0 58%,#1aa8c8 72%,transparent 73%)}
+.imap{position:relative;width:min(100%,250px,27vh);aspect-ratio:1;margin:0 auto;border-radius:50%;background:radial-gradient(circle,#2fe0cf 0 58%,#1aa8c8 72%,transparent 73%)}
 .iland{position:absolute;inset:16%;border-radius:47% 53% 50% 50%/52% 48% 52% 48%;background:radial-gradient(circle at 45% 40%,#79cf5a 0 55%,#f4dca0 68%)}
 .icore{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:var(--f-display);font-size:18px;color:#24401c;opacity:.7;pointer-events:none;text-align:center}
 .plot{position:absolute;transform:translate(-50%,-50%);width:27%;min-height:52px;border-radius:14px;border:2px dashed rgba(255,255,255,.85);background:rgba(255,255,255,.28);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:4px;color:#24301f;font-size:13px;touch-action:none}
@@ -280,9 +280,9 @@ button.gcard:hover{border-color:var(--gold)}
 .world{border:1px solid var(--line);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;background:var(--panel)}
 .world .wn{font-size:12px;color:var(--muted)}.world b{font-size:17px}.world b .ui-en{display:block;font-size:12px;font-weight:400;color:var(--muted)}.world .wc{font-size:12px;color:var(--muted)}
 .world.on{border-color:var(--red);box-shadow:inset 0 0 0 1px var(--red)}.world.soon{opacity:.6;border-style:dashed}
-.cats{display:flex;flex-wrap:nowrap;gap:6px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:2px}.cats::-webkit-scrollbar{display:none}.cat{flex:none}
-.cat{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;padding:5px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
-.cat .ui-en{font-size:11px;color:var(--muted)}.cat small{font-size:11px;color:var(--muted)}
+.cats{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:5px}
+.cat{font:inherit;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:10px;padding:4px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;line-height:1.15;min-height:40px;justify-content:center;touch-action:manipulation}
+.cat b{font-size:13px;font-weight:600}.cat .ui-en{font-size:10px;color:var(--muted)}.cat small{font-size:10px;color:var(--muted)}
 .cat[aria-pressed="true"]{background:var(--red);border-color:var(--red);color:var(--red-ink)}.cat[aria-pressed="true"] .ui-en,.cat[aria-pressed="true"] small{color:var(--red-ink);opacity:.85}
 .item.lockd{opacity:.55;filter:grayscale(.7)}.lockp{font-size:11.5px;color:var(--muted)}.lockp .ui-en{display:block}
 .plot.sel,.item.sel{box-shadow:0 0 0 3px var(--gold)}
@@ -1033,6 +1033,42 @@ function windMat(base){ base.onBeforeCompile=sh=>{ sh.uniforms.uTime={value:0}; 
 let _tuft=null;
 function tuftGeo(){ if(_tuft) return _tuft; const parts=[]; for(let k=0;k<3;k++){ const b=new THREE.ConeGeometry(.07,.55,3,1); b.translate(0,.27,0); b.rotateZ((k-1)*.35); b.rotateY(k*2.1); parts.push(b); }
   _tuft=THREE.BGU.mergeGeometries(parts); return _tuft; }
+/* ---- hand-painted grass and wildflower cards: one instanced draw per island, each card turns to face the camera and sways ----
+   atlas rect per picture: [u0, v0, du, dv, width/height] */
+const CARD_RECTS={"grass": [[0.00586, 0.67383, 0.32031, 0.1582, 2.0192], [0.33789, 0.67383, 0.32031, 0.15039, 2.1284], [0.66992, 0.67383, 0.32031, 0.21387, 1.4932], [0.00586, 0.3418, 0.32031, 0.24707, 1.2919], [0.33789, 0.3418, 0.31934, 0.26562, 1.2027], [0.66992, 0.3418, 0.32031, 0.25879, 1.2372], [0.0498, 0.00977, 0.23242, 0.32031, 0.7278], [0.38672, 0.00977, 0.22266, 0.32031, 0.6979], [0.71582, 0.00977, 0.22852, 0.32031, 0.7154]], "flowers": [[0.00586, 0.67383, 0.32031, 0.29492, 1.0836], [0.35449, 0.67383, 0.28711, 0.32031, 0.8974], [0.67188, 0.67383, 0.31641, 0.32031, 0.9891], [0.00586, 0.3418, 0.32031, 0.31738, 1.0071], [0.3457, 0.3418, 0.30371, 0.32031, 0.95], [0.68262, 0.3418, 0.29395, 0.32031, 0.9184], [0.00879, 0.00977, 0.31348, 0.32031, 0.9817], [0.33789, 0.00977, 0.32031, 0.30273, 1.0558], [0.6748, 0.00977, 0.31055, 0.32031, 0.9706]]};
+const cardMats={};
+function cardMat(kind){ if(cardMats[kind]) return cardMats[kind];
+  const tex=new THREE.TextureLoader().load(`assets/sprites/${kind}-atlas.webp`); tex.colorSpace=THREE.SRGBColorSpace; tex.anisotropy=4;
+  const m=new THREE.ShaderMaterial({ fog:true, side:THREE.DoubleSide,
+    uniforms:THREE.UniformsUtils.merge([THREE.UniformsLib.fog,{map:{value:null},uTime:{value:0},uLight:{value:new THREE.Color(.9,.9,.9)}}]),
+    vertexShader:`attribute vec4 aRect; attribute float aPhase; uniform float uTime; varying vec2 vUv; varying float vH;
+      #include <fog_pars_vertex>
+      void main(){ mat4 M=modelMatrix*instanceMatrix; vec4 c=M*vec4(0.,0.,0.,1.); float sx=length(M[0].xyz), sy=length(M[1].xyz);
+        vec3 tc=cameraPosition-c.xyz; tc.y=0.; vec3 R=normalize(vec3(tc.z,0.,-tc.x)+vec3(1e-5,0.,0.));
+        float sway=sin(uTime*1.7+c.x*.35+c.z*.3+aPhase)*.09*position.y*position.y;
+        vec3 wp=c.xyz+R*((position.x+sway)*sx)+vec3(0.,position.y*sy,0.);
+        vUv=aRect.xy+uv*aRect.zw; vH=position.y;
+        vec4 mvPosition=viewMatrix*vec4(wp,1.); gl_Position=projectionMatrix*mvPosition;
+        #include <fog_vertex>
+      }`,
+    fragmentShader:`uniform sampler2D map; uniform vec3 uLight; varying vec2 vUv; varying float vH;
+      #include <fog_pars_fragment>
+      void main(){ vec4 t=texture2D(map,vUv); if(t.a<.5) discard;
+        gl_FragColor=vec4(t.rgb*uLight*mix(.7,1.,clamp(vH*1.8,0.,1.)),1.);
+        #include <colorspace_fragment>
+        #include <fog_fragment>
+      }`});
+  m.uniforms.map.value=tex; m.userData.u=m.uniforms; grassMats.push(m); cardMats[kind]=m; return m; }
+function scatterCards(g, sh, kind, count, minT, maxT, sizeR, rr, avoid){
+  const rects=CARD_RECTS[kind], geo=new THREE.PlaneGeometry(1,1); geo.translate(0,.5,0);
+  const aRect=new Float32Array(count*4), aPh=new Float32Array(count), im=new THREE.InstancedMesh(geo, cardMat(kind), count), m4=new THREE.Matrix4(), q=new THREE.Quaternion(), v=new THREE.Vector3(), sc=new THREE.Vector3();
+  let n=0, guard=0;
+  while(n<count && guard++<count*10){ const a=rr()*Math.PI*2, d=Math.sqrt(rr())*sh.r*1.05, x=Math.cos(a)*d, z=Math.sin(a)*d, t=d/islandEdge(sh,a);
+    if(t<minT||t>maxT) continue; const h=terrainH(sh,x,z); if(h<1.4) continue; if(avoid && avoid.some(([px,pz])=>(px-x)*(px-x)+(pz-z)*(pz-z)<2.6)) continue;
+    const k=Math.floor(rr()*rects.length), r=rects[k], hgt=(sizeR[0]+rr()*(sizeR[1]-sizeR[0]))*(r[4]>1.4?.72:1), wid=hgt*r[4];
+    m4.compose(v.set(x,h-.05,z),q,sc.set(wid,hgt,1)); im.setMatrixAt(n,m4); aRect.set([r[0],r[1],r[2],r[3]],n*4); aPh[n]=rr()*6.28; n++; }
+  geo.setAttribute("aRect", new THREE.InstancedBufferAttribute(aRect,4)); geo.setAttribute("aPhase", new THREE.InstancedBufferAttribute(aPh,1));
+  im.count=n; im.frustumCulled=false; im.castShadow=false; im.receiveShadow=false; g.add(im); return im; }
 function scatter(g, sh, count, minT, maxT, geo, mat, colors, scaleR, rr){
   const im=new THREE.InstancedMesh(geo, mat, count), m4=new THREE.Matrix4(), q=new THREE.Quaternion(), e=new THREE.Euler(), v=new THREE.Vector3(), s=new THREE.Vector3(), c=new THREE.Color();
   let n=0, guard=0;
@@ -1062,8 +1098,9 @@ function buildIsland(d, i){
     const t=new THREE.Group(); t.position.y=h; g.add(t); const kind=k%3; if(kind===2) frangipani(t,x,z); else if(kind===1) banana(t,x,z,.85); else palm(t, x, z, .8+rr()*.35, rr); }
   // grass tufts + flowers
   const hi=HIGH();
-  scatter(g, sh, hi?700:220, .45, .84, tuftGeo(), windMat(new THREE.MeshStandardMaterial({roughness:.85})), [0x45b23a,0x5cc244,0x3aa332,0x72cf4c], [.45,.85], rr);
-  scatter(g, sh, hi?110:40, .4, .82, new THREE.IcosahedronGeometry(.11,1), new THREE.MeshStandardMaterial({roughness:.6, emissive:0x221a10, emissiveIntensity:.2}), [0xfff3e6,0xffc6d9,0xffd84d,0xf7a072], [.8,1.3], rr);
+  const plots=SLOT_ANG.map(a=>[Math.cos(a)*r*.72, Math.sin(a)*r*.72]);   // keep the build plots clear
+  scatterCards(g, sh, "grass", hi?340:160, .42, .86, [.45,.95], rr, plots);
+  scatterCards(g, sh, "flowers", hi?70:34, .4, .84, [.55,.85], rr, plots);
   const A=[]; const lm=LM[d.lm](A,r); lm.position.y=2.2; g.add(lm);
   // soft clouds over locked islands
   // magic mist over locked islands: hand-painted sprites that drift apart and fade when the island unlocks
@@ -1162,6 +1199,7 @@ function applyTheme(){ if(!scene) return; const dark=themeDark();
     try{ if(!skyRT){ skyRT=new THREE.WebGLCubeRenderTarget(512,{type:THREE.HalfFloatType, generateMipmaps:false}); skyCam=new THREE.CubeCamera(1,5000,skyRT); }
       skyCam.update(renderer, envScene); scene.background=skyRT.texture; sky.visible=false; }catch(e){ sky.visible=true; scene.background=null; }
     if(scene.environment) scene.environment.dispose(); scene.environment=pmrem.fromScene(envScene,0.04).texture; }
+  Object.values(cardMats).forEach(m=>m.uniforms.uLight.value.setRGB(...(dark?[.42,.45,.6]:[.9,.9,.88])));
   refreshShadows();
   if(bloomPass){ bloomPass.strength=dark?.7:.18; bloomPass.threshold=dark?.82:.97; } if(gradePass) gradePass.uniforms.uSat.value=dark?1.15:1.26;
 }
@@ -2546,9 +2584,12 @@ function renderBuild(body){
   if(buildTab==="farm") renderFarm($("#bView"), body); else renderDecor($("#bView"), body);
 }
 let decorCat="all", seaCat="all";
+// scroll so the shop list starts right below the sticky island map
+function showShop(view){ const shop=view.querySelector(".shop"), wrap=view.querySelector(".imap-wrap"); if(!shop) return; const sc=SHEET_MQ.matches?view.closest(".drawer"):view.closest(".d-body"); if(!sc) return;
+  const top=shop.getBoundingClientRect().top-sc.getBoundingClientRect().top+sc.scrollTop-(wrap?wrap.offsetHeight:0)-24; if(sc.scrollTop<top) sc.scrollTo({top, behavior:"smooth"}); }
 // category tabs; the number shows how many items in that category are unlocked
 function catBar(cats, cur, list, key){ const tab=(id,zh,en)=>{ const all=list.filter(x=>id==="all"||x.cat===id), open=all.filter(itemOpen).length;
-    return `<button type="button" class="cat" data-${key}="${id}" aria-pressed="${cur===id}">${zh}<span class=ui-en>${en}</span><small>${open}/${all.length}</small></button>`; };
+    return `<button type="button" class="cat" data-${key}="${id}" aria-pressed="${cur===id}"><b>${zh} <small>${open}/${all.length}</small></b><span class=ui-en>${en}</span></button>`; };
   return `<div class="cats" role="group" aria-label="类别 Categories">${tab("all","全部","All")}${cats.map(([id,zh,en])=>tab(id,zh,en)).join("")}</div>`; }
 function renderDecor(view, body){
   const slots=buildsOf(cur), free=state.teacher;
@@ -2560,7 +2601,7 @@ function renderDecor(view, body){
     <h3 class="spot-h" style="margin:0">南洋商店<span class=ui-en>Nanyang shop</span> <span class="en">已解锁 ${BUILD.filter(itemOpen).length}/${BUILD.length} 种 · ${BUILD.filter(itemOpen).length}/${BUILD.length} unlocked</span></h3>
     <div class="shop">${BUILD.filter(it=>decorCat==="all"||it.cat===decorCat).sort((a,b)=>(itemOpen(b)-itemOpen(a))||(a.tier-b.tier)).map(it=>{ const open=itemOpen(it), can=open&&(free||state.coins>=it.cost), sel=bSel&&bSel.kind==="shop"&&bSel.id===it.id;
       return `<div class="item ${can?"":"off"} ${open?"":"lockd"} ${sel?"sel":""}" role="button" tabindex="0" data-b="${it.id}" aria-disabled="${!can}"><b>${it.name}</b><span class="en">${it.en}</span>${open?`<span class="price"><span class="coin sm" aria-hidden="true"></span>${it.cost}</span>`:`<span class="price lockp">🔒 ${tierLabel(it.tier)} 解锁<span class=ui-en>Unlocks at ${tierLabel(it.tier)}</span></span>`}</div>`; }).join("")}</div>`);
-  view.querySelectorAll("[data-dc]").forEach(b=>b.onclick=()=>{ decorCat=b.dataset.dc; bSel=null; renderDecor(view, body); });
+  view.querySelectorAll("[data-dc]").forEach(b=>b.onclick=()=>{ decorCat=b.dataset.dc; bSel=null; renderDecor(view, body); showShop(view); });
   const rerender=()=>renderDecor(view, body);
   // tap behaviour
   view.querySelectorAll("[data-b]").forEach(el=>{ el.addEventListener("click",()=>{ if(el.dataset.dragged){ delete el.dataset.dragged; return; } const id=el.dataset.b, it=BUILD.find(x=>x.id===id); if(!itemOpen(it)){ toast(`到 ${tierLabel(it.tier)} 岛就能解锁「${it.name}」`, `Unlocks when you reach ${tierLabel(it.tier)}`); return; } if(!free && state.coins<it.cost){ toast("椰子币不够","Not enough coins"); return; } bSel={kind:"shop", id}; rerender(); }); el.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); el.click(); } }); });
