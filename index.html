@@ -1061,6 +1061,28 @@ function cardMat(kind){ if(cardMats[kind]) return cardMats[kind];
       }`});
   m.uniforms.map.value=tex; m.userData.u=m.uniforms; grassMats.push(m); cardMats[kind]=m; return m; }
 // leaf-cluster billboards for tree crowns: each card always faces the camera; a dark core behind keeps the crown solid and casts the shadow
+/* ---- island life: seagulls circling over the sea and butterflies over the flowers (animated sprite frames) ---- */
+const life={gulls:[], flies:[]};
+function addLife(){ const L=new THREE.TextureLoader(), rr=rng(77);
+  Promise.all(["seagull","butterflies"].map(n=>L.loadAsync(`assets/sprites/${n}.webp`))).then(([gBase,bBase])=>{
+    const mk=(base, w)=>{ const t=base.clone(); t.colorSpace=THREE.SRGBColorSpace; t.needsUpdate=true; const m=new THREE.SpriteMaterial({map:t, transparent:true, alphaTest:.4, depthWrite:false, fog:true, toneMapped:false}); const sp=new THREE.Sprite(m); sp.scale.set(w,w,1); scene.add(sp); return sp; };
+    for(let k=0;k<7;k++){ const sp=mk(gBase, 3.4); sp.material.map.repeat.set(.5,.5); life.gulls.push({s:sp, cx:CENTER.x+(rr()-.5)*120, cz:CENTER.z+(rr()-.5)*90, R:22+rr()*40, y:15+rr()*12, sp:(.12+rr()*.12)*(k%2?1:-1), ph:rr()*6.28, glide:rr()*10}); }
+    isles.forEach(o=>{ for(let k=0;k<2;k++){ const sp=mk(bBase, .62); sp.material.map.repeat.set(1/3,1/3); const a=rr()*6.28, d=o.r*(.35+rr()*.3); life.flies.push({s:sp, o, cx:Math.cos(a)*d, cz:Math.sin(a)*d, kind:Math.floor(rr()*3), ph:rr()*6.28, R:1.2+rr()*1.6}); } });
+  }).catch(e=>console.warn("life sprites", e)); }
+let _cr, _cu, _v;   // created once THREE has loaded
+function updateLife(t){ if(!life.gulls.length) return; if(!_cr){ _cr=new THREE.Vector3(); _cu=new THREE.Vector3(); _v=new THREE.Vector3(); }
+  _cr.setFromMatrixColumn(camera.matrixWorld,0); _cu.setFromMatrixColumn(camera.matrixWorld,1);
+  const FLAP=[0,3,1,2,1,3];
+  life.gulls.forEach(g=>{ const a=g.ph+t*g.sp; g.s.position.set(g.cx+Math.cos(a)*g.R, g.y+Math.sin(t*.7+g.ph)*1.2, g.cz+Math.sin(a)*g.R);
+    _v.set(-Math.sin(a)*g.sp, 0, Math.cos(a)*g.sp); const left=_v.dot(_cr)<0;
+    const gl=((t+g.glide)%9)<3.2, f=gl?1:FLAP[Math.floor((t*7+g.ph*3))%FLAP.length], m=g.s.material.map;
+    m.repeat.x=left?-.5:.5; m.offset.set((f%2)*.5+(left?.5:0), f<2?.5:0); });
+  const dark=themeDark();
+  life.flies.forEach(f=>{ const vis=!dark && f.o.group.visible; f.s.visible=vis; if(!vis) return; const gp=f.o.group.position, a=t*.9+f.ph;
+    const x=f.cx+Math.cos(a)*f.R+Math.sin(t*2.3+f.ph)*.3, z=f.cz+Math.sin(a*1.3)*f.R*.7, h=(f.o.sh?Math.max(terrainH(f.o.sh,x,z),1.5):2)+1+Math.sin(t*3.1+f.ph)*.35;
+    f.s.position.set(gp.x+x, h, gp.z+z); _v.set(-Math.sin(a)*f.R, 0, Math.cos(a*1.3)*f.R*.9);
+    f.s.material.rotation=Math.atan2(_v.dot(_cu)+Math.cos(t*3.1+f.ph)*.4, _v.dot(_cr))-Math.PI/2;
+    const fr=[0,1,2,1][Math.floor(t*14+f.ph*5)%4]; f.s.material.map.offset.set(fr/3, (2-f.kind)/3); }); }
 function canopyMat(kind){ const key="cn-"+kind; if(cardMats[key]) return cardMats[key];
   const tex=new THREE.TextureLoader().load(`assets/sprites/${kind}-atlas.webp`); tex.colorSpace=THREE.SRGBColorSpace; tex.anisotropy=4;
   const m=new THREE.ShaderMaterial({ fog:true,
@@ -1389,7 +1411,7 @@ function loop(now){
   if(fpsEl){ fpsEl.n=(fpsEl.n||0)+1; fpsEl.w=(fpsEl.w||0)+dt; fpsEl.mx=Math.max(fpsEl.mx||0,dt); if(fpsEl.w>=1){ fpsEl.textContent=`${Math.round(fpsEl.n/fpsEl.w)} fps · worst ${Math.round(fpsEl.mx*1000)} ms · screen ${Math.round(1000/hzMs)} Hz · res ×${prCur} · ${composer?"effects on":"effects off"}${renderer.shadowMap.enabled?"":" · no shadows"} · ${draws} draws`; fpsEl.n=0; fpsEl.w=0; fpsEl.mx=0; } }
   ocean.material.uniforms.uTime.value=simT;
   grassMats.forEach(m=>{ if(m.userData.u) m.userData.u.uTime.value=simT; });
-  animateAll(simT);
+  animateAll(simT); updateLife(simT);
   isles.forEach((o,i)=>{ const goal=isUnlocked(i)?0:1; if(Math.abs(o.cloudK-goal)>.001){ o.cloudK+=(goal-o.cloudK)*Math.min(1,dt*2.2); if(Math.abs(o.cloudK-goal)<.01) o.cloudK=goal; } o.clouds.visible=o.cloudK>.01;
     if(o.clouds.visible){ const k=o.cloudK, spread=1+(1-k)*1.6; o.clouds.children.forEach((c,j)=>{ const b=c.userData.base; c.position.set(b.x*spread, b.y+(1-k)*4+Math.sin(simT*.5+j)*.3, b.z*spread); c.material.opacity=Math.min(1,k*1.15); c.material.rotation+=c.userData.spin*dt; }); o.clouds.rotation.y=simT*.03; } });
   if(composer){ const f=.5+viewOff.y/Math.max(1,innerHeight); tiltH.uniforms.uFocus.value=f; tiltV.uniforms.uFocus.value=f; composer.render(); }
@@ -2925,7 +2947,7 @@ if(!API){ const d=$("#syncDot"); if(d) d.hidden=true; }
 let started=false;
 function start3D(){ if(started) return; started=true;
   HAS3D = !!(window.THREE && THREE.OrbitControls) && webglOK();
-  if(HAS3D){ try{ buildLabels(); initScene(); ISLANDS.forEach((_,i)=>{ render3DBuild(i); render3DFarm(i); }); bakeAll(); refreshShadows(); try{ renderer.compile(scene,camera); }catch(e){} $("#zoomer").hidden=false; return; }catch(err){ console.error(err); HAS3D=false; } }
+  if(HAS3D){ try{ buildLabels(); initScene(); ISLANDS.forEach((_,i)=>{ render3DBuild(i); render3DFarm(i); }); bakeAll(); addLife(); refreshShadows(); try{ renderer.compile(scene,camera); }catch(e){} $("#zoomer").hidden=false; return; }catch(err){ console.error(err); HAS3D=false; } }
   $("#hint").hidden=true; $("#zoomer").hidden=true; refreshLabels(); openSide("list"); }
 if(window.THREE) start3D(); else { addEventListener("three-ready", start3D, {once:true}); setTimeout(start3D, 12000); }
 welcome();
