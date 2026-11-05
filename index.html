@@ -287,7 +287,7 @@ button.gcard:hover{border-color:var(--gold)}
 .cat{font:inherit;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:10px;padding:4px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;line-height:1.15;min-height:40px;justify-content:center;touch-action:manipulation}
 .cat b{font-size:13px;font-weight:600}.cat .ui-en{font-size:10px;color:var(--muted)}.cat small{font-size:10px;color:var(--muted)}
 .cat[aria-pressed="true"]{background:var(--red);border-color:var(--red);color:var(--red-ink)}.cat[aria-pressed="true"] .ui-en,.cat[aria-pressed="true"] small{color:var(--red-ink);opacity:.85}
-.item.lockd{opacity:.55;filter:grayscale(.7)}.lockp{font-size:11.5px;color:var(--muted)}.lockp .ui-en{display:block}
+.item.lockd{opacity:.55;filter:grayscale(.7)}.item .thumb{display:block;width:100%;height:64px;object-fit:contain;margin:-2px 0 4px;pointer-events:none}.lockp{font-size:11.5px;color:var(--muted)}.lockp .ui-en{display:block}
 .plot.sel,.item.sel{box-shadow:0 0 0 3px var(--gold)}
 .plot.over{border-color:var(--gold);background:var(--gold-soft);transform:translate(-50%,-50%) scale(1.08)}
 .plot .ph{font-size:12px;opacity:.85}.plot .ph .ui-en{display:block;font-size:10px}.plot b{font-size:12px;white-space:nowrap}
@@ -2727,7 +2727,26 @@ function scooter(g){ const C1=0x8be0c0, CH=0xd8dde2;
   [-.62,.78].forEach(z=>{ const w=wheel3(.21,.07,0x222222,CH,0); w.position.set(0,.22,z); g.add(w); });
   const sp=wheel3(.19,.06,0x222222,CH,0); sp.position.set(0,.7,-.92); sp.rotation.x=Math.PI/2; g.add(sp); g.add(box(.34,.28,.3,0xc9a06a,0,1.08,-.78)); g.add(ball(.06,0xff5a3a,0,.62,-.98,{emissive:0xff2a1a,emissiveIntensity:.6})); }
 
+/* ---- hand-painted decoration sprites (assets/sprites/decor/*.webp); buildings and vehicles stay 3D ---- */
+const DECOR_SPR={"palm": [245, 300, 0.013], "frang": [295, 283, 0.021], "flowers": [275, 248, 0.044], "banana": [282, 300, 0.019], "rambutan": [284, 300, 0.02], "durian": [295, 300, 0.02], "mango": [280, 297, 0.02], "orchid": [300, 262, 0.041], "bamboo": [261, 300, 0.017], "postbox": [183, 286, 0.021], "kopi": [275, 295, 0.024], "lamp": [93, 300, 0.026], "sign": [154, 286, 0.021], "coconut": [227, 300, 0.068], "satay": [283, 300, 0.029], "icecream": [220, 299, 0.064], "fruit": [280, 297, 0.034], "news": [273, 293, 0.02], "bench": [219, 198, 0.04], "swing": [202, 231, 0.03], "umbrella": [238, 224, 0.049], "seesaw": [231, 168, 0.161], "hammock": [228, 225, 0.036], "slide": [212, 220, 0.032], "takraw": [206, 184, 0.049], "pitcher": [229, 251, 0.056], "lantern": [240, 300, 0.035], "kite": [182, 300, 0.031], "pelita": [209, 261, 0.031], "orange": [195, 300, 0.046], "crackers": [100, 300, 0.052], "lion": [218, 260, 0.05], "ketupat": [204, 300, 0.025], "gong": [234, 273, 0.026]};   // [width px, height px, share of the picture below the item's base (its painted shadow)]
+const DECOR_H={palm:5,frang:3.2,flowers:1.5,banana:3.6,rambutan:4.2,durian:4.2,mango:4.2,orchid:1.6,bamboo:4.6,pitcher:1.7,
+  postbox:1.7,kopi:2.9,lamp:3.8,sign:2.7,coconut:2.9,satay:2.5,icecream:2.9,fruit:2.3,news:2.4,
+  bench:1.3,swing:3.2,umbrella:2.6,seesaw:1.1,hammock:2,slide:2.4,takraw:1.6,
+  lantern:3.4,kite:4.2,pelita:2.2,orange:2.3,crackers:3.3,lion:2.3,ketupat:3.3,gong:2.5};
+const decorTex={};
+function decorSprite(g, id, k){ const [pw,ph,pad]=DECOR_SPR[id], H=DECOR_H[id]||2.5, W=H*pw/ph;
+  if(!decorTex[id]){ decorTex[id]=new THREE.TextureLoader().load(`assets/sprites/decor/${id}.webp`); decorTex[id].colorSpace=THREE.SRGBColorSpace; decorTex[id].anisotropy=4; }
+  const m=new THREE.SpriteMaterial({map:decorTex[id], transparent:true, alphaTest:.12, depthWrite:true, fog:true, toneMapped:false}); m.color.setRGB(...nightTint()); nightMats.push(m);
+  const sp=new THREE.Sprite(m); sp.center.set(.5, pad); sp.scale.set(W, H, 1); g.add(sp);
+  // gentle life for the pictures (the whole picture rocks about its base)
+  const ph0=k*1.7+id.length;
+  const anim={swing:t=>{ m.rotation=Math.sin(t*1.7+ph0)*.05; }, seesaw:t=>{ m.rotation=Math.sin(t*1.4+ph0)*.06; }, hammock:t=>{ m.rotation=Math.sin(t*1.1+ph0)*.025; },
+    kite:t=>{ sp.position.y=Math.sin(t*1.3+ph0)*.15; m.rotation=Math.sin(t*.9+ph0)*.04; }, lion:t=>{ sp.position.y=Math.abs(Math.sin(t*2.6+ph0))*.08; m.rotation=Math.sin(t*2.6+ph0)*.03; },
+    lantern:t=>{ m.rotation=Math.sin(t*1.2+ph0)*.012; }, palm:t=>{ m.rotation=Math.sin(t*1.1+ph0)*.018; }, bamboo:t=>{ m.rotation=Math.sin(t*1.3+ph0)*.02; }, banana:t=>{ m.rotation=Math.sin(t*1.2+ph0)*.015; },
+    crackers:t=>{ m.rotation=Math.sin(t*1.5+ph0)*.012; }, ketupat:t=>{ m.rotation=Math.sin(t*1.1+ph0)*.008; } }[id];
+  if(anim) seaBoats.push(anim); return sp; }
 function makeDecor(id, k, r){ const g=new THREE.Group(), rr=rng(k*13+id.length);
+  if(DECOR_SPR[id]){ decorSprite(g, id, k); return g; }
   ({ palm:()=>palm(g,0,0,1,rr), frang:()=>frangipani(g,0,0), banana:()=>banana(g,0,0,.95), flowers:()=>flowerBed(g), bench:()=>bench(g),
      durian:()=>fruitTree(g,0x3f8f3a,0x9db83a,true), rambutan:()=>fruitTree(g,0x4a9e3f,0xd62839,false), lantern:()=>lanterns(g,-1.6,0,1.6,0,3,4),
      swing:()=>swing(g), kite:()=>kite(g), trishaw:()=>trishaw(g), gazebo:()=>gazebo(g), kopi:()=>kopiStall(g),
@@ -2953,6 +2972,25 @@ function renderBuild(body){
   if(buildTab==="farm") renderFarm($("#bView"), body); else renderDecor($("#bView"), body);
 }
 let decorCat="all", seaCat="all";
+// shop picture: the painted sprite, or a snapshot of the 3D model for buildings and vehicles
+const thumbCache={};
+let thumbRig=null, thumbBusy=false;
+function snapThumb(id){ if(!renderer || thumbCache[id]) return;
+  if(!thumbRig){ const sc=new THREE.Scene(); sc.add(new THREE.HemisphereLight(0xffffff,0x9ab88a,1.7)); const dl=new THREE.DirectionalLight(0xffffff,2.4); dl.position.set(4,8,6); sc.add(dl);
+    thumbRig={sc, cam:new THREE.PerspectiveCamera(32,1,.1,200), rt:new THREE.WebGLRenderTarget(160,160), buf:new Uint8Array(160*160*4)}; }
+  const {sc,cam,rt,buf}=thumbRig, keep=seaBoats.length, swayKeep=swayers.length, g=makeDecor(id,0,10); seaBoats.length=keep; swayers.length=swayKeep;   // a still picture: drop the animations it registered
+  sc.add(g); const bb=new THREE.Box3().setFromObject(g), c=bb.getCenter(new THREE.Vector3()), r=bb.getSize(new THREE.Vector3()).length()*.5;
+  cam.position.set(c.x+r*1.3, c.y+r*.9, c.z+r*2.1); cam.lookAt(c); cam.updateProjectionMatrix();
+  const prevT=renderer.getRenderTarget(), prevTM=renderer.toneMapping; renderer.setRenderTarget(rt); renderer.setClearColor(0x000000,0); renderer.clear(); renderer.render(sc,cam); renderer.readRenderTargetPixels(rt,0,0,160,160,buf); renderer.setRenderTarget(prevT);
+  sc.remove(g); const cv=document.createElement("canvas"); cv.width=cv.height=160; const x=cv.getContext("2d"), im=x.createImageData(160,160);
+  for(let yy=0;yy<160;yy++) for(let xx=0;xx<160;xx++){ const si=((159-yy)*160+xx)*4, di=(yy*160+xx)*4; for(let k=0;k<3;k++) im.data[di+k]=Math.min(255,Math.pow(buf[si+k]/255,1/2.2)*255*1.05); im.data[di+3]=buf[si+3]; }
+  x.putImageData(im,0,0); thumbCache[id]=cv.toDataURL("image/png"); }
+// fill in the 3D snapshots one per frame, so opening the shop never stalls
+function fillThumbs(root){ if(thumbBusy) return; const todo=[...root.querySelectorAll("[data-thumb]")]; if(!todo.length) return; thumbBusy=true;
+  const step=()=>{ const el=todo.shift(); if(!el){ thumbBusy=false; return; } const id=el.dataset.thumb; try{ snapThumb(id); }catch(e){}
+    if(thumbCache[id]) root.querySelectorAll(`[data-thumb="${id}"]`).forEach(n=>{ const img=new Image(); img.className="thumb"; img.src=thumbCache[id]; img.alt=""; img.draggable=false; n.replaceWith(img); });
+    requestAnimationFrame(step); }; requestAnimationFrame(step); }
+function thumbOf(id){ const src=DECOR_SPR[id]?`assets/sprites/decor/${id}.webp`:thumbCache[id]; return src?`<img class="thumb" src="${src}" alt="" draggable="false">`:`<span class="thumb" data-thumb="${id}"></span>`; }
 // keep the island map pinned on top only when the panel is tall enough; otherwise it would cover the shop
 function fitMapSticky(view){ const wrap=view.querySelector(".imap-wrap"), sc=SHEET_MQ.matches?view.closest(".drawer"):view.closest(".d-body"); if(!wrap||!sc) return;
   wrap.classList.remove("nostick"); if(wrap.offsetHeight > sc.clientHeight*.5) wrap.classList.add("nostick"); }
@@ -2975,8 +3013,9 @@ function renderDecor(view, body){
     <div class="row" id="selBar">${bSel&&bSel.kind==="plot"&&slots[bSel.k]?`<span class="sw-msg">已选 ${bSel.k+1} 号：${BUILD.find(x=>x.id===slots[bSel.k]).name} · 点另一块空地移动<span class=ui-en>Selected — tap another plot to move</span></span><button class="btn ghost sm" type="button" id="rmSel">拆除<span class=ui-en>Remove</span></button>`: bSel&&bSel.kind==="shop"?`<span class="sw-msg">已选「${BUILD.find(x=>x.id===bSel.id).name}」· 点一块空地放下<span class=ui-en>Selected — tap a plot to place it</span></span>`:""}</div>${catBar(DECOR_CATS, decorCat, BUILD, "dc")}</div>
     <h3 class="spot-h" style="margin:0">南洋商店<span class=ui-en>Nanyang shop</span> <span class="en">已解锁 ${BUILD.filter(itemOpen).length}/${BUILD.length} 种 · ${BUILD.filter(itemOpen).length}/${BUILD.length} unlocked</span></h3>
     <div class="shop">${BUILD.filter(it=>decorCat==="all"||it.cat===decorCat).sort((a,b)=>(itemOpen(b)-itemOpen(a))||(a.tier-b.tier)).map(it=>{ const open=itemOpen(it), can=open&&(free||state.coins>=it.cost), sel=bSel&&bSel.kind==="shop"&&bSel.id===it.id;
-      return `<div class="item ${can?"":"off"} ${open?"":"lockd"} ${sel?"sel":""}" role="button" tabindex="0" data-b="${it.id}" aria-disabled="${!can}"><b>${it.name}</b><span class="en">${it.en}</span>${open?`<span class="price"><span class="coin sm" aria-hidden="true"></span>${it.cost}</span>`:`<span class="price lockp">${ICON("ic-lock")} ${tierLabel(it.tier)} 解锁<span class=ui-en>Unlocks at ${tierLabel(it.tier)}</span></span>`}</div>`; }).join("")}</div>`);
+      return `<div class="item ${can?"":"off"} ${open?"":"lockd"} ${sel?"sel":""}" role="button" tabindex="0" data-b="${it.id}" aria-disabled="${!can}">${thumbOf(it.id)}<b>${it.name}</b><span class="en">${it.en}</span>${open?`<span class="price"><span class="coin sm" aria-hidden="true"></span>${it.cost}</span>`:`<span class="price lockp">${ICON("ic-lock")} ${tierLabel(it.tier)} 解锁<span class=ui-en>Unlocks at ${tierLabel(it.tier)}</span></span>`}</div>`; }).join("")}</div>`);
   view.querySelectorAll("[data-dc]").forEach(b=>b.onclick=()=>{ decorCat=b.dataset.dc; bSel=null; renderDecor(view, body); showShop(view); });
+  fillThumbs(view);
   const rerender=()=>renderDecor(view, body);
   fitMapSticky(view);
   // tap behaviour
