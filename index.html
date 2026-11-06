@@ -2880,8 +2880,171 @@ function updateSea(t){ if(!seaSprites.length) return; const w=new THREE.Vector3(
       if(Math.abs(side)>1e-4) e.left=side<0; const tilt=flat>1e-5?Math.max(-.6,Math.min(.6,Math.atan2(dy,flat)*.8)):0; e.m.rotation=e.left?-tilt:tilt; }
     e.prev=(e.prev||new THREE.Vector3()).copy(w);
     const f=Math.floor(t*(SEA_HZ[e.id]||3)+e.ph)%2, mp=e.m.map; if(mp){ mp.repeat.x=e.left?-.5:.5; mp.offset.x=f*.5+(e.left?.5:0); } } }
+/* ---------- v4 sea creatures: sculpted 3D (tapered tubes, lathe shells, segmented bodies, big friendly eyes) ---------- */
+// a tube whose radius follows r(u) along the curve (u 0→1)
+function taperTube(pts, r, col, segs=40, radial=12, opts){ const curve=new THREE.CatmullRomCurve3(pts.map(p=>p.isVector3?p:new THREE.Vector3(...p)));
+  const geo=new THREE.TubeGeometry(curve, segs, 1, radial, false), p=geo.attributes.position, c=new THREE.Vector3(), v=new THREE.Vector3();
+  for(let k=0;k<p.count;k++){ const i=Math.floor(k/(radial+1)), u=i/segs; curve.getPointAt(u,c); v.fromBufferAttribute(p,k).sub(c).multiplyScalar(Math.max(.001,typeof r==="function"?r(u):r)).add(c); p.setXYZ(k,v.x,v.y,v.z); }
+  geo.computeVertexNormals(); const m=new THREE.Mesh(geo, col&&col.isMaterial?col:M(col,opts)); m.castShadow=true; return m; }
+// lathe around y from [radius, height] pairs
+const lathe=(pairs, col, segs=28, opts)=>{ const m=new THREE.Mesh(new THREE.LatheGeometry(pairs.map(([x,y])=>new THREE.Vector2(x,y)), segs), col&&col.isMaterial?col:M(col,opts)); m.castShadow=true; return m; };
+// a cartoon eye that looks along +x (iris, pupil, two highlights) on a white ball
+function cuteEye(g, x, y, z, r, iris=0x2b1d16){ const e=new THREE.Group(); e.position.set(x,y,z); g.add(e);
+  e.add(mesh(new THREE.SphereGeometry(r,16,12),0xffffff,0,0,0,{roughness:.25}));
+  const s=Math.sign(z)||1; e.add(mesh(new THREE.SphereGeometry(r*.62,14,10),iris,r*.42,r*.05,s*r*.12,{roughness:.2}));
+  e.add(mesh(new THREE.SphereGeometry(r*.2,8,6),0xffffff,r*.82,r*.3,s*r*.2,{emissive:0xffffff,emissiveIntensity:.6}));
+  e.add(mesh(new THREE.SphereGeometry(r*.1,6,4),0xffffff,r*.8,-r*.15,s*r*.35,{emissive:0xffffff,emissiveIntensity:.5})); return e; }
+// vertex colours top→belly on any geometry (by y)
+function shadeGeo(geo, top, belly, y0=-1, y1=1){ const p=geo.attributes.position, col=new Float32Array(p.count*3), a=new THREE.Color(top), b=new THREE.Color(belly), c=new THREE.Color();
+  for(let i=0;i<p.count;i++){ c.copy(b).lerp(a, smooth(y0,y1,p.getY(i))); col.set([c.r,c.g,c.b],i*3); } geo.setAttribute("color",new THREE.BufferAttribute(col,3)); return geo; }
+const vcMat=(opts)=>new THREE.MeshStandardMaterial(Object.assign({vertexColors:true, roughness:.45}, opts||{}));
+const wig=(g,o,axis,amp,sp,ph=0)=>{ (g.userData.wiggle||(g.userData.wiggle=[])).push({o,axis,amp,sp,ph}); };
+
+const SEA3D={
+  seahorse(){ const g=new THREE.Group(), Y=0xf2b51f, D=0xd48a12;
+    const pts=[[.05,1.05,0],[.14,.85,0],[.1,.6,0],[-.02,.38,0],[-.05,.15,0],[.05,-.05,0],[.2,-.12,0],[.26,-.02,0],[.18,.04,0]];
+    const body=taperTube(pts, u=>u<.12?.09+u*.9:u<.45?.19-(u-.12)*.08:.165*Math.pow(1-(u-.45)/.55,1.1)+.02, Y, 60, 14); g.add(body);
+    for(let k=0;k<12;k++){ const u=.12+k*.06, c=body.geometry.parameters.path.getPointAt(Math.min(.98,u)); const rr=.16*Math.pow(1-u*.8,1); const t=new THREE.Mesh(new THREE.TorusGeometry(rr,.018,5,16),M(D)); t.position.copy(c); t.rotation.x=Math.PI/2; g.add(t); }
+    const head=mesh(new THREE.SphereGeometry(.14,18,14),Y,.08,1.08,0); head.scale.set(1.15,1,.9); g.add(head);
+    const snout=cyl(.04,.06,.28,12,Y,.28,1.02,0); snout.rotation.z=Math.PI/2+.25; g.add(snout); g.add(cyl(.05,.05,.04,12,D,.41,.99,0)).rotation;
+    for(let k=0;k<5;k++){ const sp=cone(.035,.12,6,D,.0-k*.05,1.2-k*.07,0); sp.rotation.z=.6+k*.15; g.add(sp); }
+    const df=finMesh([[0,0],[-.12,.08],[-.22,.02],[-.14,-.1],[0,-.18]],0xffd866,.025); df.position.set(-.13,.45,0); g.add(df); wig(g,df,"y",.5,9);
+    cuteEye(g,.14,1.12,.1,.05); cuteEye(g,.14,1.12,-.1,.05);
+    g.position.y=-.3; const w=new THREE.Group(); w.add(g); return w; },
+  puffer(){ const g=new THREE.Group(), T=0xe7c25a, B=0xfff3d4;
+    const geo=shadeGeo(new THREE.SphereGeometry(.5,32,22),T,B,-.25,.2); g.add(new THREE.Mesh(geo,vcMat()));
+    for(let k=0;k<70;k++){ const y=1-2*(k+.5)/70, r=Math.sqrt(1-y*y), a=k*2.4; const d=new THREE.Vector3(Math.cos(a)*r,y,Math.sin(a)*r); if(d.x>.75) continue; const sp=cone(.03,.16,5,0xc79a3a); sp.position.copy(d).multiplyScalar(.5); sp.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d); g.add(sp); }
+    for(let k=0;k<9;k++){ const a=k*1.7, s=mesh(new THREE.SphereGeometry(.06,8,6),0x7a5a20,-.1+Math.cos(a)*.22,.34+Math.sin(k)*.08,Math.sin(a)*.3); s.scale.y=.35; g.add(s); }
+    cuteEye(g,.34,.16,.25,.11); cuteEye(g,.34,.16,-.25,.11); g.add(mesh(new THREE.TorusGeometry(.06,.02,6,12),0xb5651d,.5,-.05,0)).rotation;
+    [-1,1].forEach(s=>{ const pf=finMesh([[0,0],[-.08,.1],[-.2,.08],[-.12,-.02],[0,-.06]],0xf5d77a,.02); pf.position.set(.12,-.02,s*.45); pf.rotation.y=s*.3; g.add(pf); wig(g,pf,"y",.5,8,s); });
+    const tail=new THREE.Group(); tail.position.x=-.48; g.add(tail); tail.add(finMesh([[0,0],[-.12,.16],[-.24,.2],[-.16,0],[-.24,-.2],[-.12,-.16]],0xe7c25a,.03));
+    g.userData.tail=tail; g.userData.tailAxis="y"; return g; },
+  manta(){ const g=new THREE.Group(), TOP=0x1f2f45, BEL=0xf4f6f8;
+    const body=new THREE.Mesh(shadeGeo(new THREE.SphereGeometry(.5,28,16),TOP,BEL,-.05,.05),vcMat()); body.scale.set(1.25,.24,.75); g.add(body);
+    const wings=[]; [-1,1].forEach(s=>{ const w=new THREE.Group(); w.position.z=s*.28; g.add(w);
+      const sh=new THREE.Shape(); sh.moveTo(.55,0); sh.bezierCurveTo(.5,-.6,.15,-1.2,-.25,-1.65); sh.bezierCurveTo(-.3,-1.0,-.45,-.5,-.6,0); sh.lineTo(.55,0);
+      const geo=new THREE.ExtrudeGeometry(sh,{depth:.05,bevelEnabled:true,bevelSize:.05,bevelThickness:.04,bevelSegments:3,curveSegments:16}); geo.rotateX(Math.PI/2); geo.translate(0,.02,0);
+      shadeGeo(geo,TOP,BEL,-.06,.06); const wm=new THREE.Mesh(geo,vcMat({side:THREE.DoubleSide})); wm.scale.z=s; wm.rotation.x=0; w.add(wm); wings.push(w); });
+    [-1,1].forEach(s=>{ const h=taperTube([[.5,0,s*.16],[.72,.02,s*.2],[.85,-.05,s*.17]],u=>.06*(1-u*.6),TOP,10,8); g.add(h); });
+    cuteEye(g,.58,.06,.3,.05); cuteEye(g,.58,.06,-.3,.05); for(let k=0;k<4;k++) [-1,1].forEach(s=>g.add(box(.02,.015,.06,0x9aa7b4,.2-k*.07,-.09,s*.18)));
+    g.add(taperTube([[-.6,0,0],[-1.2,.02,0],[-1.9,-.04,0]],u=>.035*(1-u),TOP,16,6)); g.userData.wings=wings; return g; },
+  shrimp(){ const g=new THREE.Group(), C=0xff8a5c, L=0xffb28f;
+    const segs=[]; for(let k=0;k<7;k++){ const a=-.2+k*.42, R=.42, x=Math.cos(a)*R*(k<2?1:1)-.1, y=Math.sin(a)*R*.95, rr=.19-k*.018;
+      const s=mesh(new THREE.SphereGeometry(rr,18,12),k%2?C:L,x*1.0-.05,y-.1,0); s.scale.set(1.25,1,.85); s.rotation.z=a+Math.PI/2; g.add(s); segs.push([x,y]); }
+    const head=mesh(new THREE.SphereGeometry(.22,20,14),C,.38,.02,0); head.scale.set(1.5,.95,.85); g.add(head);
+    g.add(taperTube([[.62,.06,0],[.8,.1,0],[.92,.14,0]],u=>.035*(1-u),C,8,6));
+    cuteEye(g,.5,.14,.12,.055); cuteEye(g,.5,.14,-.12,.055);
+    [-1,1].forEach(s=>{ const an=taperTube([[.6,.12,s*.05],[.9,.4,s*.12],[1.2,.55,s*.2],[1.5,.5,s*.25]],u=>.012*(1-u*.7),0xe0704a,24,5); g.add(an); wig(g,an,"z",.08,3,s); });
+    for(let k=0;k<5;k++){ const x=.35-k*.12, leg=taperTube([[x,-.12,0],[x+.03,-.3,0],[x+.08,-.42,0]],u=>.018,0xe0704a,8,5); g.add(leg); wig(g,leg,"z",.25,10,k); }
+    const tail=new THREE.Group(); tail.position.set(-.2,-.45,0); g.add(tail); const tb=new THREE.Group(); tb.rotation.z=-.6; tail.add(tb); [-.35,0,.35].forEach(a=>{ const f=finMesh([[0,0],[-.06,-.1],[0,-.24],[.06,-.1]],L,.02); f.rotation.set(Math.PI/2,0,a); tb.add(f); }); g.userData.tail=tail; g.userData.tailAxis="z"; g.position.y=.15; const w=new THREE.Group(); w.add(g); return w; },
+  crab(){ const g=new THREE.Group(), C=0xe2413b, D=0xb52a26, B=0xffd9c4;
+    const cg=shadeGeo(new THREE.SphereGeometry(.52,32,18),C,B,-.15,.1); const cp=new THREE.Mesh(cg,vcMat()); cp.scale.set(1.15,.5,.85); cp.position.y=.32; g.add(cp);
+    for(let k=0;k<6;k++){ const a=k/6*Math.PI-Math.PI/2; g.add(mesh(new THREE.SphereGeometry(.05,8,6),D,Math.cos(a)*.35-.05,.52,Math.sin(a)*.3)); }
+    [-1,1].forEach(s=>{ rodBetween(g,[.35,.45,s*.12],[.42,.68,s*.14],.03,C); cuteEye(g,.44,.74,s*.14,.075);
+      for(let k=0;k<3;k++){ const x=.12-k*.22, z0=s*.38; const j=[x,.3,z0], kn=[x-.05,.42,s*.62], ft=[x-.1,0,s*.8]; rodBetween(g,j,kn,.045,C); rodBetween(g,kn,ft,.035,D); g.add(mesh(new THREE.SphereGeometry(.045,8,6),D,...kn)); }
+      const arm=new THREE.Group(); arm.position.set(.42,.32,s*.32); g.add(arm); rodBetween(arm,[0,0,0],[.22,.15,s*.12],.055,C);
+      const cl=new THREE.Group(); cl.position.set(.24,.18,s*.14); arm.add(cl); const palm=mesh(new THREE.SphereGeometry(.16,16,12),C,.08,0,0); palm.scale.set(1.3,.85,.7); cl.add(palm);
+      const top=cone(.06,.24,10,D,.26,.08,0); top.rotation.z=-Math.PI/2-.35; cl.add(top); const bot=cone(.05,.2,10,D,.25,-.06,0); bot.rotation.z=-Math.PI/2+.3; cl.add(bot);
+      wig(g,cl,"z",.25,3,s); });
+    g.add(mesh(new THREE.TorusGeometry(.05,.015,6,12,Math.PI),0x5a1010,.55,.3,0)).rotation; return g; },
+  hermit(){ const g=new THREE.Group(), SH=0xe0c49a, SD=0xb08a5a, BODY=0xff7a3d;
+    const shell=new THREE.Group(); shell.position.set(-.12,.42,0); shell.rotation.z=.55; g.add(shell);
+    for(let k=0;k<6;k++){ const r=.34*Math.pow(.72,k), y=k===0?0:.2*(1-Math.pow(.72,k))/(1-.72)*1.05; const w=mesh(new THREE.SphereGeometry(r,22,16),k%2?SH:0xead3ad,-k*.02,y,0); w.scale.set(1,.78,1); shell.add(w);
+      const ring=new THREE.Mesh(new THREE.TorusGeometry(r*.92,r*.09,6,22),M(SD)); ring.position.set(-k*.02,y-r*.3,0); ring.rotation.x=Math.PI/2; shell.add(ring); }
+    shell.add(cone(.05,.14,10,SD,-.1,.68,0));
+    const op=mesh(new THREE.SphereGeometry(.28,18,12),0x6a3a22,.18,.32,0); op.scale.set(.45,1,1); g.add(op);
+    const hd=mesh(new THREE.SphereGeometry(.16,16,12),BODY,.3,.38,0); hd.scale.set(1.1,.9,1); g.add(hd);
+    [-1,1].forEach(s=>{ rodBetween(g,[.38,.48,s*.06],[.46,.62,s*.09],.02,BODY); cuteEye(g,.47,.66,s*.09,.05);
+      for(let k=0;k<3;k++){ const z=s*(.06+k*.07); rodBetween(g,[.32,.28,z],[.48,.18,z*1.6],.03,BODY); rodBetween(g,[.48,.18,z*1.6],[.56,0,z*1.9],.025,0xe85d22); }
+      const cl=mesh(new THREE.SphereGeometry(.1,12,10),BODY,.5,.3,s*.16); cl.scale.set(1.5,.8,.8); g.add(cl); wig(g,cl,"z",.2,3,s); });
+    return g; },
+  lobster(){ const g=new THREE.Group(), C=0xd9412a, D=0xa82f1c, L=0xf0704a;
+    const cp=mesh(new THREE.SphereGeometry(.28,24,16),C,.35,.02,0); cp.scale.set(1.6,.85,.85); g.add(cp); g.add(cone(.05,.2,8,C,.82,.05,0)).rotation;
+    const tail=new THREE.Group(); tail.position.set(-.05,0,0); g.add(tail);
+    for(let k=0;k<6;k++){ const s=mesh(new THREE.SphereGeometry(.2-k*.018,18,12),k%2?C:L,-k*.17,-k*.012,0); s.scale.set(.85,.75,.95); tail.add(s); }
+    const fan=new THREE.Group(); fan.position.set(-1.05,-.05,0); tail.add(fan); [-.5,0,.5].forEach(a=>{ const f=finMesh([[0,0],[-.08,.08],[-.24,0],[-.08,-.08]],L,.02); f.rotation.set(Math.PI/2,0,0); f.rotation.y=a; fan.add(f); });
+    g.userData.tail=tail; g.userData.tailAxis="z"; cuteEye(g,.72,.17,.1,.05); cuteEye(g,.72,.17,-.1,.05);
+    [-1,1].forEach(s=>{ const an=taperTube([[.78,.12,s*.05],[1.2,.35,s*.2],[1.6,.4,s*.35],[1.9,.2,s*.45]],u=>.014*(1-u*.7),D,24,5); g.add(an); wig(g,an,"y",.06,2,s);
+      for(let k=0;k<4;k++){ const x=.5-k*.13; rodBetween(g,[x,-.12,s*.12],[x-.03,-.25,s*.3],.022,D); rodBetween(g,[x-.03,-.25,s*.3],[x-.06,-.38,s*.38],.018,D); }
+      rodBetween(g,[.6,-.05,s*.15],[.85,-.05,s*.35],.05,C); const cl=new THREE.Group(); cl.position.set(.88,-.05,s*.38); g.add(cl);
+      const palm=mesh(new THREE.SphereGeometry(.17,16,12),C,.12,0,0); palm.scale.set(1.5,.8,.7); cl.add(palm); const a=cone(.06,.3,10,D,.4,.05,0); a.rotation.z=-Math.PI/2-.2; cl.add(a); const b2=cone(.05,.26,10,D,.38,-.05,0); b2.rotation.z=-Math.PI/2+.25; cl.add(b2);
+      wig(g,cl,"y",.15,2.5,s); });
+    return g; },
+  jelly(){ const g=new THREE.Group(), MAT=new THREE.MeshStandardMaterial({color:0xd8b4ff, transparent:true, opacity:.72, emissive:0xb07cff, emissiveIntensity:.45, roughness:.15, side:THREE.DoubleSide});
+    const prof=[]; for(let k=0;k<=16;k++){ const u=k/16, a=u*Math.PI/2; prof.push([Math.sin(a)*.58*(1+.06*Math.sin(u*Math.PI)), Math.cos(a)*.5]); } prof.push([.6,-.04],[.5,-.02]);
+    const bell=new THREE.Mesh(new THREE.LatheGeometry(prof.map(([x,y])=>new THREE.Vector2(x,y)),36),MAT); const bp=bell.geometry.attributes.position;
+    for(let i=0;i<bp.count;i++){ const x=bp.getX(i), z=bp.getZ(i), y=bp.getY(i); if(y<.08){ const a=Math.atan2(z,x); bp.setY(i, y-.05*Math.abs(Math.sin(a*8))); } } bell.geometry.computeVertexNormals(); g.add(bell);
+    g.add(mesh(new THREE.SphereGeometry(.25,16,10),0xffe0f5,0,.18,0,{transparent:true,opacity:.5,emissive:0xff9ad5,emissiveIntensity:.5}));
+    cuteEye(g,.42,.25,.18,.06); cuteEye(g,.42,.25,-.18,.06); [-1,1].forEach(s=>g.add(mesh(new THREE.SphereGeometry(.05,8,6),0xff9ac4,.5,.12,s*.27,{transparent:true,opacity:.8})));
+    for(let k=0;k<4;k++){ const a=k/4*Math.PI*2+.4, pts=[]; for(let j=0;j<=8;j++){ const u=j/8; pts.push([Math.cos(a)*.12+Math.sin(u*9+k)*.06, -.05-u*.85, Math.sin(a)*.12+Math.cos(u*9+k)*.06]); } const arm=taperTube(pts,u=>.07*(1-u*.6),MAT,24,8); g.add(arm); wig(g,arm,"y",.4,1.5,k); }
+    for(let k=0;k<12;k++){ const a=k/12*Math.PI*2, pts=[]; for(let j=0;j<=6;j++){ const u=j/6; pts.push([Math.cos(a)*.5*(1-u*.3), -.06-u*1.1, Math.sin(a)*.5*(1-u*.3)+Math.sin(u*6+k)*.04]); } g.add(taperTube(pts,u=>.015*(1-u*.8),MAT,16,5)); }
+    g.position.y=.3; const w=new THREE.Group(); w.add(g); return w; },
+  octopus(){ const g=new THREE.Group(), P=0xa463e6, PL=0xd7b6ff;
+    const head=lathe([[0,.46],[.3,.48],[.38,.55],[.5,.7],[.56,.9],[.54,1.08],[.46,1.24],[.32,1.35],[.16,1.4],[0,1.42]],P,32); g.add(head);
+    for(let k=0;k<7;k++){ const a=k*.9+.3, y=.75+Math.sin(k*2)*.25; const sp=mesh(new THREE.SphereGeometry(.05,8,6),0x7b3fc0,Math.cos(a)*.5,y,Math.sin(a)*.5); sp.scale.set(.4,1,1); sp.lookAt(0,y,0); g.add(sp); }
+    cuteEye(g,.4,.72,.2,.11); cuteEye(g,.4,.72,-.2,.11); [-1,1].forEach(s=>g.add(mesh(new THREE.SphereGeometry(.06,8,6),0xff9ac4,.5,.56,s*.33,{transparent:true,opacity:.8})));
+    g.add(mesh(new THREE.TorusGeometry(.06,.015,6,12,Math.PI),0x4a1f80,.53,.56,0)).rotation;
+    for(let k=0;k<8;k++){ const a=k/8*Math.PI*2, pts=[]; for(let j=0;j<=7;j++){ const u=j/7, R=.28+u*.85, curl=u>.7?(u-.7)*2:0; pts.push([Math.cos(a)*R-Math.sin(a)*curl*.2, .48-u*.45+Math.sin(u*Math.PI)*.12+curl*.25, Math.sin(a)*R+Math.cos(a)*curl*.2]); }
+      const t=taperTube(pts,u=>.12*(1-u*.85),P,32,10); g.add(t); wig(g,t,"y",.08,1.4,k);
+      for(let j=1;j<6;j++){ const u=j/7, R=.28+u*.85; g.add(mesh(new THREE.SphereGeometry(.03*(1-u*.6),6,4),PL,Math.cos(a)*R,.42-u*.45+Math.sin(u*Math.PI)*.12-.07*(1-u),Math.sin(a)*R)); } }
+    return g; },
+  squid(){ const g=new THREE.Group(), C=0xf7dcc4, S=0xf0a07a;
+    const geo=new THREE.LatheGeometry([[0,0],[.16,.1],[.22,.4],[.2,.8],[.12,1.05],[0,1.15]].map(([x,y])=>new THREE.Vector2(x,y)),28); geo.rotateZ(Math.PI/2); geo.translate(.08,0,0);
+    const col=new Float32Array(geo.attributes.position.count*3), c1=new THREE.Color(C), c2=new THREE.Color(S), cc=new THREE.Color(), pp=geo.attributes.position;
+    for(let i=0;i<pp.count;i++){ const n=Math.sin(pp.getX(i)*23)*Math.sin(pp.getZ(i)*29+pp.getY(i)*17); cc.copy(c1).lerp(c2, n>.55?.85:0); col.set([cc.r,cc.g,cc.b],i*3); } geo.setAttribute("color",new THREE.BufferAttribute(col,3));
+    const mantle=new THREE.Mesh(geo,vcMat()); g.add(mantle); mantle.position.x=.0;
+    [-1,1].forEach(s=>{ const f=finMesh([[0,0],[-.1,.12],[-.32,.2],[-.24,.02],[-.05,-.02]],C,.025); f.position.set(-.85,0,s*.05); f.rotation.x=s*Math.PI/2; g.add(f); wig(g,f,"x",.35,4,s); });
+    const head=mesh(new THREE.SphereGeometry(.17,18,14),C,.22,0,0); head.scale.set(.9,.95,1); g.add(head); cuteEye(g,.25,.05,.15,.08); cuteEye(g,.25,.05,-.15,.08);
+    for(let k=0;k<8;k++){ const a=k/8*Math.PI*2, pts=[[.32,Math.sin(a)*.08,Math.cos(a)*.08],[.6,Math.sin(a)*.14,Math.cos(a)*.14],[.85,Math.sin(a)*.12,Math.cos(a)*.16]]; const t=taperTube(pts,u=>.045*(1-u*.8),C,12,8); g.add(t); wig(g,t,"z",.1,3,k); }
+    [-1,1].forEach(s=>{ const t=taperTube([[.32,0,s*.04],[.8,.05,s*.1],[1.2,0,s*.08],[1.32,.03,s*.1]],u=>u>.8?.05:.02,C,20,6); g.add(t); wig(g,t,"y",.12,2.5,s); });
+    return g; },
+  starfish(){ const g=new THREE.Group(), O=0xff8a3c;
+    const sh=new THREE.Shape(); for(let k=0;k<=10;k++){ const a=k/10*Math.PI*2+Math.PI/2, r=k%2?.24:.62, x=Math.cos(a)*r, y=Math.sin(a)*r; if(k===0) sh.moveTo(x,y); else { const pa=(k-.5)/10*Math.PI*2+Math.PI/2, pr=k%2?.48:.36; sh.quadraticCurveTo(Math.cos(pa)*pr,Math.sin(pa)*pr,x,y); } }
+    const geo=new THREE.ExtrudeGeometry(sh,{depth:.06,bevelEnabled:true,bevelSize:.08,bevelThickness:.1,bevelSegments:5,curveSegments:10}); geo.rotateX(-Math.PI/2);
+    const p=geo.attributes.position; for(let i=0;i<p.count;i++){ const x=p.getX(i), z=p.getZ(i), d=Math.hypot(x,z); p.setY(i, p.getY(i)*(1-d*.75)+.02); } geo.computeVertexNormals();
+    g.add(new THREE.Mesh(geo,M(O,{roughness:.55})));
+    for(let k=0;k<5;k++){ const a=k/5*Math.PI*2+Math.PI/2; for(let j=1;j<5;j++){ const r=j*.11; g.add(mesh(new THREE.SphereGeometry(.035-j*.004,8,6),0xffc27a,Math.cos(a)*r,.12-j*.018,-Math.sin(a)*r)); } }
+    g.add(mesh(new THREE.SphereGeometry(.06,10,8),0xffc27a,0,.15,0));
+    const face=new THREE.Group(); face.position.set(0,.16,0); g.add(face); [-1,1].forEach(s=>{ const e=mesh(new THREE.SphereGeometry(.05,10,8),0x2b1d16,s*.07,.02,.06); face.add(e); face.add(mesh(new THREE.SphereGeometry(.016,6,4),0xffffff,s*.07+.015,.06,.1,{emissive:0xffffff,emissiveIntensity:.5})); });
+    face.add(mesh(new THREE.TorusGeometry(.04,.01,6,10,Math.PI),0x7a2a10,0,0,.12)).rotation; face.children[face.children.length-1].rotation.x=Math.PI/2+.3; face.children[face.children.length-1].rotation.z=Math.PI;
+    return g; },
+  urchin(){ const g=new THREE.Group(), U=0x3a1f5c, SP=0x6b3fa0;
+    g.add(mesh(new THREE.SphereGeometry(.32,24,16),U,0,.25,0,{roughness:.4})); for(let k=0;k<20;k++){ const y=1-2*(k+.5)/20, r=Math.sqrt(1-y*y), a=k*2.4; g.add(mesh(new THREE.SphereGeometry(.035,6,4),0x9c6ad6,Math.cos(a)*r*.32,.25+y*.32,Math.sin(a)*r*.32)); }
+    for(let k=0;k<90;k++){ const y=1-2*(k+.5)/90, r=Math.sqrt(1-y*y), a=k*2.4; if(y<-.4) continue; const d=new THREE.Vector3(Math.cos(a)*r,y,Math.sin(a)*r), L=.42+((k*37)%7)*.04;
+      const sp=new THREE.Mesh(new THREE.ConeGeometry(.018,L,5),M(k%3?SP:0x8a55c8,{roughness:.35})); sp.position.copy(d).multiplyScalar(.3+L/2).add(new THREE.Vector3(0,.25,0)); sp.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d); g.add(sp); }
+    return g; },
+  coral(){ const g=new THREE.Group(), rr=rng(17);
+    g.add(mesh(new THREE.SphereGeometry(.75,20,10,0,Math.PI*2,0,Math.PI/2),0xd9c49a,0,-.05,0,{roughness:.95})).scale; g.children[0].scale.y=.18;
+    const branch=(x,z,col,len,depth=0)=>{ const pts=[[x,0,z]]; let px=x,py=0,pz=z; for(let k=0;k<4;k++){ px+=(rr()-.5)*.22; py+=len/4; pz+=(rr()-.5)*.22; pts.push([px,py,pz]); }
+      g.add(taperTube(pts,u=>.08*(1-u*.6)*(1-depth*.35),col,16,8)); g.add(ball(.06*(1-depth*.3),col,px,py,pz));
+      if(depth<1) for(let j=0;j<2;j++){ const u=.45+j*.25, p=pts[Math.round(u*4)]; const sub=[[...p]]; let qx=p[0],qy=p[1],qz=p[2]; const dx=(rr()-.5)*.5, dz=(rr()-.5)*.5; for(let k=0;k<3;k++){ qx+=dx/3; qy+=.12; qz+=dz/3; sub.push([qx,qy,qz]); } g.add(taperTube(sub,u2=>.05*(1-u2*.6),col,10,6)); g.add(ball(.045,col,qx,qy,qz)); } };
+    branch(-.25,.05,0xff8a5c,.9); branch(-.05,-.15,0xff9a3c,1.05); branch(-.38,-.22,0xff6f61,.75);
+    const brain=new THREE.Mesh(new THREE.SphereGeometry(.32,40,24,0,Math.PI*2,0,Math.PI/2),M(0xe2b07a,{roughness:.8})); const bp=brain.geometry.attributes.position;
+    for(let i=0;i<bp.count;i++){ const x=bp.getX(i), y=bp.getY(i), z=bp.getZ(i), n=1+.06*Math.sin(x*28+Math.sin(z*20)*2)*Math.cos(z*24); bp.setXYZ(i,x*n,y*n,z*n); } brain.geometry.computeVertexNormals(); brain.position.set(.3,0,.2); g.add(brain);
+    [[.32,-.3,.5],[.45,-.18,.38],[.52,-.38,.3]].forEach(([x,z,h])=>{ g.add(lathe([[.0,0],[.09,0],[.1,h*.5],[.11,h],[.08,h],[.07,h*.55],[0,h*.5]],0xc2453f,16)); g.children[g.children.length-1].position.set(x,0,z); });
+    const an=new THREE.Group(); an.position.set(-.35,0,.42); g.add(an); an.add(cyl(.1,.12,.12,14,0xff8fb0,0,.06,0)); for(let k=0;k<14;k++){ const a=k/14*Math.PI*2, t=taperTube([[Math.cos(a)*.07,.12,Math.sin(a)*.07],[Math.cos(a)*.15,.25,Math.sin(a)*.15],[Math.cos(a)*.2,.32,Math.sin(a)*.2]],u=>.025*(1-u*.6),0xff9ac4,8,5); an.add(t); wig(g,t,"x",.12,2,k); }
+    return g; },
+  turtle(){ const g=new THREE.Group(), SH=0x6b5a2e, SC=0x8a7a3a, SK=0x8fcf8a, SKD=0x5e9f5a, BEL=0xe8dca8;
+    const shell=new THREE.Mesh(new THREE.SphereGeometry(.72,40,22,0,Math.PI*2,0,Math.PI/2),null); const sp=shell.geometry.attributes.position, col=new Float32Array(sp.count*3), a=new THREE.Color(SH), b=new THREE.Color(SC), cc=new THREE.Color();
+    const cells=[[0,.72],[.32,.55],[-.32,.55],[.18,.3],[-.18,.3],[.42,.2],[-.42,.2],[0,.1]];
+    for(let i=0;i<sp.count;i++){ const x=sp.getX(i), y=sp.getY(i), z=sp.getZ(i); let d1=9,d2=9; const nx=x/.72, nz=z/.72, ny=y/.72; const pt=[nx*.8,ny,nz]; const cs=[[0,1,0],[.6,.7,0],[-.6,.7,0],[0,.7,.6],[0,.7,-.6],[.6,.4,.6],[-.6,.4,.6],[.6,.4,-.6],[-.6,.4,-.6],[.95,.2,0],[-.95,.2,0],[0,.2,.95],[0,.2,-.95]];
+      cs.forEach(c=>{ const d=Math.hypot(pt[0]-c[0],pt[1]-c[1],pt[2]-c[2]); if(d<d1){ d2=d1; d1=d; } else if(d<d2) d2=d; }); const edge=d2-d1<.08; cc.copy(edge?a:b).lerp(new THREE.Color(0xb5a55a), edge?0:.25*(1-d1)); col.set([cc.r,cc.g,cc.b],i*3); }
+    shell.geometry.setAttribute("color",new THREE.BufferAttribute(col,3)); shell.material=vcMat({roughness:.5}); shell.scale.set(1.15,.62,.92); g.add(shell);
+    const rim=new THREE.Mesh(new THREE.TorusGeometry(.72,.06,8,40),M(SH)); rim.rotation.x=Math.PI/2; rim.scale.set(1.15,.92,1); g.add(rim);
+    const bel=mesh(new THREE.CylinderGeometry(.74,.7,.1,32),BEL,0,-.04,0); bel.scale.set(1.12,1,.9); g.add(bel);
+    const neck=taperTube([[.7,.02,0],[.88,.08,0],[.98,.12,0]],u=>.13+u*.02,SK,10,12); g.add(neck);
+    const head=mesh(new THREE.SphereGeometry(.2,20,14),SK,1.04,.14,0); head.scale.set(1.25,.95,.95); g.add(head); for(let k=0;k<5;k++) g.add(mesh(new THREE.SphereGeometry(.04,8,6),SKD,.95+Math.cos(k)*.12,.27,Math.sin(k*2)*.1));
+    cuteEye(g,1.1,.2,.13,.06); cuteEye(g,1.1,.2,-.13,.06); g.add(mesh(new THREE.TorusGeometry(.06,.014,6,10,Math.PI),0x3a5a2a,1.26,.08,0)).rotation;
+    const fl=[]; [[.42,.6,1.1],[.42,-.6,1.1],[-.55,.48,.55],[-.55,-.48,.55]].forEach(([x,z,s])=>{ const p=new THREE.Group(); p.position.set(x,0,z*.95); g.add(p); const sgn=Math.sign(z);
+      const f=finMesh([[0,0],[-.1,.12*s],[-.55*s,.22*s],[-.3*s,-.02],[0,-.08]],SK,.05); f.rotation.x=Math.PI/2; f.rotation.y=sgn>0?-.5:.5; f.scale.z=sgn; p.add(f);
+      for(let k=0;k<3;k++) p.add(mesh(new THREE.SphereGeometry(.04,6,4),SKD,-.15*s-k*.1*s,.03,sgn*(.08+k*.04))); fl.push(p); });
+    g.userData.fl=fl; const tl=cone(.06,.2,8,SK,-.85,0,0); tl.rotation.z=Math.PI/2; g.add(tl); return g; },
+};
+
 function creature(id){
-  if(SEA_SPR[id]) return seaSprite(id);
+  if(window.SEA_AS_SPRITES && SEA_SPR[id]) return seaSprite(id);   // painted versions kept for reference; the 3D models are used
+  if(SEA3D[id]){ const c=SEA3D[id](), ud={}; c.traverse(o=>{ if(o!==c){ if(o.userData.wiggle) ud.wiggle=(ud.wiggle||[]).concat(o.userData.wiggle); if(o.userData.tail){ ud.tail=o.userData.tail; ud.tailAxis=o.userData.tailAxis; } if(o.userData.fl) ud.fl=o.userData.fl; if(o.userData.wings) ud.wings=o.userData.wings; } if(o.isMesh){ o.castShadow=false; o.receiveShadow=false; } });
+    Object.assign(c.userData, ud); return c; }
   const sculpted={dolphin:makeDolphin, shark:makeShark, whale:makeWhale, fish:()=>makeFish(0x2f8fe0,0xdff3ff,1.2), clown:()=>makeFish(0xff6a00,0xffb066,1.0,[.32,.6,.85])}[id];
   if(sculpted){ const s=sculpted(); s.traverse(m=>{ if(m.isMesh){ m.castShadow=false; m.receiveShadow=false; } }); return s; }
   const g=new THREE.Group();
@@ -2970,7 +3133,8 @@ function render3DFarm(i){
     else if(id==="urchin"||id==="coral"){ const a=a0, e=islandEdge(o.sh,a)*1.08, x=Math.cos(a)*e, z=Math.sin(a)*e; f=t=>{ c.position.set(x, Math.max(terrainH(o.sh,x,z), -1.6)+.02, z); c.rotation.y=ph; }; }
     else if(id==="starfish"){ const a=a0, e=islandEdge(o.sh,a)*1.04, x=Math.cos(a)*e, z=Math.sin(a)*e; f=t=>{ c.position.set(x, Math.max(terrainH(o.sh,x,z), -1.5)+.05, z); c.rotation.y=ph; }; }
     const tl=c.userData.tail, ax=c.userData.tailAxis, sp2=({whale:1.1,fish:7,clown:8,shark:3,dolphin:3.4,dugong:1.2,puffer:6})[id]||3;
-    o.fanim.push(t=>{ f(t); if(tl) tl.rotation[ax]=Math.sin(t*sp2+ph)*(ax==="z"?.32:.42); }); });
+    const wg=c.userData.wiggle||[]; wg.forEach(w=>{ w.base=w.o.rotation[w.axis]; });
+    o.fanim.push(t=>{ f(t); if(tl) tl.rotation[ax]=Math.sin(t*sp2+ph)*(ax==="z"?.32:.42); wg.forEach(w=>{ w.o.rotation[w.axis]=w.base+Math.sin(t*w.sp+w.ph+ph)*w.amp; }); }); });
   o.fgrp.children.forEach(bakeGroup);
 }
 
@@ -2997,7 +3161,7 @@ let thumbRig=null, thumbBusy=false;
 function snapThumb(id){ if(!renderer || thumbCache[id]) return;
   if(!thumbRig){ const sc=new THREE.Scene(); sc.add(new THREE.HemisphereLight(0xffffff,0x9ab88a,1.7)); const dl=new THREE.DirectionalLight(0xffffff,2.4); dl.position.set(4,8,6); sc.add(dl);
     thumbRig={sc, cam:new THREE.PerspectiveCamera(32,1,.1,200), rt:new THREE.WebGLRenderTarget(160,160), buf:new Uint8Array(160*160*4)}; }
-  const {sc,cam,rt,buf}=thumbRig, keep=seaBoats.length, swayKeep=swayers.length, g=makeDecor(id,0,10); seaBoats.length=keep; swayers.length=swayKeep;   // a still picture: drop the animations it registered
+  const {sc,cam,rt,buf}=thumbRig, keep=seaBoats.length, swayKeep=swayers.length, g=id.startsWith("sea:")?creature(id.slice(4)):makeDecor(id,0,10); seaBoats.length=keep; swayers.length=swayKeep;   // a still picture: drop the animations it registered
   sc.add(g); const bb=new THREE.Box3().setFromObject(g), c=bb.getCenter(new THREE.Vector3()), r=bb.getSize(new THREE.Vector3()).length()*.5;
   cam.position.set(c.x+r*1.3, c.y+r*.9, c.z+r*2.1); cam.lookAt(c); cam.updateProjectionMatrix();
   const prevT=renderer.getRenderTarget(), prevTM=renderer.toneMapping; renderer.setRenderTarget(rt); renderer.setClearColor(0x000000,0); renderer.clear(); renderer.render(sc,cam); renderer.readRenderTargetPixels(rt,0,0,160,160,buf); renderer.setRenderTarget(prevT);
@@ -3005,10 +3169,11 @@ function snapThumb(id){ if(!renderer || thumbCache[id]) return;
   for(let yy=0;yy<160;yy++) for(let xx=0;xx<160;xx++){ const si=((159-yy)*160+xx)*4, di=(yy*160+xx)*4; for(let k=0;k<3;k++) im.data[di+k]=Math.min(255,Math.pow(buf[si+k]/255,1/2.2)*255*1.05); im.data[di+3]=buf[si+3]; }
   x.putImageData(im,0,0); thumbCache[id]=cv.toDataURL("image/png"); }
 // fill in the 3D snapshots one per frame, so opening the shop never stalls
-function fillThumbs(root){ if(thumbBusy) return; const todo=[...root.querySelectorAll("[data-thumb]")]; if(!todo.length) return; thumbBusy=true;
-  const step=()=>{ const el=todo.shift(); if(!el){ thumbBusy=false; return; } const id=el.dataset.thumb; try{ snapThumb(id); }catch(e){}
+function fillThumbs(root){ const run=thumbBusy=(thumbBusy|0)+1; const todo=[...root.querySelectorAll("[data-thumb]")]; if(!todo.length) return;   // a newer call takes over from an older one
+  const step=()=>{ if(run!==thumbBusy) return; const el=todo.shift(); if(!el) return; const id=el.dataset.thumb; try{ snapThumb(id); }catch(e){ console.warn("thumb",id,e); }
     if(thumbCache[id]) root.querySelectorAll(`[data-thumb="${id}"]`).forEach(n=>{ const img=new Image(); img.className="thumb"; img.src=thumbCache[id]; img.alt=""; img.draggable=false; n.replaceWith(img); });
     requestAnimationFrame(step); }; requestAnimationFrame(step); }
+function seaThumb(id){ const k="sea:"+id; return thumbCache[k]?`<img class="thumb" src="${thumbCache[k]}" alt="" draggable="false">`:`<span class="thumb" data-thumb="${k}"></span>`; }
 function thumbOf(id){ const src=DECOR_SPR[id]?`assets/sprites/decor/${id}.webp`:thumbCache[id]; return src?`<img class="thumb" src="${src}" alt="" draggable="false">`:`<span class="thumb" data-thumb="${id}"></span>`; }
 // keep the island map pinned on top only when the panel is tall enough; otherwise it would cover the shop
 function fitMapSticky(view){ const wrap=view.querySelector(".imap-wrap"), sc=SHEET_MQ.matches?view.closest(".drawer"):view.closest(".d-body"); if(!wrap||!sc) return;
@@ -3079,8 +3244,9 @@ function renderFarm(view, body){
     <h3 class="spot-h" style="margin:0">海洋生物<span class=ui-en>Sea creatures</span> <span class="en">已解锁 ${SEA.filter(itemOpen).length}/${SEA.length} 种 · ${SEA.filter(itemOpen).length}/${SEA.length} unlocked</span></h3>
     ${catBar(SEA_CATS, seaCat, SEA, "sc")}
     <div class="shop">${SEA.filter(c=>seaCat==="all"||c.cat===seaCat).sort((a,b)=>(itemOpen(b)-itemOpen(a))||(a.tier-b.tier)).map(c=>{ const open=itemOpen(c), can=open&&(free||state.coins>=c.cost)&&list.length<FARM_MAX;
-      return `<button class="item ${open?"":"lockd"}" type="button" data-sea="${c.id}" ${can?"":"disabled"}>${SEA_SPR[c.id]?`<img class="thumb" src="assets/sprites/sea/${c.id}-thumb.webp" alt="" draggable="false">`:""}<b>${c.zh}</b><span class="en">${c.en}</span>${open?`<span class="price"><span class="coin sm" aria-hidden="true"></span>${c.cost}</span>`:`<span class="price lockp">${ICON("ic-lock")} ${tierLabel(c.tier)} 解锁<span class=ui-en>Unlocks at ${tierLabel(c.tier)}</span></span>`}</button>`; }).join("")}</div>`);
+      return `<button class="item ${open?"":"lockd"}" type="button" data-sea="${c.id}" ${can?"":"disabled"}>${seaThumb(c.id)}<b>${c.zh}</b><span class="en">${c.en}</span>${open?`<span class="price"><span class="coin sm" aria-hidden="true"></span>${c.cost}</span>`:`<span class="price lockp">${ICON("ic-lock")} ${tierLabel(c.tier)} 解锁<span class=ui-en>Unlocks at ${tierLabel(c.tier)}</span></span>`}</button>`; }).join("")}</div>`);
   view.querySelectorAll("[data-sc]").forEach(b=>b.onclick=()=>{ seaCat=b.dataset.sc; renderFarm(view, body); });
+  fillThumbs(view);
   view.querySelectorAll("[data-sea]").forEach(b=>b.onclick=()=>{ const c=SEA.find(x=>x.id===b.dataset.sea); if(list.length>=FARM_MAX || !itemOpen(c)) return; if(!free){ if(state.coins<c.cost) return; state.coins-=c.cost; }
     list.push(c.id); save(); updateCoins(); render3DFarm(cur); speak(c.zh); toast(`养了一只${c.zh}！`, `You now have a ${c.en}!`); renderFarm(view, body); });
   view.querySelectorAll("[data-rm]").forEach(b=>b.onclick=()=>{ const id=b.dataset.rm, j=list.lastIndexOf(id); if(j<0) return; list.splice(j,1); const c=SEA.find(x=>x.id===id); if(!free) state.coins+=Math.floor(c.cost/2); save(); updateCoins(); render3DFarm(cur); toast(`放走了一只${c.zh}`, `Released a ${c.en}`); renderFarm(view, body); });
