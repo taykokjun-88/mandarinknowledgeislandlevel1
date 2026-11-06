@@ -1117,7 +1117,7 @@ function updateLife(t){ if(!life.gulls.length) return; if(!_cr){ _cr=new THREE.V
     _v.set(-Math.sin(a)*g.sp, 0, Math.cos(a)*g.sp); const left=_v.dot(_cr)<0;
     const gl=((t+g.glide)%9)<3.2, f=gl?1:FLAP[Math.floor((t*7+g.ph*3))%FLAP.length], m=g.s.material.map;
     m.repeat.x=left?-.5:.5; m.offset.set((f%2)*.5+(left?.5:0), f<2?.5:0); });
-  updateKids(t);
+  updateKids(t); updateSea(t);
   const dark=themeDark();
   life.flies.forEach(f=>{ const vis=!dark && f.o.group.visible; f.s.visible=vis; if(!vis) return; const gp=f.o.group.position, a=t*.9+f.ph;
     const x=f.cx+Math.cos(a)*f.R+Math.sin(t*2.3+f.ph)*.3, z=f.cz+Math.sin(a*1.3)*f.R*.7, h=(f.o.sh?Math.max(terrainH(f.o.sh,x,z),1.5):2)+1+Math.sin(t*3.1+f.ph)*.35;
@@ -2862,7 +2862,26 @@ function makeFish(top, belly, len, stripes){ const g=new THREE.Group();
   eyeBall(g,len*.33,len*.06,len*.08,len*.045); eyeBall(g,len*.33,len*.06,-len*.08,len*.045);
   g.userData.tail=tail; g.userData.tailAxis="y"; return g; }
 
+/* ---- hand-painted sea creature sprites (assets/sprites/sea/<id>.webp: 2 frames side by side, facing right) ---- */
+const SEA_SPR={"fish": [370, 220], "clown": [375, 252], "puffer": [320, 260], "seahorse": [190, 292], "manta": [411, 254], "shark": [451, 230], "shrimp": [384, 284], "crab": [386, 233], "hermit": [352, 267], "lobster": [466, 263], "jelly": [382, 315], "octopus": [400, 306], "squid": [443, 192], "dolphin": [449, 311], "whale": [464, 316]};   // cell width, height in px
+const SEA_LEN={fish:1.3,clown:1.1,puffer:1.1,seahorse:.9,manta:2.6,shark:3.4,shrimp:1,crab:1.1,hermit:1,lobster:1.4,jelly:1.3,octopus:1.7,squid:1.8,dolphin:2.9,whale:6.2};
+const SEA_HZ={fish:6,clown:6,puffer:3,seahorse:2,manta:1.6,shark:2.5,shrimp:3,crab:3,hermit:2.5,lobster:2,jelly:1.4,octopus:1.2,squid:2,dolphin:2.6,whale:1.1};
+const seaTex={}, seaSprites=[];
+function seaSprite(id){ const g=new THREE.Group(), [cw,chh]=SEA_SPR[id], L=SEA_LEN[id]||1.2;
+  if(!seaTex[id]){ seaTex[id]=new THREE.TextureLoader().load(`assets/sprites/sea/${id}.webp`, t=>{ seaSprites.forEach(e=>{ if(e.id===id && e.m.map){ e.m.map.image=t.image; e.m.map.needsUpdate=true; } }); }); seaTex[id].colorSpace=THREE.SRGBColorSpace; }
+  const t=seaTex[id].clone(); t.colorSpace=THREE.SRGBColorSpace; t.repeat.set(.5,1); if(seaTex[id].image&&seaTex[id].image.width) t.needsUpdate=true;
+  const m=new THREE.SpriteMaterial({map:t, transparent:false, alphaTest:.45, fog:true, toneMapped:false}); m.color.setRGB(...nightTint()); nightMats.push(m);
+  const sp=new THREE.Sprite(m); sp.scale.set(L, L*chh/cw, 1); g.add(sp);
+  seaSprites.push({id, sp, m, g, prev:null, left:false, ph:Math.random()*6}); g.userData.sprite=true; return g; }
+// flip toward the direction of travel, flap between the two frames, tilt when climbing or diving
+function updateSea(t){ if(!seaSprites.length) return; const w=new THREE.Vector3();
+  for(let i=seaSprites.length-1;i>=0;i--){ const e=seaSprites[i]; if(!e.g.parent){ seaSprites.splice(i,1); continue; } e.g.getWorldPosition(w);
+    if(e.prev){ const dx=w.x-e.prev.x, dy=w.y-e.prev.y, dz=w.z-e.prev.z, side=dx*_cr.x+dy*_cr.y+dz*_cr.z, flat=Math.hypot(dx,dz);
+      if(Math.abs(side)>1e-4) e.left=side<0; const tilt=flat>1e-5?Math.max(-.6,Math.min(.6,Math.atan2(dy,flat)*.8)):0; e.m.rotation=e.left?-tilt:tilt; }
+    e.prev=(e.prev||new THREE.Vector3()).copy(w);
+    const f=Math.floor(t*(SEA_HZ[e.id]||3)+e.ph)%2, mp=e.m.map; if(mp){ mp.repeat.x=e.left?-.5:.5; mp.offset.x=f*.5+(e.left?.5:0); } } }
 function creature(id){
+  if(SEA_SPR[id]) return seaSprite(id);
   const sculpted={dolphin:makeDolphin, shark:makeShark, whale:makeWhale, fish:()=>makeFish(0x2f8fe0,0xdff3ff,1.2), clown:()=>makeFish(0xff6a00,0xffb066,1.0,[.32,.6,.85])}[id];
   if(sculpted){ const s=sculpted(); s.traverse(m=>{ if(m.isMesh){ m.castShadow=false; m.receiveShadow=false; } }); return s; }
   const g=new THREE.Group();
@@ -3060,7 +3079,7 @@ function renderFarm(view, body){
     <h3 class="spot-h" style="margin:0">海洋生物<span class=ui-en>Sea creatures</span> <span class="en">已解锁 ${SEA.filter(itemOpen).length}/${SEA.length} 种 · ${SEA.filter(itemOpen).length}/${SEA.length} unlocked</span></h3>
     ${catBar(SEA_CATS, seaCat, SEA, "sc")}
     <div class="shop">${SEA.filter(c=>seaCat==="all"||c.cat===seaCat).sort((a,b)=>(itemOpen(b)-itemOpen(a))||(a.tier-b.tier)).map(c=>{ const open=itemOpen(c), can=open&&(free||state.coins>=c.cost)&&list.length<FARM_MAX;
-      return `<button class="item ${open?"":"lockd"}" type="button" data-sea="${c.id}" ${can?"":"disabled"}><b>${c.zh}</b><span class="en">${c.en}</span>${open?`<span class="price"><span class="coin sm" aria-hidden="true"></span>${c.cost}</span>`:`<span class="price lockp">${ICON("ic-lock")} ${tierLabel(c.tier)} 解锁<span class=ui-en>Unlocks at ${tierLabel(c.tier)}</span></span>`}</button>`; }).join("")}</div>`);
+      return `<button class="item ${open?"":"lockd"}" type="button" data-sea="${c.id}" ${can?"":"disabled"}>${SEA_SPR[c.id]?`<img class="thumb" src="assets/sprites/sea/${c.id}-thumb.webp" alt="" draggable="false">`:""}<b>${c.zh}</b><span class="en">${c.en}</span>${open?`<span class="price"><span class="coin sm" aria-hidden="true"></span>${c.cost}</span>`:`<span class="price lockp">${ICON("ic-lock")} ${tierLabel(c.tier)} 解锁<span class=ui-en>Unlocks at ${tierLabel(c.tier)}</span></span>`}</button>`; }).join("")}</div>`);
   view.querySelectorAll("[data-sc]").forEach(b=>b.onclick=()=>{ seaCat=b.dataset.sc; renderFarm(view, body); });
   view.querySelectorAll("[data-sea]").forEach(b=>b.onclick=()=>{ const c=SEA.find(x=>x.id===b.dataset.sea); if(list.length>=FARM_MAX || !itemOpen(c)) return; if(!free){ if(state.coins<c.cost) return; state.coins-=c.cost; }
     list.push(c.id); save(); updateCoins(); render3DFarm(cur); speak(c.zh); toast(`养了一只${c.zh}！`, `You now have a ${c.en}!`); renderFarm(view, body); });
