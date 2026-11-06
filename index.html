@@ -2868,10 +2868,10 @@ const SEA_LEN={fish:1.3,clown:1.1,puffer:1.1,seahorse:.9,manta:2.6,shark:3.4,shr
 const SEA_HZ={fish:6,clown:6,puffer:3,seahorse:2,manta:1.6,shark:2.5,shrimp:3,crab:3,hermit:2.5,lobster:2,jelly:1.4,octopus:1.2,squid:2,dolphin:2.6,whale:1.1};
 const seaTex={}, seaSprites=[];
 function seaSprite(id){ const g=new THREE.Group(), [cw,chh]=SEA_SPR[id], L=SEA_LEN[id]||1.2;
-  if(!seaTex[id]){ seaTex[id]=new THREE.TextureLoader().load(`assets/sprites/sea/${id}.webp`, t=>{ seaSprites.forEach(e=>{ if(e.id===id && e.m.map){ e.m.map.image=t.image; e.m.map.needsUpdate=true; } }); }); seaTex[id].colorSpace=THREE.SRGBColorSpace; }
-  const t=seaTex[id].clone(); t.colorSpace=THREE.SRGBColorSpace; t.repeat.set(.5,1); if(seaTex[id].image&&seaTex[id].image.width) t.needsUpdate=true;
-  const m=new THREE.SpriteMaterial({map:t, transparent:false, alphaTest:.45, fog:true, toneMapped:false}); m.color.setRGB(...nightTint()); nightMats.push(m);
-  const sp=new THREE.Sprite(m); sp.scale.set(L, L*chh/cw, 1); g.add(sp);
+  const m=new THREE.SpriteMaterial({transparent:false, alphaTest:.45, fog:true, toneMapped:false}); m.color.setRGB(...nightTint()); nightMats.push(m);
+  const use=base=>{ const t=base.clone(); t.colorSpace=THREE.SRGBColorSpace; t.repeat.set(.5,1); t.needsUpdate=true; m.map=t; m.needsUpdate=true; sp.visible=true; };
+  if(!seaTex[id]){ seaTex[id]={base:null, wait:[]}; new THREE.TextureLoader().load(`assets/sprites/sea/${id}.webp`, t=>{ t.colorSpace=THREE.SRGBColorSpace; seaTex[id].base=t; seaTex[id].wait.forEach(fn=>fn(t)); seaTex[id].wait=[]; }); }
+  const sp=new THREE.Sprite(m); sp.visible=false; sp.scale.set(L, L*chh/cw, 1); g.add(sp); if(seaTex[id].base) use(seaTex[id].base); else seaTex[id].wait.push(use);
   seaSprites.push({id, sp, m, g, prev:null, left:false, ph:Math.random()*6}); g.userData.sprite=true; return g; }
 // flip toward the direction of travel, flap between the two frames, tilt when climbing or diving
 function updateSea(t){ if(!seaSprites.length) return; const w=new THREE.Vector3();
