@@ -13,7 +13,7 @@
 const SH_CLASSES = '班级 Classes';
 const SH_STUDENTS = '学生 Students';
 const ISLANDS = ['C1','C2','C3','C4','C5','C6','C7','C8','C9'];   // one island = one Chapter
-const CLASS_HEADERS = ['代码 Code','名称 Name','开放 Active','建立 Created','学号名单 Student IDs'];
+const CLASS_HEADERS = ['代码 Code','名称 Name','开放 Active','建立 Created','学号名单 Student IDs','岛屿设置 Islands'];
 const STUDENT_HEADERS = ['班级 Class','学号 Student ID','昵称 Nickname','salt','pinHash','建立 Created','最后登入 Last login','token','tokenExp','fails','lockUntil',
   '最后更新 Updated','总进度 Overall %','完成岛 Islands done','星星 Stars','椰子币 Coins'].concat(ISLANDS).concat(['summary','state']);
 const COL = { cls:0, sid:1, nick:2, salt:3, hash:4, created:5, last:6, token:7, exp:8, fails:9, lock:10, updated:11, pct:12, done:13, stars:14, coins:15, isl:16, summary:25, state:26 };
@@ -70,12 +70,14 @@ function route_(r){
     case 'load':     return load_(r);
     case 'save':     return save_(r);
     case 'logout':   return logout_(r);
+    case 'cfg':      { const a = auth_(r.token); if(!a) return {ok:false, error:'auth'}; return {ok:true, islands:islandsOf_(a.values[COL.cls])}; }
     case 'tLogin':   return teacher_(r, ()=>({ok:true}));
     case 'tClasses': return teacher_(r, ()=>({ok:true, classes:classes_()}));
     case 'tCreateClass': return teacher_(r, ()=>createClass_(r.code, r.name));
     case 'tToggleClass': return teacher_(r, ()=>toggleClass_(r.code, r.active));
     case 'tSetList': return teacher_(r, ()=>setList_(r.code, r.ids));
     case 'tPurge':   return teacher_(r, ()=>purge_(r.cls));
+    case 'tSetIslands': return teacher_(r, ()=>setIslands_(r.code, r.islands));
     case 'tRoster':  return teacher_(r, ()=>roster_(r.cls));
     case 'tResetPin': return teacher_(r, ()=>resetPin_(r.cls, r.sid, r.pin));
     case 'tDelete':  return teacher_(r, ()=>deleteStudent_(r.cls, r.sid));
@@ -95,7 +97,7 @@ function register_(r){
   row[COL.cls]=cls; row[COL.sid]=sid; row[COL.nick]=nick; row[COL.salt]=salt; row[COL.hash]=sha(salt+pin); row[COL.created]=now; row[COL.last]=now;
   row[COL.token]=token; row[COL.exp]=new Date(now.getTime()+TOKEN_DAYS*864e5); row[COL.fails]=0; row[COL.lock]=''; row[COL.updated]=now; row[COL.state]='';
   sh.appendRow(row); sh.getRange(sh.getLastRow(), COL.sid+1).setNumberFormat('@').setValue(sid);
-  return {ok:true, token, cls, sid, nick, state:null, updated:0};
+  return {ok:true, token, cls, sid, nick, state:null, updated:0, islands:islandsOf_(cls)};
 }
 function login_(r){
   const cls = normCode_(r.cls), sid = normSid_(r.sid), pin = String(r.pin||'');
@@ -111,9 +113,9 @@ function login_(r){
   // keep an existing session so the student stays signed in on their other devices
   const token = (v[COL.token] && v[COL.exp] && new Date(v[COL.exp]) > now) ? v[COL.token] : Utilities.getUuid();
   sh.getRange(f.row, COL.last+1, 1, 5).setValues([[now, token, new Date(now.getTime()+TOKEN_DAYS*864e5), 0, '']]);
-  return {ok:true, token, cls:v[COL.cls], sid:String(v[COL.sid]), nick:v[COL.nick], state:parseState_(v[COL.state]), updated:time_(v[COL.updated])};
+  return {ok:true, token, cls:v[COL.cls], sid:String(v[COL.sid]), nick:v[COL.nick], state:parseState_(v[COL.state]), updated:time_(v[COL.updated]), islands:islandsOf_(v[COL.cls])};
 }
-function load_(r){ const a = auth_(r.token); if(!a) return {ok:false, error:'auth'}; const v=a.values; return {ok:true, cls:v[COL.cls], sid:String(v[COL.sid]), nick:v[COL.nick], state:parseState_(v[COL.state]), updated:time_(v[COL.updated])}; }
+function load_(r){ const a = auth_(r.token); if(!a) return {ok:false, error:'auth'}; const v=a.values; return {ok:true, cls:v[COL.cls], sid:String(v[COL.sid]), nick:v[COL.nick], state:parseState_(v[COL.state]), updated:time_(v[COL.updated]), islands:islandsOf_(v[COL.cls])}; }
 function save_(r){
   const a = auth_(r.token); if(!a) return {ok:false, error:'auth'};
   const st = JSON.stringify(r.state||{}); if(st.length > MAX_STATE) return {ok:false, error:'too_big'};
@@ -134,12 +136,17 @@ function teacher_(r, fn){
   return fn();
 }
 function classes_(){ const v = classSheet_().getDataRange().getValues().slice(1); const st = students_().getDataRange().getValues().slice(1);
-  return v.filter(x=>x[0]).map(x=>{ const ids=parseIds_(x[4]); return {code:x[0], name:x[1], active:x[2]!==false && x[2]!=='FALSE', created:time_(x[3]), ids, count:st.filter(s=>s[COL.cls]===x[0]).length}; }); }
+  return v.filter(x=>x[0]).map(x=>{ const ids=parseIds_(x[4]); return {code:x[0], name:x[1], active:x[2]!==false && x[2]!=='FALSE', created:time_(x[3]), ids, islands:parseIslands_(x[5]), count:st.filter(s=>s[COL.cls]===x[0]).length}; }); }
 function createClass_(code, name){ code = normCode_(code); if(!code) return {ok:false, error:'bad_class'}; if(findClass_(code)) return {ok:false, error:'class_exists'};
-  classSheet_().appendRow([code, String(name||'').slice(0,40), true, new Date(), '']); return {ok:true, code}; }
+  classSheet_().appendRow([code, String(name||'').slice(0,40), true, new Date(), '', '']); return {ok:true, code}; }
 function toggleClass_(code, active){ const f = classRow_(code); if(!f) return {ok:false, error:'no_class'}; f.sheet.getRange(f.row,3).setValue(!!active); return {ok:true}; }
 function setList_(code, ids){ const f = classRow_(code); if(!f) return {ok:false, error:'no_class'};
   const list = parseIds_(Array.isArray(ids) ? ids.join(',') : ids); f.sheet.getRange(f.row,5).setNumberFormat('@').setValue(list.join(', ')); return {ok:true, count:list.length, ids:list}; }
+// per-island settings for a class: mode "auto" (follow progress) | "open" | "closed" (under maintenance), and an optional opening date
+function parseIslands_(s){ let a=[]; try{ a=JSON.parse(s||'[]'); }catch(e){} return ISLANDS.map((_,i)=>{ const x=a[i]||{}; return {mode:['auto','open','closed'].indexOf(x.mode)>=0?x.mode:'auto', date:/^\d{4}-\d{2}-\d{2}$/.test(x.date||'')?x.date:''}; }); }
+function islandsOf_(cls){ const f=classRow_(cls); return f ? parseIslands_(f.values[5]) : parseIslands_(''); }
+function setIslands_(code, islands){ const f=classRow_(code); if(!f) return {ok:false, error:'no_class'}; const v=parseIslands_(JSON.stringify(islands||[]));
+  f.sheet.getRange(f.row,6).setValue(JSON.stringify(v)); return {ok:true, islands:v}; }
 // remove every record in the class whose Student ID is not on the class list
 function purge_(cls, quiet){ const k = findClass_(normCode_(cls)); if(!k) return {ok:false, error:'no_class'}; if(!k.ids.length) return {ok:false, error:'no_list'};
   const sh = students_(), v = sh.getDataRange().getValues(); let removed = 0;
@@ -164,7 +171,7 @@ function parseState_(s){ return safeJSON_(s); }
 // create the tabs; if an older layout is found, keep it under a new name and start a fresh tab
 function classSheet_(){ const ss=SpreadsheetApp.getActive(); let sh=ss.getSheetByName(SH_CLASSES);
   if(!sh){ sh=ss.insertSheet(SH_CLASSES); sh.appendRow(CLASS_HEADERS); sh.setFrozenRows(1); }
-  else if(sh.getRange(1,5).getValue()!==CLASS_HEADERS[4]) sh.getRange(1,5).setValue(CLASS_HEADERS[4]);
+  else { if(sh.getRange(1,5).getValue()!==CLASS_HEADERS[4]) sh.getRange(1,5).setValue(CLASS_HEADERS[4]); if(sh.getRange(1,6).getValue()!==CLASS_HEADERS[5]) sh.getRange(1,6).setValue(CLASS_HEADERS[5]); }
   return sh; }
 function students_(){ const ss=SpreadsheetApp.getActive(); let sh=ss.getSheetByName(SH_STUDENTS);
   if(sh && sh.getRange(1,2).getValue()!==STUDENT_HEADERS[1]){ sh.setName(SH_STUDENTS+' (旧 old '+Utilities.formatDate(new Date(),Session.getScriptTimeZone(),'yyyy-MM-dd HHmm')+')'); sh=null; }

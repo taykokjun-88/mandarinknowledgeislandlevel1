@@ -283,6 +283,7 @@ button.gcard:hover{border-color:var(--gold)}
 .world.on{border-color:var(--red);box-shadow:inset 0 0 0 1px var(--red)}.world.soon{opacity:.6;border-style:dashed}
 #fx{position:fixed;inset:0;pointer-events:none;z-index:60;overflow:hidden;perspective:600px}
 #fx .fxp{position:absolute;left:0;top:0;will-change:transform,opacity;user-select:none}
+.lbl .maint{font-size:11.5px;font-weight:700;color:#7a4a00;background:#ffd84d;border-radius:999px;padding:1px 8px;margin-left:2px;white-space:nowrap}.lbl .maint .ui-en{font-weight:400;margin-left:3px}
 .cats{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:5px}
 .cat{font:inherit;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:10px;padding:4px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;line-height:1.15;min-height:40px;justify-content:center;touch-action:manipulation}
 .cat b{font-size:13px;font-weight:600}.cat .ui-en{font-size:10px;color:var(--muted)}.cat small{font-size:10px;color:var(--muted)}
@@ -717,7 +718,18 @@ const freshState = () => ({stars:{}, teacher:false, nick:"", py:true, en:true, c
 let state = (()=>{ try{ const s=JSON.parse(localStorage.getItem(KEY)); if(s && s.stars) return Object.assign(freshState(), s); }catch(e){} return freshState(); })();
 const save = ()=>{ state.updatedAt=Date.now(); try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} if(typeof scheduleSync==="function") scheduleSync(); };
 const starsOf = i => state.stars[i]||0;
-const isUnlocked = i => state.teacher || i===0 || starsOf(i-1)>=1;
+// progress rule: island i opens once the previous island has at least 1 star
+const progressOpen = i => i===0 || starsOf(i-1)>=1;
+// teacher's per-class island settings (from the backend): [{mode:"auto"|"open"|"closed", date:"YYYY-MM-DD"}] — kept per device
+let ISLE_CFG=(()=>{ try{ return JSON.parse(localStorage.getItem("m1-isles-cfg"))||[]; }catch(e){ return []; } })();
+function setIsleCfg(c){ ISLE_CFG=Array.isArray(c)?c:[]; try{ localStorage.setItem("m1-isles-cfg", JSON.stringify(ISLE_CFG)); }catch(e){} if(typeof refreshLabels==="function") refreshLabels(); if(typeof refreshMaint==="function") refreshMaint(); }
+const todayStr=()=>{ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; };
+// why a teacher has closed island i right now: {kind:"maint"} | {kind:"date", date} | null
+function isleBlock(i){ const c=ISLE_CFG[i]; if(!c) return null; if(c.mode==="closed") return {kind:"maint"}; if(c.date && todayStr()<c.date) return {kind:"date", date:c.date}; return null; }
+// mist covers islands not reached yet; an island under maintenance shows its construction sign instead
+const mistGoal = i => (isUnlocked(i) || (!state.teacher && (isleBlock(i)||{}).kind==="maint")) ? 0 : 1;
+const dateZh=d=>{ const [y,m,dd]=d.split("-").map(Number); return `${m}月${dd}日`; };
+const isUnlocked = i => state.teacher || (!isleBlock(i) && ((ISLE_CFG[i]||{}).mode==="open" || progressOpen(i)));
 
 function semesterWeek(){
   const d=new Date(), t=Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()), day=864e5;
@@ -1083,7 +1095,10 @@ function cardMat(kind){ if(cardMats[kind]) return cardMats[kind];
 const life={gulls:[], flies:[]};
 function addWalkers(){ const rr=rng(91);
   isles.forEach((o,i)=>{ const g=kidSprite(KIDS[(i+1)%KIDS.length], 2.1, "walk"), k=g.userData.kid; o.group.add(g);
-    Object.assign(k,{o, R:o.r*(.5+rr()*.08), a:rr()*6.28, spd:(.05+rr()*.02)*(i%2?1:-1), pause:0, next:6+rr()*8}); }); }
+    const a=rr()*6.28, d=o.r*.5; Object.assign(k,{o, x:Math.cos(a)*d, z:Math.sin(a)*d, tx:null, tz:null, speed:1.15+rr()*.3, pause:1+rr()*2, heading:0}); }); }
+// a random spot on the grass: away from the shore, the centre landmark and (mostly) the build plots
+function wanderTarget(k){ const o=k.o; for(let n=0;n<30;n++){ const a=Math.random()*6.283, e=islandEdge(o.sh,a), d=o.r*.28+Math.random()*(e*.66-o.r*.28), x=Math.cos(a)*d, z=Math.sin(a)*d;
+    if(o.sh && terrainH(o.sh,x,z)<1.5) continue; if(Math.hypot(x-k.x,z-k.z)<o.r*.25) continue; return [x,z]; } return [k.x,k.z]; }
 function addLife(){ addWalkers(); const L=new THREE.TextureLoader(), rr=rng(77);
   Promise.all(["seagull","butterflies"].map(n=>L.loadAsync(`assets/sprites/${n}.webp`))).then(([gBase,bBase])=>{
     const mk=(base, w)=>{ const t=base.clone(); t.colorSpace=THREE.SRGBColorSpace; t.needsUpdate=true; const m=new THREE.SpriteMaterial({map:t, transparent:true, alphaTest:.4, depthWrite:false, fog:true, toneMapped:false}); m.color.setRGB(...nightTint()); nightMats.push(m); const sp=new THREE.Sprite(m); sp.scale.set(w,w,1); scene.add(sp); return sp; };
@@ -1095,15 +1110,20 @@ function updateKids(t){ if(!_kv) _kv=new THREE.Vector3(); const dt=Math.min(.1, 
   kidList.forEach(k=>{ if(!k.sp.visible) return; const sp=k.sp, base=k.base||(k.base=sp.scale.x); let sx=1, sy=1, rot=0, f=0, left=k.left||false, lift=0;
     if(k.mode==="walk" && k.o){ const o=k.o;
       // speed eases in and out around the little pauses
-      const want=k.pause>0?0:1; k.v=(k.v??0)+(want-(k.v??0))*Math.min(1,dt*4);
-      if(k.pause>0){ k.pause-=dt; } else { k.next-=dt; if(k.next<=0){ k.pause=3.2; k.next=9+Math.random()*8; } }
-      const step=k.spd*dt*6*k.v; k.a+=step; k.dist=(k.dist||0)+Math.abs(step)*k.R;
-      const x=Math.cos(k.a)*k.R, z=Math.sin(k.a)*k.R; k.g.position.set(x, o.sh?terrainH(o.sh,x,z):2.2, z);
-      _kv.set(-Math.sin(k.a)*k.spd, 0, Math.cos(k.a)*k.spd); const nl=_kv.dot(_cr)<0;
+      // wander: walk to a random spot, stop for a while (sometimes waving), then pick another spot
+      if(k.tx==null && k.pause<=0){ [k.tx,k.tz]=wanderTarget(k); }
+      const want=k.pause>0?0:1; k.v=(k.v??0)+(want-(k.v??0))*Math.min(1,dt*3);
+      if(k.pause>0){ k.pause-=dt; }
+      let dx=0, dz=0; if(k.tx!=null){ dx=k.tx-k.x; dz=k.tz-k.z; const dist=Math.hypot(dx,dz); if(dist<.3){ k.tx=null; k.pause=2+Math.random()*3.5; k.wave=Math.random()<.5; } else { dx/=dist; dz/=dist; } }
+      // turn smoothly toward the target so the path curves instead of zig-zagging
+      if(dx||dz){ const want=Math.atan2(dz,dx); let dh=want-k.heading; dh=Math.atan2(Math.sin(dh),Math.cos(dh)); k.heading+=dh*Math.min(1,dt*2.5); }
+      const stepLen=k.speed*k.v*dt; k.x+=Math.cos(k.heading)*stepLen; k.z+=Math.sin(k.heading)*stepLen; k.dist=(k.dist||0)+stepLen;
+      const x=k.x, z=k.z; k.g.position.set(x, o.sh?terrainH(o.sh,x,z):2.2, z);
+      _kv.set(Math.cos(k.heading), 0, Math.sin(k.heading)); const nl=_kv.dot(_cr)<0;
       if(nl!==k.left && k.v>.3){ k.flip=(k.flip||0)>0?k.flip:.18; k.nextLeft=nl; }
       if(k.v>.15){ const cyc=k.dist/.9;   // one full stride every 0.9 world units: frames follow the feet, no sliding
         f=2+Math.floor(cyc*4)%4; const ph=cyc*Math.PI*2; lift=Math.abs(Math.sin(ph))*.04*base; rot=Math.sin(ph)*.035; sy=1+Math.sin(ph*2)*.012; }
-      else { const w=(3.2-k.pause); f=(w>.6&&w<2.4)?1:0; if(f===1) rot=Math.sin(t*7)*.06; sy=1+Math.sin(t*2.2+k.ph)*.012; }
+      else { f=(k.wave && k.pause>.6)?1:0; if(f===1) rot=Math.sin(t*7)*.06; sy=1+Math.sin(t*2.2+k.ph)*.012; }
     } else if(k.mode==="wave"){ const c=(t*.45+k.ph*.2)%1; f=c<.55?1:0; if(f===1) rot=Math.sin(t*7+k.ph)*.06; sy=1+Math.sin(t*2.2+k.ph)*.014; }
     else { const c=(t*.12+k.ph*.13)%1; f=c>.82?1:0; if(f===1) rot=Math.sin(t*7+k.ph)*.06; sy=1+Math.sin(t*2+k.ph)*.014; sx=1-Math.sin(t*2+k.ph)*.006; }
     // quick squash-turn when changing direction
@@ -1204,7 +1224,7 @@ function buildIsland(d, i){
   for(let k=0;k<2;k++){ const c=spriteOf(`mist-${2+k%2}`, r*(2+rr()*.4)); const a=k/2*6.28; c.position.set(Math.cos(a)*r*.25, 6.5+k*2.2, Math.sin(a)*r*.25); c.material.rotation=rr()*6.28; clouds.add(c); }
   clouds.children.forEach(c=>{ c.userData.base=c.position.clone(); c.userData.spin=(rr()-.5)*.08; });
   g.add(clouds); scene.add(g);
-  const k0=isUnlocked(i)?0:1; clouds.visible=!!k0;
+  const k0=mistGoal(i); clouds.visible=!!k0;
   isles[i]={group:g, clouds, cloudK:k0, anim:A, r, sh};
 }
 
@@ -1457,7 +1477,7 @@ function loop(now){
   ocean.material.uniforms.uTime.value=simT;
   grassMats.forEach(m=>{ if(m.userData.u) m.userData.u.uTime.value=simT; });
   animateAll(simT); updateLife(simT);
-  isles.forEach((o,i)=>{ const goal=isUnlocked(i)?0:1; if(goal===0 && o.cloudK===1 && !o.fxShown){ o.fxShown=true; const sp=FX.screenOf(o.group.position.clone().setY(6)); if(sp) setTimeout(()=>FX.sparkle(sp[0],sp[1],true),200); }
+  isles.forEach((o,i)=>{ const goal=mistGoal(i); if(goal===0 && o.cloudK===1 && !o.fxShown){ o.fxShown=true; const sp=FX.screenOf(o.group.position.clone().setY(6)); if(sp) setTimeout(()=>FX.sparkle(sp[0],sp[1],true),200); }
     if(Math.abs(o.cloudK-goal)>.001){ o.cloudK+=(goal-o.cloudK)*Math.min(1,dt*2.2); if(Math.abs(o.cloudK-goal)<.01) o.cloudK=goal; } o.clouds.visible=o.cloudK>.01;
     if(o.clouds.visible){ const k=o.cloudK, spread=1+(1-k)*1.6; o.clouds.children.forEach((c,j)=>{ const b=c.userData.base; c.position.set(b.x*spread, b.y+(1-k)*4+Math.sin(simT*.5+j)*.3, b.z*spread); c.material.opacity=Math.min(1,k*1.15); c.material.rotation+=c.userData.spin*dt; }); o.clouds.rotation.y=simT*.03; } });
   if(composer){ const f=.5+viewOff.y/Math.max(1,innerHeight); tiltH.uniforms.uFocus.value=f; tiltV.uniforms.uFocus.value=f; composer.render(); }
@@ -1468,11 +1488,28 @@ function loop(now){
 /* ============================== labels ============================== */
 const labelsEl=$("#labels"); const lbls=[];
 function buildLabels(){ ISLANDS.forEach((d,i)=>{ const b=document.createElement("button"); b.type="button"; b.className="lbl"; b.addEventListener("click",()=>openIsland(i)); labelsEl.appendChild(b); lbls.push(b); }); refreshLabels(); }
+// "维修升级中" construction sign on islands the teacher has closed
+let _maintTex=null;
+function maintTex(){ if(_maintTex) return _maintTex; const c=document.createElement("canvas"); c.width=1024; c.height=318; const x=c.getContext("2d");
+  x.fillStyle="#ffc61a"; x.fillRect(0,0,1024,318); x.strokeStyle="#222"; x.lineWidth=16; x.strokeRect(14,14,996,290);
+  x.fillStyle="#222"; x.textAlign="center"; x.textBaseline="middle"; x.font='bold 150px "Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif'; x.fillText("维修升级中",512,140);
+  x.font='bold 52px sans-serif'; x.fillText("UNDER MAINTENANCE",512,255);
+  _maintTex=new THREE.CanvasTexture(c); _maintTex.colorSpace=THREE.SRGBColorSpace; _maintTex.anisotropy=4; return _maintTex; }
+function maintSign(){ const g=new THREE.Group(), Y=0xffc61a, K=0x222222;
+  const board=new THREE.Mesh(new THREE.BoxGeometry(4.2,1.3,.12),[M(Y),M(Y),M(Y),M(Y),new THREE.MeshStandardMaterial({map:maintTex(),roughness:.7}),M(Y)]);
+  board.position.y=3.1; g.add(board); [-1.7,1.7].forEach(x=>g.add(cyl(.08,.08,3.2,8,0x777777,x,1.6,0)));
+  [-2.4,0,2.4].forEach(x=>{ const bar=new THREE.Mesh(new THREE.BoxGeometry(2,.32,.08),new THREE.MeshStandardMaterial({map:canvasTex("stripeHz",DRAW.stripes(0xffc61a,0x222222,8,true),1,1),roughness:.7})); bar.position.set(x,.75,1.4); bar.rotation.z=.0; g.add(bar); [-.85,.85].forEach(dx=>{ g.add(cyl(.05,.05,.9,6,0xdddddd,x+dx,.45,1.4)); }); });
+  [[-3.2,1.6],[3.2,1.6]].forEach(([x,z])=>{ g.add(cone(.3,.75,16,0xff6a1a,x,.38,z)); g.add(cyl(.22,.22,.1,16,0xffffff,x,.45,z)); });
+  return g; }
+function refreshMaint(){ if(!scene) return; isles.forEach((o,i)=>{ const blk=state.teacher?null:isleBlock(i);
+  if(blk && blk.kind==="maint" && !o.maint){ o.maint=maintSign(); o.maint.position.set(0, o.sh?terrainH(o.sh,0,o.r*.55)+.05:2.2, o.r*.55); o.group.add(o.maint); refreshShadows(); }
+  if((!blk || blk.kind!=="maint") && o.maint){ o.group.remove(o.maint); o.maint=null; refreshShadows(); } }); }
 function refreshLabels(){ ISLANDS.forEach((d,i)=>{ const un=isUnlocked(i), b=lbls[i]; if(!b) return; b.classList.toggle("locked",!un);
   b.setAttribute("aria-label",`${d.no} ${d.name}${un?"":"（未解锁）"}，${starsOf(i)} 颗星`);
-  b.innerHTML=`<span class="lbl-no">${d.no}</span><span class="lbl-name">${d.name}</span>${un?`<span class="lbl-stars">${stars3(starsOf(i))}</span>`:LOCK}${i===NOW_IDX?'<span class="now">本周 This week</span>':""}`; rubify(b); });
+  const blk=state.teacher?null:isleBlock(i);
+  b.innerHTML=`<span class="lbl-no">${d.no}</span><span class="lbl-name">${d.name}</span>${un?`<span class="lbl-stars">${stars3(starsOf(i))}</span>`:LOCK}${blk?`<span class="maint">${blk.kind==="maint"?"🚧 维修升级中<span class=ui-en>Under maintenance</span>":`📅 ${dateZh(blk.date)}开放<span class=ui-en>Opens ${blk.date}</span>`}</span>`:""}`; rubify(b); });
   $("#starCount").textContent=Object.values(state.stars).reduce((a,b)=>a+b,0);
-  if(scene) refreshRoute(); }
+  if(scene){ refreshRoute(); refreshMaint(); } }
 let pv = null;
 function placeLabels(){ const w=innerWidth,h=innerHeight; ISLANDS.forEach((d,i)=>{ const b=lbls[i]; pv.set(d.pos[0], isUnlocked(i)?17:19, d.pos[1]).project(camera);
   const hide=i===cur||pv.z>1||pv.x<-1.2||pv.x>1.2||pv.y<-1.2||pv.y>1.2; if(b._h!==hide){ b._h=hide; b.style.display=hide?"none":""; } if(hide) return;
@@ -1575,6 +1612,8 @@ const BACK=`<button class="back" type="button" id="gBack">‹ 返回游戏列表
 
 function stopGame(){ if(typeof arClose==="function" && document.getElementById("arStage") && !document.getElementById("arStage").hidden) arClose(); if(typeof stopMedia==="function") stopMedia(); if(gs && gs.timers) gs.timers.forEach(clearInterval); if(writer){ try{ writer.cancelQuiz(); }catch(e){} writer=null; } }
 function openIsland(i, mode){
+  const blk=state.teacher?null:isleBlock(i);
+  if(blk){ toast(blk.kind==="maint"?`「${ISLANDS[i].name}」维修升级中，请稍后再来。`:`「${ISLANDS[i].name}」将于 ${dateZh(blk.date)} 开放。`, blk.kind==="maint"?"This island is under maintenance — come back later.":`This island opens on ${blk.date}.`); if(scene) focusIsland(i); return; }
   if(!isUnlocked(i)){ toast(`先在 ${ISLANDS[i-1].no}「${ISLANDS[i-1].name}」闯关拿到至少 1 颗星，才能登上这座岛。`, `Get at least 1 star on ${ISLANDS[i-1].no} first to land here.`); if(scene) focusIsland(i); return; }
   stopGame(); side.hidden=true; cur=i; tab=mode||"explore"; quiz=null; game=null; gs=null;
   renderPanel(); panel.hidden=false; $("#pBody").scrollTop=0; panel.scrollTop=0; setLast(tab); Music.play(ISLANDS[i].no);
@@ -1778,12 +1817,12 @@ function newRewards(t){ const d=BUILD.filter(x=>x.tier===t), c=SEA.filter(x=>x.t
   return `<p class="unlock" style="margin:0">${ICON("ic-gift")} 新摆设：${d.map(x=>x.name).join("、")||"—"}${c.length?`；新海洋生物：${c.map(x=>x.zh).join("、")}`:""}${t===3?"（海洋养殖开放了！）":""}<span class=ui-en data-b>New in the shop: ${d.map(x=>x.en).join(", ")}${c.length?`; sea creatures: ${c.map(x=>x.en).join(", ")}`:""}${t===3?" — the sea farm is now open!":""}</span></p>`; }
 function renderResult(body){
   const n=quiz.qs.length, sc=quiz.score, r=sc/n, st=r>=1?3:r>=.8?2:r>=.6?1:0;
-  const prev=starsOf(cur), wasLocked=cur<8 && !isUnlocked(cur+1);
+  const prev=starsOf(cur), wasLocked=cur<8 && !progressOpen(cur+1);
   const ql=state.quiz[cur]||(state.quiz[cur]={best:0,n,att:0}); ql.att++; ql.n=n; ql.best=Math.max(ql.best,sc); ql.at=Date.now();
   if(st>prev) state.stars[cur]=st;
   save();
   if(st>prev) earn((st-prev)*10, `${ISLANDS[cur].name}闯关 +${st-prev} 颗星`);
-  const newly = wasLocked && isUnlocked(cur+1);
+  const newly = wasLocked && progressOpen(cur+1), nextBlk = cur<8 && !state.teacher ? isleBlock(cur+1) : null;
   refreshLabels();
   const tq=panel.querySelector('[data-t="quiz"]'); if(tq){ tq.innerHTML=`闯关 <span class="lbl-stars" style="display:flex">${stars3(starsOf(cur))}</span>`; rubify(tq); }
   const msg = st===3?"满分！太棒了！<span class=ui-en data-b>Perfect score!</span>": st===2?"很好！差一点就满分。<span class=ui-en data-b>Great — almost perfect.</span>": st===1?"过关了！再练练可以拿更多星。<span class=ui-en data-b>Passed! Practise more for extra stars.</span>":"还差一点，回到「探索」复习一下再来。<span class=ui-en data-b>Almost — review in Explore and try again.</span>";
@@ -1793,7 +1832,7 @@ function renderResult(body){
     <div class="big">${sc} / ${n}</div>
     <p style="margin:0">${msg}</p>
     ${st>prev&&prev>0?`<p style="margin:0;color:var(--muted)">刷新最佳成绩：${prev} → ${st} 颗星<span class=ui-en data-b>New best: ${prev} → ${st} stars</span></p>`:""}
-    ${newly?`<p class="unlock" style="margin:0">${ICON("ic-unlock")} 云雾散开了！新岛屿已解锁：${ISLANDS[cur+1].no}「${ISLANDS[cur+1].name}」<span class=ui-en data-b>The clouds have cleared — new island unlocked!</span></p>${newRewards(cur+1)}`:""}
+    ${newly?`<p class="unlock" style="margin:0">${ICON("ic-unlock")} 云雾散开了！新岛屿已解锁：${ISLANDS[cur+1].no}「${ISLANDS[cur+1].name}」<span class=ui-en data-b>The clouds have cleared — new island unlocked!</span></p>${nextBlk?`<p class="sw-msg" style="margin:0">不过「${ISLANDS[cur+1].name}」${nextBlk.kind==="maint"?"正在维修升级中":"将于 "+dateZh(nextBlk.date)+" 开放"}，到时就能登岛。<span class=ui-en data-b>${nextBlk.kind==="maint"?"It is under maintenance for now.":"It opens on "+nextBlk.date+"."}</span></p>`:""}${newRewards(cur+1)}`:""}
     ${cur===8&&st>0?`<p class="unlock" style="margin:0">恭喜你走完整个学期的知识群岛！<span class=ui-en data-b>Congratulations — you've sailed the whole semester!</span></p>`:""}
     <div class="row" style="justify-content:center;margin-top:8px">
       <button class="btn ghost" type="button" id="rAgain">再挑战一次<span class=ui-en>Try again</span></button>
@@ -2310,7 +2349,7 @@ const BUILD = [
 ];
 // 世界 Worlds: World 1 = Mandarin 1 (this game). World 2 = 中国群岛 (Mandarin 2) is planned.
 const WORLDS=[{no:1, zh:"南洋群岛", en:"Nanyang Isles", course:"Mandarin 1 Module", open:true},{no:2, zh:"中国群岛", en:"China Isles", course:"Mandarin 2 Module", open:false}];
-const itemOpen = it => state.teacher || isUnlocked(it.tier);
+const itemOpen = it => state.teacher || progressOpen(it.tier);
 const tierLabel = t => ISLANDS[t].no;
 const SLOT_ANG=[.45,1.3,2.15,3.35,4.55,5.5];
 const SHOP_COL=()=>[NY.pink,NY.mint,NY.butter,NY.sky,NY.peach,NY.lilac];
@@ -2800,7 +2839,7 @@ const SEA = [
   {id:"dugong",   cat:"big",   tier:8, zh:"儒艮",   en:"dugong",      cost:25}
 ];
 const FARM_MAX=10;
-const farmOpen = () => state.teacher || ISLANDS.filter((_,i)=>isUnlocked(i)).length>=4;
+const farmOpen = () => state.teacher || ISLANDS.filter((_,i)=>progressOpen(i)).length>=4;
 function farmOf(i){ return state.farm[i] || (state.farm[i]=[]); }
 
 /* ---------- sculpted marine bodies: profile-lofted, countershaded, with shaped fins ---------- */
@@ -3234,7 +3273,7 @@ function enableDrag(root, sel, onDrop){
   });
 }
 function renderFarm(view, body){
-  if(!farmOpen()){ const n=ISLANDS.filter((_,i)=>isUnlocked(i)).length;
+  if(!farmOpen()){ const n=ISLANDS.filter((_,i)=>progressOpen(i)).length;
     setHTML(view, `<div class="result"><div class="big">${ICON("ic-lock","bigico")}</div><p style="margin:0">解锁 4 座岛之后，就可以在岛的周围养殖海洋生物。现在已解锁 ${n}/4 座。<span class=ui-en data-b>Unlock 4 islands to start a sea farm around your islands. Unlocked so far: ${n}/4.</span></p></div>`); return; }
   const list=farmOf(cur), free=state.teacher;
   const counts={}; list.forEach(id=>counts[id]=(counts[id]||0)+1);
@@ -3408,7 +3447,7 @@ document.addEventListener("visibilitychange",()=>{ if(document.hidden && auth &&
 // replace the local state with a saved one and refresh everything on screen
 function adoptState(s){ const dev={gfx:state.gfx, music:state.music, vol:state.vol, look:state.look}; state=Object.assign(freshState(), s||{}, {teacher:false}); Object.keys(dev).forEach(k=>{ if(dev[k]!==undefined) state[k]=dev[k]; else delete state[k]; }); try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} applyPy(); applyEn(); applyMusicBtn(); updateCoins(); refreshLabels(); if(scene) ISLANDS.forEach((_,i)=>{ render3DBuild(i); render3DFarm(i); }); }
 function afterLogin(j, isNew){
-  auth={token:j.token, cls:j.cls, sid:j.sid, nick:j.nick}; saveAuth(); remember(j.cls, j.sid);
+  auth={token:j.token, cls:j.cls, sid:j.sid, nick:j.nick}; saveAuth(); remember(j.cls, j.sid); if(j.islands) setIsleCfg(j.islands);
   const local=state, sameOwner=local.owner===`${j.cls}/${j.sid}`, server=j.state;
   if(server && (!sameOwner || !(local.updatedAt>server.updatedAt))) adoptState(server);          // the cloud copy wins unless this device has newer work by the same student
   else if(!server && local.owner && !sameOwner) adoptState(null);                                   // another student's progress on a shared device — start fresh
@@ -3417,7 +3456,10 @@ function afterLogin(j, isNew){
   toast(isNew?`欢迎你，${j.nick}！你的进度会自动存到云端。`:`欢迎回来，${j.nick}！`, isNew?`Welcome, ${j.nick}! Your progress now saves to the cloud.`:`Welcome back, ${j.nick}!`); }
 const remember=(c,s)=>{ try{ localStorage.setItem("m1-isles-last", JSON.stringify({c,s})); }catch(e){} };
 const remembered=()=>{ try{ return JSON.parse(localStorage.getItem("m1-isles-last"))||{}; }catch(e){ return {}; } };
-async function logout(){ if(auth){ try{ await syncNow(); }catch(e){} try{ api("logout",{token:auth.token}); }catch(e){} } auth=null; saveAuth(); adoptState(null); setSync("off"); side.hidden=true; updateOffsetGoal(); welcome(true); }
+// pick up the teacher's island settings while the game stays open (every 5 minutes, and when the tab comes back)
+async function pullIsleCfg(){ if(!API||!auth||document.hidden) return; try{ const j=await api("cfg",{token:auth.token}); if(j.ok && j.islands && JSON.stringify(j.islands)!==JSON.stringify(ISLE_CFG)) setIsleCfg(j.islands); }catch(e){} }
+setInterval(pullIsleCfg, 5*60*1000); document.addEventListener("visibilitychange",()=>{ if(!document.hidden) pullIsleCfg(); });
+async function logout(){ if(auth){ try{ await syncNow(); }catch(e){} try{ api("logout",{token:auth.token}); }catch(e){} } auth=null; saveAuth(); setIsleCfg([]); adoptState(null); setSync("off"); side.hidden=true; updateOffsetGoal(); welcome(true); }
 
 function teacherIn(){ if(state.owner!=="teacher") adoptState(null); state.teacher=true; state.owner="teacher"; state.nick="老师"; save(); refreshLabels(); refreshRoute(); $("#welcome").hidden=true; setSync("off");
   toast("教师模式：全部岛屿已解锁。玩完请到「我的成绩」→ 登入 / 注册，换回学生账号。","Teacher mode: all islands unlocked."); }
@@ -3425,7 +3467,7 @@ function teacherIn(){ if(state.owner!=="teacher") adoptState(null); state.teache
 function welcome(force){
   const w=$("#welcome");
   if(!API){ if(state.nick && !force){ w.hidden=true; return; } return nickOnly(w); }
-  if(auth && !force){ w.hidden=true; setSync("busy"); api("load",{token:auth.token}).then(j=>{ if(j.ok){ if(j.state && !(state.owner===`${j.cls}/${j.sid}` && state.updatedAt>j.state.updatedAt)) adoptState(j.state); state.owner=`${j.cls}/${j.sid}`; if(j.nick) state.nick=j.nick; save(); setSync("ok"); } else { auth=null; saveAuth(); welcome(true); } }).catch(()=>setSync("err")); return; }
+  if(auth && !force){ w.hidden=true; setSync("busy"); api("load",{token:auth.token}).then(j=>{ if(j.ok){ if(j.islands) setIsleCfg(j.islands); if(j.state && !(state.owner===`${j.cls}/${j.sid}` && state.updatedAt>j.state.updatedAt)) adoptState(j.state); state.owner=`${j.cls}/${j.sid}`; if(j.nick) state.nick=j.nick; save(); setSync("ok"); } else { auth=null; saveAuth(); welcome(true); } }).catch(()=>setSync("err")); return; }
   if(!auth && state.teacher && state.owner==="teacher" && !force){ w.hidden=true; setSync("off"); return; }   // teacher mode stays signed in on this device
   const last=remembered(); let mode="login";
   const render=()=>{ setHTML(w, `<div class="wcard" role="dialog" aria-modal="true" aria-labelledby="wTitle">
