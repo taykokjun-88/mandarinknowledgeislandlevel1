@@ -2156,9 +2156,34 @@ function readStart(body){
     const sents=islandSentences(cur).filter(s=>[...s.toks.join("")].length<=9).map(s=>({zh:s.toks.join("")+s.end, en:s.en}));
     gs={items:shuffle(words).slice(0,3).concat(shuffle(sents).slice(0,2)), k:0, tries:0, score:0, heard:"", busy:false};
     if(gs.items.length<3) gs.items=shuffle(words.concat(sents)).slice(0,5);
-    if(readEngine()==="ai") loadASR(p=>{ const m=$("#rMsg"); if(m && !gs.busy) setHTML(m, `正在下载语音识别模型 ${p}%（只需要下载一次）<span class=ui-en data-b>Downloading the speech model ${p}% (one time only)</span>`); }).then(()=>{ const m=$("#rMsg"); if(m && !gs.busy) setHTML(m, `识别模型已就绪，点“开始念”。<span class=ui-en data-b>Speech model ready — tap Read now.</span>`); }).catch(()=>{});
+    gs.dl = readEngine()==="ai" ? (asrDone?"ready":asrP?"loading":"check") : "ready";
+    if(gs.dl==="loading") watchASR(body);
+    if(gs.dl==="check") asrCached().then(c=>{ if(!gs || game!=="read") return; if(c){ gs.dl="loading"; watchASR(body); } else gs.dl="ask"; readRender(body); });
     readRender(body); }); }
+// the on-device speech model is a one-time download (about 75 MB): ask first, show progress, then remember it is on the device
+let asrDone=false;
+async function asrCached(){ try{ if(!("caches" in window)) return false; const c=await caches.open("transformers-cache"); const ks=await c.keys(); return ks.some(r=>/whisper/.test(r.url) && /onnx/.test(r.url)); }catch(e){ return false; } }
+function watchASR(body){ const set=p=>{ if(gs) gs.dlPct=p; const bar=$("#dlBar"), t=$("#dlPct"); if(bar) bar.style.width=p+"%"; if(t) t.textContent=p+"%"; };
+  loadASR(set).then(()=>{ asrDone=true; state.asrDl=true; save(); if(gs && game==="read"){ gs.dl="ready"; readRender(body); } })
+    .catch(err=>{ if(gs && game==="read"){ gs.dl="fail"; gs.dlErr=String(err&&err.message||err); readRender(body); } }); }
 function readRender(body){
+  if(readEngine()==="ai" && gs.dl && gs.dl!=="ready"){ const d=gs.dl;
+    setHTML(body, `${BACK}<div class="result" style="gap:12px">
+      <div class="big" style="font-size:44px">📥</div>
+      <h3 style="margin:0">需要下载语音识别模型<span class=ui-en data-b>Speech model download needed</span></h3>
+      ${d==="check"?`<p style="margin:0">检查中…<span class=ui-en data-b>Checking…</span></p>`:""}
+      ${d==="ask"?`<p style="margin:0;text-align:left">“跟读过关”用手机或电脑里的 AI 听你的发音。第一次玩要先下载语音识别模型，<b>大约 75MB</b>，<b>只需要下载一次</b>，以后打开就能直接用。<br>请连上 <b>Wi-Fi</b> 再下载，下载时不要关闭这个页面。<span class=ui-en data-b>“Read aloud” uses an AI on your device to listen to you. The first time, it needs to download a speech model of <b>about 75 MB</b> — <b>only once</b>. Please use <b>Wi-Fi</b> and keep this page open while it downloads.</span></p>
+        <div class="row" style="justify-content:center"><button class="btn" type="button" id="dlGo">开始下载（约 75MB）<span class=ui-en>Download (about 75 MB)</span></button>${SRec?`<button class="btn ghost" type="button" id="dlWeb">改用浏览器识别<span class=ui-en>Use browser recognition</span></button>`:""}</div>`:""}
+      ${d==="loading"?`<p style="margin:0">正在下载语音识别模型，请稍等，不要关闭页面…<span class=ui-en data-b>Downloading the speech model — please keep this page open…</span></p>
+        <div class="lvlbar" style="width:100%;max-width:340px;height:12px"><i id="dlBar" style="width:${gs.dlPct||0}%"></i></div><b id="dlPct">${gs.dlPct||0}%</b>
+        <small>第一次下载需要一点时间，下载好会自动开始。<span class=ui-en data-b>This takes a little while the first time; the game starts by itself when it's done.</span></small>`:""}
+      ${d==="fail"?`<p style="margin:0">下载没有成功，请检查网络（最好用 Wi-Fi）再试一次。<span class=ui-en data-b>The download didn't finish — check the connection (Wi-Fi is best) and try again.</span></p><small>${esc(gs.dlErr||"")}</small>
+        <div class="row" style="justify-content:center"><button class="btn" type="button" id="dlGo">重新下载<span class=ui-en>Try again</span></button>${SRec?`<button class="btn ghost" type="button" id="dlWeb">改用浏览器识别<span class=ui-en>Use browser recognition</span></button>`:""}</div>`:""}
+    </div>`);
+    bindBack(body);
+    const go=$("#dlGo"); if(go) go.onclick=()=>{ asrP=null; gs.dl="loading"; gs.dlPct=0; watchASR(body); readRender(body); };
+    const w=$("#dlWeb"); if(w) w.onclick=()=>{ state.readEngine="web"; save(); gs.dl="ready"; readRender(body); };
+    return; }
   if(gs.k>=gs.items.length){ stopMedia(); const pass=gs.score>=3; if(pass) gameDone("read");
     setHTML(body, `${BACK}<div class="result"><div class="big">${gs.score} / ${gs.items.length}</div><p style="margin:0">${pass?"念得很好！<span class=ui-en data-b>Well read!</span>":"再练练，念对 3 个就完成。<span class=ui-en data-b>Keep practising — 3 correct to finish.</span>"}</p><button class="btn" type="button" id="again">再玩一次<span class=ui-en>Play again</span></button></div>`); bindBack(body); $("#again").onclick=()=>readStart(body); refreshTabs(); return; }
   const it=gs.items[gs.k], eng=readEngine();
@@ -2169,7 +2194,7 @@ function readRender(body){
     <p class="sw-msg" id="rMsg">${gs.heard||"先听示范，再点“开始念”，念完停一下就会自动检查。每题有 3 次机会。<span class=ui-en data-b>Listen first, tap Read now, then pause when you finish — it checks automatically. 3 tries each.</span>"}</p>
     <p class="sw-msg">识别方式：${eng==="ai"?"本机 AI 语音识别":"浏览器语音识别"} · <a href="#" id="swEng">${eng==="ai"&&SRec?"改用浏览器识别":"改用本机 AI"}</a><span class=ui-en data-b>Recogniser: ${eng==="ai"?"on-device AI (Whisper)":"browser speech recognition"}</span></p>`);
   bindBack(body);
-  const sw=$("#swEng"); if(sw) sw.onclick=e=>{ e.preventDefault(); state.readEngine = eng==="ai" ? (SRec?"web":"ai") : "ai"; save(); if(state.readEngine==="ai") loadASR(); readRender(body); };
+  const sw=$("#swEng"); if(sw) sw.onclick=e=>{ e.preventDefault(); state.readEngine = eng==="ai" ? (SRec?"web":"ai") : "ai"; save(); if(state.readEngine==="ai" && !asrDone){ gs.dl=asrP?"loading":"check"; if(asrP) watchASR(body); else asrCached().then(c=>{ if(!gs) return; if(c){ gs.dl="loading"; watchASR(body); } else gs.dl="ask"; readRender(body); }); } readRender(body); };
   $("#rec").onclick=()=> eng==="ai" ? recordAI(body, it) : recordWeb(body, it);
 }
 function readResult(body, it, heard){ const J=judgeRead(it.zh, heard); gs.heard=heard?heardHTML(it.zh,heard,J):"";
