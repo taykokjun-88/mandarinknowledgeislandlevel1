@@ -987,17 +987,22 @@ const LM = {
     g.add(ship);
     A.push(t=>{ ship.position.y=-1.2+Math.sin(t*1.2)*.2; ship.rotation.x=Math.sin(t*.9)*.03; sails.forEach((s,k)=>s.rotation.y=Math.PI/2+Math.sin(t*1.1+k)*.06); });
     return g; },
-  bus(A,r){ const g=new THREE.Group(); const R=r*.66;
-    const road=new THREE.Mesh(new THREE.RingGeometry(R-1.1,R+1.1,48), M(0x55524f)); road.rotation.x=-Math.PI/2; road.position.y=.03; road.receiveShadow=true; g.add(road);
+  bus(A,r,sh){ const g=new THREE.Group(); const R=r*ROAD_R, W=ROAD_W;
+    // the ring road hugs the ground (the landmark group sits 2.2 above sea level), with curbs and a dashed centre line
+    const gy=(x,z)=>(sh?terrainH(sh,x,z):2.2)-2.2;
+    const drape=(geo,lift)=>{ geo.rotateX(-Math.PI/2); const p=geo.attributes.position; for(let i=0;i<p.count;i++) p.setY(i, gy(p.getX(i),p.getZ(i))+lift); geo.computeVertexNormals(); return geo; };
+    const road=new THREE.Mesh(drape(new THREE.RingGeometry(R-W,R+W,128,3),.09), M(0x4a4846,{roughness:.9})); road.receiveShadow=true; g.add(road);
+    [R-W-.12, R+W+.12].forEach(rr=>{ const c=new THREE.Mesh(drape(new THREE.RingGeometry(rr-.14,rr+.14,128,1),.16), M(0xe8e2d6)); c.receiveShadow=true; g.add(c); });
+    for(let k=0;k<36;k++){ const a=k/36*Math.PI*2, x=Math.cos(a)*R, z=Math.sin(a)*R; const d=box(.12,.03,.55,0xfafafa,x,gy(x,z)+.12,z); d.rotation.y=-a; g.add(d); }
     // Nanyang bus station: arcade pillars + clay-tile roof
     const st=new THREE.Group(); st.add(box(4.4,2.2,2.6,NY.mint,0,1.1,-.4)); [-2,-.7,.7,2].forEach(x=>st.add(box(.25,2.4,.25,NY.cream,x,1.2,1.1)));
     st.add(box(5,.25,3.4,NY.cream,0,2.5,0)); st.add(prism(5.2,2,NY.tile,0,3.2,0,.6)); st.add(cyl(.1,.1,3.6,6,C.dark,2.9,1.8,1.9)); st.add(box(1.2,.8,.1,C.gold,2.9,3.6,1.9)); g.add(st);
     const bus=new THREE.Group(); const body=new THREE.Group(); body.add(box(1.4,1.4,3.4,0xf4c430,0,1,0)); body.add(box(1.45,.55,2.9,0x2f3d4a,0,1.35,-.1)); [[-.7,1.1],[.7,1.1],[-.7,-1.1],[.7,-1.1]].forEach(([x,z])=>{ const w=cyl(.32,.32,.25,10,C.dark,x,.32,z); w.rotation.z=Math.PI/2; body.add(w); }); bus.add(body); g.add(bus);
-    A.push(t=>{ const a=t*.35; bus.position.set(Math.cos(a)*R,0,Math.sin(a)*R); bus.rotation.y=-a; });
+    A.push(t=>{ const a=t*.35, x=Math.cos(a)*(R+W*.45), z=Math.sin(a)*(R+W*.45); bus.position.set(x,gy(x,z)+.1,z); bus.rotation.y=-a; });
     // water taxi 水上的士 circling the island
     const wt=perahu(C.gold,NY.lantern); g.add(wt);
     A.push(t=>{ const a=-t*.22+1, RR=r*1.6; wt.position.set(Math.cos(a)*RR,-2+Math.sin(t*1.7)*.12,Math.sin(a)*RR); wt.rotation.y=-a+Math.PI; });
-    const bike=new THREE.Group(); [-.5,.5].forEach(z=>{ const w=new THREE.Mesh(new THREE.TorusGeometry(.35,.06,6,14),M(C.dark)); w.position.set(0,.4,z); w.rotation.y=Math.PI/2; bike.add(w); }); bike.add(box(.08,.08,1,C.red,0,.6,0)); bike.position.set(-3.2,0,2); g.add(bike);
+    const bike=new THREE.Group(); [-.5,.5].forEach(z=>{ const w=new THREE.Mesh(new THREE.TorusGeometry(.35,.06,6,14),M(C.dark)); w.position.set(0,.4,z); w.rotation.y=Math.PI/2; bike.add(w); }); bike.add(box(.08,.08,1,C.red,0,.6,0)); bike.position.set(-3.2,gy(-3.2,2),2); g.add(bike);
     return g; },
   clothes(A){ const g=new THREE.Group(); const cols=[0xd62828,0xf4c430,0x2f6fb5,0x3aa655,0xf7f7f2,0x222222];
     // tamu market stalls with batik awnings, shophouse backdrop
@@ -1173,12 +1178,12 @@ function leafCanopy(parent, balls, kind, picks, rr, core){
   inst.forEach(([x,y,z,w,sh],k)=>{ const r=rects[picks[Math.floor(rr()*picks.length)]]; m4.compose(v.set(x,y,z),q,sc.set(w,w,w)); im.setMatrixAt(k,m4); aR.set([r[0],r[1],r[2],r[3]],k*4); aC.set([(rr()-.5)*.8, sh*(.92+rr()*.12), rr()*6.28],k*3); });
   geo.setAttribute("aRect", new THREE.InstancedBufferAttribute(aR,4)); geo.setAttribute("aCard", new THREE.InstancedBufferAttribute(aC,3));
   im.frustumCulled=false; im.castShadow=false; im.receiveShadow=false; parent.add(im); return im; }
-function scatterCards(g, sh, kind, count, minT, maxT, sizeR, rr, avoid){
+function scatterCards(g, sh, kind, count, minT, maxT, sizeR, rr, avoid, keepOut){
   const rects=CARD_RECTS[kind], geo=new THREE.PlaneGeometry(1,1); geo.translate(0,.5,0);
   const aRect=new Float32Array(count*4), aPh=new Float32Array(count), im=new THREE.InstancedMesh(geo, cardMat(kind), count), m4=new THREE.Matrix4(), q=new THREE.Quaternion(), v=new THREE.Vector3(), sc=new THREE.Vector3();
   let n=0, guard=0;
   while(n<count && guard++<count*10){ const a=rr()*Math.PI*2, d=Math.sqrt(rr())*sh.r*1.05, x=Math.cos(a)*d, z=Math.sin(a)*d, t=d/islandEdge(sh,a);
-    if(t<minT||t>maxT) continue; const h=terrainH(sh,x,z); if(h<1.4) continue; if(avoid && avoid.some(([px,pz])=>(px-x)*(px-x)+(pz-z)*(pz-z)<6.3)) continue;   // keep about 2.5 units clear around each build plot
+    if(t<minT||t>maxT) continue; const h=terrainH(sh,x,z); if(h<1.4) continue; if(avoid && avoid.some(([px,pz])=>(px-x)*(px-x)+(pz-z)*(pz-z)<6.3)) continue; if(keepOut && keepOut(x,z)) continue;   // keep about 2.5 units clear around each build plot
     const k=Math.floor(rr()*rects.length), r=rects[k], hgt=(sizeR[0]+rr()*(sizeR[1]-sizeR[0]))*(r[4]>1.4?.72:1), wid=hgt*r[4];
     m4.compose(v.set(x,h-.05,z),q,sc.set(wid,hgt,1)); im.setMatrixAt(n,m4); aRect.set([r[0],r[1],r[2],r[3]],n*4); aPh[n]=rr()*6.28; n++; }
   geo.setAttribute("aRect", new THREE.InstancedBufferAttribute(aRect,4)); geo.setAttribute("aPhase", new THREE.InstancedBufferAttribute(aPh,1));
@@ -1214,9 +1219,10 @@ function buildIsland(d, i){
   // grass tufts + flowers
   const hi=HIGH();
   const plots=SLOT_ANG.map(a=>[Math.cos(a)*r*.72, Math.sin(a)*r*.72]);   // keep the build plots clear
-  scatterCards(g, sh, "grass", hi?170:90, .42, .9, [.45,.9], rr, plots);
-  scatterCards(g, sh, "flowers", hi?32:18, .4, .88, [.5,.8], rr, plots);
-  const A=[]; const lm=LM[d.lm](A,r); lm.position.y=2.2; g.add(lm);
+  const offRoad = d.lm==="bus" ? (x,z)=>Math.abs(Math.hypot(x,z)-r*ROAD_R)<ROAD_W+.9 : null;
+  scatterCards(g, sh, "grass", hi?170:90, .42, .9, [.45,.9], rr, plots, offRoad);
+  scatterCards(g, sh, "flowers", hi?32:18, .4, .88, [.5,.8], rr, plots, offRoad);
+  const A=[]; const lm=LM[d.lm](A,r,sh); lm.position.y=2.2; g.add(lm);
   // soft clouds over locked islands
   // magic mist over locked islands: hand-painted sprites that drift apart and fade when the island unlocks
   const clouds=new THREE.Group();
@@ -2288,6 +2294,7 @@ function arClose(){ stopMedia(); const st=$("#arStage"); if(st){ st.hidden=true;
 
 /* ============================== 建设南洋岛 Build your Nanyang island ============================== */
 // 50 Nanyang decorations in 6 categories. tier = the island (0 = C1 … 8 = C9) that unlocks it; water:true items float near the shore.
+const ROAD_R=.5, ROAD_W=.95;   // the bus island's ring road (share of island radius, half width)
 const DECOR_CATS=[["plant","植物","Plants"],["house","房屋","Buildings"],["street","街景","Street life"],["fun","休闲","Leisure"],["fest","节庆","Festivals"],["ride","交通","Transport"]];
 const BUILD = [
   // 植物 plants
