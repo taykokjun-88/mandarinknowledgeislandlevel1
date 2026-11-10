@@ -1279,11 +1279,11 @@ const TiltShader=()=>({ uniforms:{tDiffuse:{value:null}, uDir:{value:new THREE.V
 const GradeShader=()=>({ uniforms:{tDiffuse:{value:null}, uSat:{value:1.26}, uCon:{value:1.07}, uVig:{value:.18}},
   vertexShader:"varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }",
   fragmentShader:"uniform sampler2D tDiffuse; uniform float uSat,uCon,uVig; varying vec2 vUv; void main(){ vec4 c=texture2D(tDiffuse,vUv); float l=dot(c.rgb,vec3(.2126,.7152,.0722)); vec3 s=mix(vec3(l),c.rgb,uSat); s=(s-.18)*uCon+.18; float v=1.-uVig*smoothstep(.45,.95,length(vUv-.5)*1.25); gl_FragColor=vec4(max(s,0.)*v,c.a); }" });
-/* ---- 每日登入奖励 Daily login bonus: a streak of consecutive days; coins grow from 5 to 15, plus a weekly bonus ---- */
+/* ---- 每日登入奖励 Daily login bonus: a small reward that grows a little with the streak ---- */
 const dayAdd=(d,k)=>{ const t=new Date(d+"T12:00:00"); t.setDate(t.getDate()+k); return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,"0")}-${String(t.getDate()).padStart(2,"0")}`; };
 function dailyReward(){ if(state.teacher||!state.nick) return; const today=todayStr(), st=state.streak;
   if(st && st.d===today) return;
-  const n=(st && st.d===dayAdd(today,-1)) ? st.n+1 : 1, coins=Math.min(15,5+(n-1)*2)+(n%7===0?15:0);
+  const n=(st && st.d===dayAdd(today,-1)) ? st.n+1 : 1, coins=Math.min(4,2+Math.floor((n-1)/2))+(n%7===0?6:0);   // small on purpose: 2 → 4 coins a day, +6 on every 7th day (a quiz star is worth 10)
   state.streak={d:today, n, best:Math.max(n,(st&&st.best)||0)}; state.coins+=coins; save(); updateCoins(); showDaily(n, coins); }
 function showDaily(n, coins){ const old=$("#dailyCard"); if(old) old.remove(); const day=(n-1)%7+1;
   const c=document.createElement("div"); c.id="dailyCard"; c.setAttribute("role","status");
