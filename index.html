@@ -10,7 +10,7 @@
 <style>
 /* Nanyang theme: shophouses, Kampong Ayer stilt houses, batik, Peranakan tiles.
    Layout: full-bleed 3D archipelago; floating glass top bar; right drawer (desktop) / bottom sheet (phone) for island study + challenge.
-   Palette: UBD LC Chinese Red + Imperial Gold over a tropical Brunei sea. */
+   Palette: Chinese red + imperial gold over a tropical Brunei sea. */
 :root{
   --panel:#fffaf2; --panel-2:#f5ecdd; --ink:#2b1d16; --muted:#6e5d52; --line:rgba(90,55,30,.16);
   --red:#b3121c; --red-ink:#fffaf2; --gold:#a87a12; --gold-soft:#f4e4b8;
@@ -443,7 +443,7 @@ textarea{resize:vertical;font-size:12px;font-family:ui-monospace,Menlo,monospace
     <label for="nickIn">你的昵称 Nickname</label>
     <input id="nickIn" maxlength="16" autocomplete="nickname" placeholder="例如 Ali、小明">
     <button class="btn" type="button" id="nickGo">出发<span class=ui-en>Let's go</span></button>
-    <small>进度会自动保存在这台设备上。换设备时，在「我的成绩」里用进度码继续。<span class=ui-en data-b>Progress saves on this device. To switch devices, use a progress code in My progress.</span></small>
+    <small>进度会自动保存在这台设备上。<span class=ui-en data-b>Progress is saved on this device.</span></small>
   </div></div>
 </div>
 
@@ -476,7 +476,7 @@ window.dispatchEvent(new Event("three-ready"));
    ============================================================ */
 const ISLANDS = [
 { no:"C1", name:"拼音灯塔", py:"Pīnyīn Dēngtǎ", en:"Pinyin Lighthouse", module:"语音基石与汉字基础", moduleEn:"Pinyin, Tones & Script Mechanics",
-  weeks:[1,2], lesson:"Unit 1 Lesson 1《汉语拼音与基本笔画》", assess:"拼音发音与辨调小测",
+  lesson:"Unit 1 Lesson 1《汉语拼音与基本笔画》",
   pos:[-60,30], grass:0x86c25e, lm:"lighthouse",
   spots:[
    { h:"四个声调", en:"The four tones + neutral tone",
@@ -500,7 +500,7 @@ const ISLANDS = [
    {q:"写 “国” 字，最后一笔是？", a:"最下面封口的横", d:["第一笔的竖","里面的点","右边的横折"], x:"先进人，后关门。"} ] },
 
 { no:"C2", name:"问候码头", py:"Wènhòu Mǎtóu", en:"Greetings Pier", module:"问候礼貌与姓名表达", moduleEn:"Greetings, Courtesy & Names",
-  weeks:[3], lesson:"Unit 1 Lesson 2《问候》& Lesson 3《姓名》", assess:"校园初遇破冰问答",
+  lesson:"Unit 1 Lesson 2《问候》& Lesson 3《姓名》",
   pos:[-38,8], grass:0x7ab85a, lm:"pier",
   spots:[
    { h:"问候与礼貌", en:"Greetings & courtesy",
@@ -522,7 +522,7 @@ const ISLANDS = [
    {q:"“他” 和 “她” 的读音？", np:1, a:"一样，都读 tā", d:["“她”读 tà","“他”读 tǎ","完全不一样"]} ] },
 
 { no:"C3", name:"日历钟楼", py:"Rìlì Zhōnglóu", en:"Calendar Clock Tower", module:"数字系统、日期与年龄", moduleEn:"Numbers, Calendar Dates & Age",
-  weeks:[4], lesson:"Unit 2 Lesson 4《数字与日期》", assess:"生日与年龄日历调查",
+  lesson:"Unit 2 Lesson 4《数字与日期》",
   pos:[-52,-18], grass:0x8cc063, lm:"clock",
   spots:[
    { h:"数字 0–99", en:"Numbers 0–99",
@@ -547,7 +547,7 @@ const ISLANDS = [
    {q:"听一听，你听到的日期是？", au:"十一月四号", apy:"shíyī yuè sì hào", a:"11月4号", d:["10月4号","11月14号","4月11号"]} ] },
 
 { no:"C4", name:"文莱住址村", py:"Wénlái Zhùzhǐ Cūn", en:"Address Village", module:"联系方式与文莱居住地点", moduleEn:"Contact Details, Phone & Residence",
-  weeks:[5], lesson:"Unit 2 Lesson 5《电话号码与住址》", assess:"Quiz 1 随堂测验一 · 15%",
+  lesson:"Unit 2 Lesson 5《电话号码与住址》",
   pos:[-24,-34], grass:0x79b65c, lm:"village",
   spots:[
    { h:"电话号码", en:"Phone numbers",
@@ -568,7 +568,7 @@ const ISLANDS = [
    {q:"听一听，你听到的号码是？", au:"八七六幺四幺二", apy:"bā qī liù yāo sì yāo èr", a:"876-1412", d:["876-4142","867-1412","876-1422"]} ] },
 
 { no:"C5", name:"家庭树林", py:"Jiātíng Shùlín", en:"Family Grove", module:"家庭结构与父母职业（上、下）", moduleEn:"Family, Classifier 口, Occupations & 也",
-  weeks:[6,7], lesson:"Unit 3 Lesson 6《家庭成员》& Lesson 7《职业与工作》", assess:"家庭树海报 · My Family 视频展示 15%",
+  lesson:"Unit 3 Lesson 6《家庭成员》& Lesson 7《职业与工作》",
   pos:[2,-14], grass:0x6fae55, lm:"tree",
   spots:[
    { h:"家庭成员", en:"Family members",
@@ -591,7 +591,7 @@ const ISLANDS = [
    {q:"听一听，你听到的是？", au:"我家有五口人", apy:"Wǒ jiā yǒu wǔ kǒu rén.", a:"我家有五口人。", d:["我家有四口人。","我家有九口人。","我家有五个哥哥。"]} ] },
 
 { no:"C6", name:"国籍港口", py:"Guójí Gǎngkǒu", en:"Nationality Harbour", module:"国家国籍、多语言与注册表（上、下）", moduleEn:"Countries, Nationalities, Languages & Registration Form",
-  weeks:[8,9], lesson:"Unit 3 Lesson 8《国家与语言》·《学生个人中文注册表》", assess:"跨国身份角色扮演 · 个人注册表填报 10%",
+  lesson:"Unit 3 Lesson 8《国家与语言》·《学生个人中文注册表》",
   pos:[8,14], grass:0x84bd5f, lm:"port",
   spots:[
    { h:"国家与国籍", en:"Countries & nationalities",
@@ -616,8 +616,8 @@ const ISLANDS = [
    {q:"“新加坡” 是？", a:"Singapore", d:["Malaysia","Japan","South Korea"]},
    {q:"听一听，你听到的是？", au:"你是哪国人", apy:"Nǐ shì nǎ guó rén?", a:"你是哪国人？", d:["你是中国人吗？","你住在哪儿？","你会说英语吗？"]} ] },
 
-{ no:"C7", name:"交通车站", py:"Jiāotōng Chēzhàn", en:"Transport Station", module:"校园交通与日常出行", moduleEn:"Transportation & Commuting to UBD",
-  weeks:[10,11], lesson:"Unit 4 Lesson 9《交通工具》", assess:"Listening Test 听力测验 · 20%",
+{ no:"C7", name:"交通车站", py:"Jiāotōng Chēzhàn", en:"Transport Station", module:"校园交通与日常出行", moduleEn:"Transportation & Commuting to University",
+  lesson:"Unit 4 Lesson 9《交通工具》",
   pos:[32,30], grass:0x7cb85e, lm:"bus",
   spots:[
    { h:"交通工具", en:"Means of transport",
@@ -629,7 +629,7 @@ const ISLANDS = [
      tips:[{r:"坐 + 巴士 / 飞机 / 船　·　开 + 车　·　骑 + 自行车 / 摩托车"},{r:"语序：谁 + 什么时候 + 怎么去 + 去 / 来 + 哪儿"},{w:"我坐巴士来大学每天。", ok:"我每天坐巴士来大学。", why:"时间词“每天”放在动词前面。"}] },
    { h:"要多长时间", en:"How long it takes",
      v:[["分钟","fēnzhōng","minute(s)"],["小时","xiǎoshí","hour"],["半","bàn","half"],["要","yào","to take (time)"]],
-     p:[["我开车来UBD，要二十分钟。","Wǒ kāichē lái UBD, yào èrshí fēnzhōng.","I drive to UBD; it takes 20 minutes."],["坐飞机去新加坡要两个小时。","Zuò fēijī qù Xīnjiāpō yào liǎng ge xiǎoshí.","Flying to Singapore takes two hours."]] } ],
+     p:[["我开车来大学，要二十分钟。","Wǒ kāichē lái dàxué, yào èrshí fēnzhōng.","I drive to university; it takes 20 minutes."],["坐飞机去新加坡要两个小时。","Zuò fēijī qù Xīnjiāpō yào liǎng ge xiǎoshí.","Flying to Singapore takes two hours."]] } ],
   quiz:[
    {q:"“___自行车”", a:"骑", d:["坐","开","走"]},
    {q:"“___飞机”", a:"坐", d:["骑","开","走路"]},
@@ -641,7 +641,7 @@ const ISLANDS = [
    {q:"听一听，你听到的是？", au:"我开车去公司", apy:"Wǒ kāichē qù gōngsī.", a:"我开车去公司。", d:["我坐车去学校。","我骑车去公司。","我走路去公司。"]} ] },
 
 { no:"C8", name:"服饰街", py:"Fúshì Jiē", en:"Colour & Clothing Street", module:"颜色服饰与文莱传统装束", moduleEn:"Colours, Clothing & Traditional Attire",
-  weeks:[12,13], lesson:"Unit 4 Lesson 10《颜色与衣服》", assess:"Reading Test 阅读测验 · 20%",
+  lesson:"Unit 4 Lesson 10《颜色与衣服》",
   pos:[48,4], grass:0x88c262, lm:"clothes",
   spots:[
    { h:"颜色", en:"Colours",
@@ -667,7 +667,7 @@ const ISLANDS = [
    {q:"听一听，你听到的是？", au:"红色", apy:"hóngsè", a:"红色", d:["黄色","黑色","绿色"]} ] },
 
 { no:"C9", name:"终点舞台", py:"Zhōngdiǎn Wǔtái", en:"Showcase Stage", module:"个人综合展示与结课评估", moduleEn:"Personal Showcase, Dining & Review",
-  weeks:[14], lesson:"综合拓展《全学期总复习与展示》", assess:"Final Oral Showcase 期末口语 · 20%",
+  lesson:"综合拓展《全学期总复习与展示》",
   pos:[40,-26], grass:0x7fba5c, lm:"stage", mixed:true,
   spots:[
    { h:"60 秒自我介绍", en:"Model 60-second self-introduction",
@@ -710,7 +710,6 @@ const SOON_UNUSED = [
   {name:"跟读过关", en:"Read Aloud", desc:"念对才能过关（麦克风）", descEn:"Say it right to pass (microphone)"},
   {name:"手势选答", en:"Gesture Quiz", desc:"举手指选答案（摄像头）", descEn:"Hold up fingers to answer (camera)"}
 ];
-const SEM = { w1:Date.UTC(2026,7,31), brk:Date.UTC(2026,9,19), w8:Date.UTC(2026,9,26) };
 
 /* ============================== state ============================== */
 const KEY = "m1-knowledge-isles-v1";
@@ -731,15 +730,6 @@ const mistGoal = i => (isUnlocked(i) || (!state.teacher && (isleBlock(i)||{}).ki
 const dateZh=d=>{ const [y,m,dd]=d.split("-").map(Number); return `${m}月${dd}日`; };
 const isUnlocked = i => state.teacher || (!isleBlock(i) && ((ISLE_CFG[i]||{}).mode==="open" || progressOpen(i)));
 
-function semesterWeek(){
-  const d=new Date(), t=Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()), day=864e5;
-  if(t<SEM.w1) return null;
-  if(t<SEM.brk) return Math.floor((t-SEM.w1)/day/7)+1;
-  if(t<SEM.w8) return "break";
-  const w=Math.floor((t-SEM.w8)/day/7)+8; return w<=14?w:null;
-}
-const WEEK = semesterWeek();
-const NOW_IDX = -1;   // no "this week" badges
 
 /* ============================== helpers ============================== */
 const $ = s => document.querySelector(s);
@@ -752,7 +742,6 @@ const LOCK = ICON("ic-lock","lock");
 const SPK = ICON("ic-sound","spk");
 function rnd(n){ try{ const u=new Uint32Array(1); crypto.getRandomValues(u); return u[0]%n; }catch(e){ return Math.floor(Math.random()*n); } }   // cryptographic ("true") randomness
 const shuffle = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; };
-const weeksTxt = w => w.length>1 ? `Week ${w[0]}–${w[w.length-1]}` : `Week ${w[0]}`;
 
 let toastT;
 function toast(msg, en){ const t=$("#toast"); t.innerHTML=((typeof rubyHTML==="function")?rubyHTML(msg):esc(msg))+(en?`<span class=ui-en>${esc(en)}</span>`:""); t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>t.hidden=true, 2800); }
@@ -856,25 +845,6 @@ const NY = {pink:0xf3b9b2, mint:0xa9d9c1, butter:0xf6dc8c, sky:0x9fcbe9, peach:0
   tile:0xb4502a, shutter:0x2f7d5b, attap:0x9c7b4b, teak:0x6e4426, lantern:0xd81e28};
 // triangular prism roof, ridge along x
 function prism(len, r, color, x=0,y=0,z=0, sy=.62){ const geo=new THREE.CylinderGeometry(r,r,len,3); geo.rotateX(-Math.PI/2); geo.rotateY(Math.PI/2); const m=mesh(geo,color,x,y,z); m.scale.y=sy; return m; }
-// Nanyang shophouse 店屋: arcade (five-foot way) below, shuttered windows above, clay-tile roof
-function shophouse_v1(color, w=2.6, d=3){ const g=new THREE.Group();
-  g.add(box(w,1.9,d*.72,color,0,.95,-d*.14));                       // ground floor, set back
-  [-w/2+.18, w/2-.18].forEach(x=>g.add(box(.3,1.9,.3,NY.cream,x,.95,d/2-.15)));   // arcade pillars
-  g.add(box(w,1.7,d,color,0,2.75,0));                                // upper floor
-  g.add(box(w+.12,.18,d+.12,NY.cream,0,1.95,0));                     // cornice
-  g.add(box(w+.12,.18,d+.12,NY.cream,0,3.6,0));
-  [-w/4,w/4].forEach(x=>{ g.add(box(w*.28,.95,.06,NY.shutter,x,2.8,d/2+.03)); g.add(box(w*.3,.12,.08,NY.cream,x,3.32,d/2+.05)); });
-  g.add(box(w*.4,1.2,.06,NY.teak,0,.7,d*.22+.03));                   // door
-  g.add(prism(w+.3,d*.62,NY.tile,0,3.69+d*.62*.31,0));                // roof
-  return g; }
-// raised Malay kampung house / Kampong Ayer stilt house
-function stiltHouse_v1(wall, roof, postH=2.2, w=3.4, d=2.6){ const g=new THREE.Group();
-  [[-1,-1],[1,-1],[-1,1],[1,1],[0,-1],[0,1]].forEach(([a,b])=>g.add(cyl(.11,.13,postH,6,NY.teak,a*w*.42,postH/2,b*d*.4)));
-  g.add(box(w+.5,.22,d+.5,NY.teak,0,postH,0));
-  g.add(box(w,1.7,d,wall,0,postH+.95,0));
-  [-w/4,w/4].forEach(x=>g.add(box(.7,.75,.06,NY.teak,x,postH+1.05,d/2+.03)));
-  g.add(prism(w+.7,d*.85,roof,0,postH+1.8+d*.85*.31,0,.85));
-  return g; }
 function banana(g,x,z,s=1){ const b=new THREE.Group(); b.position.set(x,0,z); b.add(cyl(.2*s,.28*s,2.6*s,14,0x7c8c3c,0,1.3*s,0));
   const crown=new THREE.Group(); crown.position.y=2.5*s; b.add(crown);
   for(let k=0;k<6;k++){ const f=new THREE.Mesh(frondGeo(), leafMat(k%2?0x4f9e3a:0x74c052)); f.castShadow=true; f.receiveShadow=true; f.rotation.order="YZX"; f.rotation.set(0,k/6*6.28+.3,.45); f.scale.set(.72*s,.75*s,2.2*s); crown.add(f); }
@@ -886,13 +856,6 @@ function frangipani(g,x,z){ const f=new THREE.Group(); f.position.set(x,0,z); f.
 function lanterns(g, x1,z1, x2,z2, h=3.2, n=5){ [[x1,z1],[x2,z2]].forEach(([x,z])=>g.add(cyl(.08,.1,h+.4,6,NY.teak,x,(h+.4)/2,z)));
   for(let k=1;k<=n;k++){ const u=k/(n+1), x=x1+(x2-x1)*u, z=z1+(z2-z1)*u, y=h-Math.sin(u*Math.PI)*.55;
     const l=mesh(new THREE.SphereGeometry(.3,8,6),NY.lantern,x,y-.25,z,{emissive:0xff2a1a,emissiveIntensity:1.6}); l.scale.y=1.25; g.add(l); g.add(cyl(.12,.12,.08,6,C.gold,x,y+.1,z)); } }
-// perahu / water-taxi
-function perahu_v1(colA=NY.lantern, colB=C.gold, canopy=true){ const b=new THREE.Group();
-  b.add(box(1.2,.55,3.6,0x2b5f8a,0,0,0)); b.add(box(1.25,.16,3.65,colA,0,.32,0));
-  const bow=cone(.62,1.4,4,0x2b5f8a,0,0,2.45); bow.rotation.x=Math.PI/2; bow.rotation.y=Math.PI/4; bow.scale.set(1,1,.5); b.add(bow);
-  const st=cone(.62,1.2,4,0x2b5f8a,0,0,-2.35); st.rotation.x=-Math.PI/2; st.rotation.y=Math.PI/4; st.scale.set(1,1,.5); b.add(st);
-  if(canopy){ b.add(box(1.1,.08,1.8,colB,0,1.05,-.2)); [-.5,.5].forEach(x=>[-1,.6].forEach(z=>b.add(cyl(.04,.04,.75,4,NY.teak,x,.65,z)))); }
-  return b; }
 // procedural batik cloth texture
 function batikTex(bg, fg, dot){ const c=document.createElement("canvas"); c.width=c.height=128; const x=c.getContext("2d");
   x.fillStyle=bg; x.fillRect(0,0,128,128);
@@ -1142,7 +1105,7 @@ function updateLife(t){ if(!life.gulls.length) return; if(!_cr){ _cr=new THREE.V
     _v.set(-Math.sin(a)*g.sp, 0, Math.cos(a)*g.sp); const left=_v.dot(_cr)<0;
     const gl=((t+g.glide)%9)<3.2, f=gl?1:FLAP[Math.floor((t*7+g.ph*3))%FLAP.length], m=g.s.material.map;
     m.repeat.x=left?-.5:.5; m.offset.set((f%2)*.5+(left?.5:0), f<2?.5:0); });
-  updateKids(t); updateSea(t);
+  updateKids(t);
   const dark=themeDark();
   life.flies.forEach(f=>{ const vis=!dark && f.o.group.visible; f.s.visible=vis; if(!vis) return; const gp=f.o.group.position, a=t*.9+f.ph;
     const x=f.cx+Math.cos(a)*f.R+Math.sin(t*2.3+f.ph)*.3, z=f.cz+Math.sin(a*1.3)*f.R*.7, h=(f.o.sh?Math.max(terrainH(f.o.sh,x,z),1.5):2)+1+Math.sin(t*3.1+f.ph)*.35;
@@ -2460,14 +2423,6 @@ function gazebo(g){ const R=1.75;
     const a2=(k+1)/6*6.283+Math.PI/6, x2=Math.cos(a2)*R, z2=Math.sin(a2)*R; if(k!==1){ rodBetween(g,[x,.95,z],[x2,.95,z2],.05,C.red); rodBetween(g,[x,.6,z],[x2,.6,z2],.035,C.red); for(let s=1;s<4;s++){ const u=s/4; rodBetween(g,[x+(x2-x)*u,.35,z+(z2-z)*u],[x+(x2-x)*u,.95,z+(z2-z)*u],.025,C.red); } } }
   g.add(cyl(2.2,2.2,.18,6,NY.teak,0,2.98,0)); g.add(cone(2.95,1.1,6,NY.tile,0,3.6,0)); g.add(cyl(1.15,1.2,.35,6,C.red,0,4.25,0)); g.add(cone(1.5,.9,6,NY.tile,0,4.85,0)); g.add(ball(.2,C.gold,0,5.4,0)); g.add(cone(.09,.5,8,C.gold,0,5.75,0));
   for(let k=0;k<6;k++){ const a=k/6*6.283, x=Math.cos(a)*2.9, z=Math.sin(a)*2.9; put(g, cone(.12,.45,6,NY.tile,x,3.25,z), m=>{ m.rotation.z=-Math.cos(a)*.9; m.rotation.x=Math.sin(a)*.9; }); } }
-function trishaw_v1(g){ const FR=0x1d3557, CAN=0xc0141d;
-  const wheel=(x,y,z,r)=>{ const w=new THREE.Group(); w.position.set(x,y,z); w.add(new THREE.Mesh(new THREE.TorusGeometry(r,.05,8,24),M(0x222222))); for(let s=0;s<8;s++){ const sp=cyl(.012,.012,r*2,4,0xbfbfbf); sp.rotation.z=s/8*Math.PI; w.add(sp); } w.add(cyl(.07,.07,.12,10,0x888888,0,0,0)).rotation; w.children[w.children.length-1].rotation.x=Math.PI/2; w.rotation.y=Math.PI/2; g.add(w); return w; };
-  const ws=[wheel(-.62,.42,.55,.42), wheel(.62,.42,.55,.42), wheel(0,.42,-1.25,.42)];
-  g.add(box(1.4,.45,.85,CAN,0,.85,.55)); g.add(box(1.5,.08,.95,0xd9a521,0,1.1,.55)); g.add(box(1.4,.55,.12,CAN,0,1.25,.15));
-  put(g, new THREE.Mesh(new THREE.SphereGeometry(.8,24,12,0,Math.PI,0,Math.PI/2),M(0x2a9d8f,{side:THREE.DoubleSide})), m=>{ m.position.set(0,1.45,.35); m.scale.set(.95,.8,.75); m.rotation.y=Math.PI/2; });
-  rodBetween(g,[0,.55,.2],[0,.6,-1.25],.05,FR); rodBetween(g,[0,.6,-1.25],[0,1.2,-.75],.05,FR); rodBetween(g,[0,.55,.2],[0,1.2,-.75],.05,FR);
-  g.add(box(.3,.08,.45,0x111111,0,1.28,-.75)); rodBetween(g,[0,1.1,-.1],[0,1.5,-.05],.035,FR); rodBetween(g,[-.35,1.5,-.05],[.35,1.5,-.05],.03,FR);
-  seaBoats.push(t=>{ ws.forEach(w=>w.rotation.x=t*1.5); }); }
 function kopiStall(g){ const BODY=0x2a9d8f;
   g.add(box(2.1,.95,1.1,BODY,0,.75,0)); g.add(box(2.2,.1,1.2,NY.cream,0,1.27,0)); g.add(box(2.1,.25,.04,0xd9a521,0,.95,.56));
   [-.8,.8].forEach(x=>{ const w=new THREE.Mesh(new THREE.TorusGeometry(.27,.07,8,18),M(0x222222)); w.position.set(x,.27,.62); g.add(w); });
@@ -2492,26 +2447,6 @@ function pitcherPlant(g){ const h=potOf(g,.6,.5,0x8a5a35); for(let k=0;k<5;k++){
     rodBetween(g,[x*.4,h,z*.4],[x,h+H*.4,z],.02,0x4a7a2a); const cup=cyl(.13,.08,H,14,k%2?0xa83a3a:0x7fa33a,x,h+H*.4+H/2,z); g.add(cup); g.add(cyl(.14,.14,.05,14,0xd9534f,x,h+H*.4+H,z));
     const lid=box(.22,.03,.2,0x6a9a2a,x-.02,h+H*.4+H+.12,z-.06); lid.rotation.x=-.6; g.add(lid); }
   for(let l=0;l<6;l++){ const lf=mesh(new THREE.SphereGeometry(.35,10,6),0x4f9e3a,Math.cos(l)*.3,h+.12,Math.sin(l)*.3); lf.scale.set(1.2,.12,.35); lf.rotation.y=l; g.add(lf); } }
-function kampungHouse_v1(g){ const s=stiltHouse(0xc9a06a, NY.attap, 1.2, 2.8, 2.2); s.scale.setScalar(.82); g.add(s);
-  for(let k=0;k<5;k++) g.add(box(.7,.06,.24,NY.teak,0,.2+k*.21,1.95-k*.2)); rodBetween(g,[-.38,0,2.15],[-.38,1.15,1.05],.03,NY.teak); rodBetween(g,[.38,0,2.15],[.38,1.15,1.05],.03,NY.teak);
-  g.add(box(2.6,.08,.08,0xf6ecd6,0,2.3,.95)); }
-function waterHouse_v1(g){ const s=stiltHouse(NY.sky, NY.tile, 2.6, 2.8, 2.2); s.scale.setScalar(.8); s.position.y=-1.4; g.add(s);
-  g.add(box(.6,.1,2.4,NY.teak,0,.72,2.1)); [[-.28,1.2],[.28,1.2],[-.28,3],[.28,3]].forEach(([x,z])=>g.add(cyl(.06,.06,2.4,6,NY.teak,x,-.5,z))); }
-function mosque_v1(g){ g.add(box(2.6,.25,2.6,0xe9e1d4,0,.12,0)); g.add(box(2,1.5,2,0xf7f2ea,0,1,0));
-  for(let k=0;k<3;k++) g.add(box(.35,.75,.06,0x2f7d5b,-.6+k*.6,.85,1.02)); g.add(box(2.1,.15,2.1,C.gold,0,1.8,0));
-  g.add(cyl(.75,.8,.45,24,0xf7f2ea,0,2.1,0)); const d=new THREE.Mesh(new THREE.SphereGeometry(.85,28,16,0,Math.PI*2,0,Math.PI/2),M(0xe8b923,{metalness:.55,roughness:.3})); d.position.y=2.3; d.scale.y=1.2; g.add(d); g.add(cone(.06,.5,8,C.gold,0,3.55,0));
-  [-1.1,1.1].forEach(x=>{ g.add(cyl(.16,.2,3.2,12,0xf7f2ea,x,1.6,-1.1)); g.add(cyl(.24,.24,.12,12,C.gold,x,2.6,-1.1)); const md=new THREE.Mesh(new THREE.SphereGeometry(.2,16,8,0,Math.PI*2,0,Math.PI/2),M(0xe8b923,{metalness:.55,roughness:.3})); md.position.set(x,3.2,-1.1); md.scale.y=1.4; g.add(md); }); }
-function temple_v1(g){ g.add(box(2.6,.3,2,0xbcb3a5,0,.15,0)); g.add(box(2.2,1.4,1.6,0xc0141d,0,1,0)); g.add(box(.7,1,.06,0x6e4426,0,.8,.81)); [-.75,.75].forEach(x=>g.add(cyl(.09,.09,1.4,10,C.gold,x,1,.85)));
-  const roof=prism(2.9,1.25,0x2a7d4f,0,2.05,0,.55); g.add(roof); g.add(box(3.1,.1,.1,C.gold,0,2.6,0)); [-1.5,1.5].forEach(x=>{ const t=cone(.12,.5,6,C.gold,x,2.75,0); t.rotation.z=x>0?-.6:.6; g.add(t); });
-  g.add(box(.8,.18,.25,C.gold,0,2.15,.82)); g.add(cyl(.32,.26,.35,16,0xd9a521,0,.42,1.35)); for(let k=0;k<3;k++){ g.add(cyl(.01,.01,.4,4,0x8a3a1a,-.08+k*.08,.75,1.35)); g.add(ball(.02,0xff5a1a,-.08+k*.08,.96,1.35,{emissive:0xff3a00,emissiveIntensity:2})); } }
-function fishHut_v1(g){ [[-1,-.8],[1,-.8],[-1,.8],[1,.8]].forEach(([x,z])=>g.add(cyl(.07,.08,.5,6,NY.teak,x,.25,z))); g.add(box(2.3,.12,1.9,NY.teak,0,.55,0)); g.add(box(2,1.2,1.6,0xb08a5a,0,1.2,0));
-  g.add(box(.5,.8,.05,0x5a3a20,0,1.05,.82)); g.add(prism(2.5,1.25,NY.attap,0,2.2,0,.6));
-  rodBetween(g,[1.4,0,1.1],[1.4,1.6,1.1],.04,NY.teak); rodBetween(g,[2.2,0,.2],[2.2,1.6,.2],.04,NY.teak); rodBetween(g,[1.4,1.55,1.1],[2.2,1.55,.2],.03,NY.teak);
-  const net=new THREE.Mesh(new THREE.PlaneGeometry(1.2,1.1,6,6),new THREE.MeshStandardMaterial({color:0x3a6d8a,wireframe:true})); net.position.set(1.8,1,.65); net.rotation.y=-.85; g.add(net); }
-function clockTower_v1(g){ g.add(box(1.5,.3,1.5,0xbcb3a5,0,.15,0)); g.add(box(1.1,3.2,1.1,0xf6ecd6,0,1.9,0)); g.add(box(1.25,.15,1.25,C.white,0,3.5,0)); g.add(box(1,.9,1,0xf6ecd6,0,4,0));
-  [[0,.51],[0,-.51],[.51,0],[-.51,0]].forEach(([x,z])=>{ const f=cyl(.32,.32,.04,24,0xffffff,x,4.05,z); if(z) f.rotation.x=Math.PI/2; else f.rotation.z=Math.PI/2; g.add(f);
-    const o=x?[Math.sign(x)*.03,0]:[0,Math.sign(z)*.03]; g.add(box(x?.02:.04,.22,x?.04:.02,0x222222,x+o[0],4.13,z+o[1])); g.add(box(x?.02:.16,.04,x?.16:.02,0x222222,x+o[0],4.05,z+o[1])); });
-  const rf=cone(.85,1,4,C.roof,0,4.95,0); rf.rotation.y=Math.PI/4; g.add(rf); g.add(cone(.05,.4,6,C.gold,0,5.6,0)); for(let k=0;k<3;k++) g.add(box(.3,.55,.05,0x2f7d5b,0,1+k*.9,.56)); }
 function sateStall(g){ g.add(box(2,.8,.9,0x6e4426,0,.4,0)); g.add(box(1.7,.2,.6,0x333333,0,.9,0)); for(let k=0;k<12;k++){ g.add(box(.04,.04,.7,0xc8a25a,-.75+k*.135,1.05,0)); g.add(box(.08,.07,.22,0x8a3a1a,-.75+k*.135,1.07,.05)); }
   for(let k=0;k<3;k++){ const s=mesh(new THREE.SphereGeometry(.18,10,8),0xdddddd,-.3+k*.3,1.5+k*.25,0,{transparent:true,opacity:.35}); g.add(s); }
   [[-1,-.45],[1,-.45]].forEach(([x,z])=>g.add(cyl(.035,.035,2.2,6,0xdddddd,x,1.1,z))); const aw=box(2.4,.08,1.3,0xe63946,0,2.2,.15); aw.rotation.x=.18; g.add(aw); g.add(box(1.4,.35,.05,0xffd23f,0,1.95,-.45)); }
@@ -2571,21 +2506,6 @@ function gongSet(g){ [-1,1].forEach(x=>g.add(cyl(.08,.1,2.2,8,0x6e4426,x,1.1,0))
   put(gg,cyl(.6,.6,.08,28,C.gold,0,-.85,0,{metalness:.6,roughness:.3}),m=>m.rotation.x=Math.PI/2); gg.add(ball(.13,0xb8860b,0,-.85,.06,{metalness:.6,roughness:.3}));
   g.add(box(2.2,.5,.5,0x6e4426,0,.25,.6)); for(let k=0;k<5;k++){ g.add(cyl(.17,.17,.08,16,C.gold,-.8+k*.4,.54,.6,{metalness:.6,roughness:.3})); g.add(ball(.06,0xb8860b,-.8+k*.4,.6,.6)); }
   seaBoats.push(t=>{ gg.rotation.x=Math.sin(t*1.3)*.06; }); }
-function bicycle_v1(g){ const wheel=(z)=>{ const w=new THREE.Group(); w.position.set(0,.42,z); w.add(new THREE.Mesh(new THREE.TorusGeometry(.4,.04,8,24),M(0x222222))); for(let s=0;s<6;s++){ const sp=cyl(.01,.01,.78,4,0xcccccc); sp.rotation.x=s/6*Math.PI; w.add(sp); } w.rotation.y=Math.PI/2; g.add(w); return w; };
-  wheel(-.62); wheel(.62); const F=0x2a9d8f; rodBetween(g,[0,.42,-.62],[0,.95,-.1],.03,F); rodBetween(g,[0,.42,-.62],[0,.45,.1],.03,F); rodBetween(g,[0,.45,.1],[0,.95,-.1],.03,F); rodBetween(g,[0,.95,-.1],[0,1,.45],.03,F); rodBetween(g,[0,.42,.62],[0,1.15,.45],.03,F);
-  g.add(box(.2,.06,.3,0x333333,0,1.02,-.12)); rodBetween(g,[-.3,1.15,.45],[.3,1.15,.45],.025,0x333333); g.add(box(.35,.25,.3,0xc9a06a,0,1.05,.7)); }
-function waterTaxi_v1(g){ const b=perahu(0x2a9d8f, C.gold, false); g.add(b); g.add(box(.3,.4,.3,0x333333,0,.4,-1.9)); g.add(cyl(.03,.03,.5,6,0x555555,0,.05,-2.05)); [-.3,.3].forEach(x=>g.add(box(.25,.3,.25,0xffd23f,x,.4,.6))); seaBoats.push(t=>{ b.rotation.z=Math.sin(t*1.6)*.05; }); }
-function oldBus_v1(g){ const B=0xf6dc8c; g.add(box(1.5,1.3,3.4,B,0,1,0)); g.add(box(1.52,.25,3.42,0x2f7d5b,0,.5,0)); g.add(box(1.4,.2,3.2,0xffffff,0,1.72,0));
-  for(let k=0;k<4;k++) [-.76,.76].forEach(x=>g.add(box(.04,.45,.55,0x9fcbe9,x,1.25,-1.1+k*.72))); g.add(box(1.2,.45,.04,0x9fcbe9,0,1.25,1.71)); g.add(box(1.3,.35,.5,B,0,.6,1.9));
-  [[-.65,-1],[.65,-1],[-.65,1.1],[.65,1.1]].forEach(([x,z])=>{ const w=cyl(.3,.3,.2,16,0x222222,x,.3,z); w.rotation.z=Math.PI/2; g.add(w); }); [-.45,.45].forEach(x=>g.add(ball(.09,0xfff1c1,x,.7,2.16,{emissive:0xffd27a,emissiveIntensity:.8}))); g.add(box(1,.22,.04,0xc0141d,0,1.6,1.72)); }
-function bullockCart_v1(g){ const cart=new THREE.Group(); cart.position.z=-.5; g.add(cart); cart.add(box(1.4,.5,1.6,0x8a5a35,0,.95,0)); const roof=new THREE.Mesh(new THREE.CylinderGeometry(.85,.85,1.7,16,1,true,0,Math.PI),M(NY.attap,{side:THREE.DoubleSide})); roof.rotation.x=Math.PI/2; roof.rotation.y=Math.PI/2; roof.position.y=1.2; cart.add(roof);
-  [-.78,.78].forEach(x=>{ const w=new THREE.Mesh(new THREE.TorusGeometry(.55,.07,8,20),M(0x5a3a20)); w.position.set(x,.55,0); w.rotation.y=Math.PI/2; cart.add(w); for(let s=0;s<6;s++){ const sp=cyl(.02,.02,1.1,4,0x5a3a20,x,.55,0); sp.rotation.x=s/6*Math.PI; cart.add(sp); } });
-  rodBetween(g,[-.2,.75,.3],[-.1,.9,1.3],.04,0x5a3a20); rodBetween(g,[.2,.75,.3],[.1,.9,1.3],.04,0x5a3a20);
-  const ox=new THREE.Group(); ox.position.z=1.6; g.add(ox); const body=ball(.45,0x8b6b4a,0,.95,0); body.scale.set(.85,.85,1.5); ox.add(body); ox.add(ball(.28,0x8b6b4a,0,1.15,.75)); ox.add(ball(.13,0xd9c7a3,0,1.05,1)); [-1,1].forEach(s=>{ const hn=cone(.05,.3,6,0xeeeeee,s*.2,1.42,.75); hn.rotation.z=-s*.8; ox.add(hn); }); ox.add(ball(.25,0xa5845f,0,1.35,-.05));
-  [[-.22,-.4],[.22,-.4],[-.22,.4],[.22,.4]].forEach(([x,z])=>ox.add(cyl(.07,.06,.6,8,0x7a5a3a,x,.3,z))); seaBoats.push(t=>{ ox.children[1].rotation.x=Math.sin(t*1.5)*.15; }); }
-function scooter_v1(g){ const C1=0x8be0c0; const body=ball(.5,C1,0,.55,-.35); body.scale.set(.7,.6,1.1); g.add(body); g.add(box(.4,.08,.7,0x333333,0,.9,-.4)); g.add(box(.5,.1,.6,C1,0,.4,.25)); g.add(box(.45,.8,.15,C1,0,.75,.6));
-  rodBetween(g,[0,1.1,.65],[0,1.35,.6],.04,0x777777); rodBetween(g,[-.32,1.35,.6],[.32,1.35,.6],.03,0x333333); g.add(ball(.1,0xfff1c1,0,1.2,.72,{emissive:0xffd27a,emissiveIntensity:.8}));
-  [-.6,.75].forEach(z=>{ const w=new THREE.Mesh(new THREE.TorusGeometry(.2,.08,8,16),M(0x222222)); w.position.set(0,.22,z); w.rotation.y=Math.PI/2; g.add(w); }); g.add(box(.35,.3,.3,0xc9a06a,0,1.05,-.85)); }
 
 /* ---------- v4: detailed Nanyang buildings and vehicles (procedural textures + architectural detail) ---------- */
 // painted textures, drawn once on a canvas and shared (each repeat setting gets its own lightweight clone)
@@ -2958,24 +2878,6 @@ function makeFish(top, belly, len, stripes){ const g=new THREE.Group();
   eyeBall(g,len*.33,len*.06,len*.08,len*.045); eyeBall(g,len*.33,len*.06,-len*.08,len*.045);
   g.userData.tail=tail; g.userData.tailAxis="y"; return g; }
 
-/* ---- hand-painted sea creature sprites (assets/sprites/sea/<id>.webp: 2 frames side by side, facing right) ---- */
-const SEA_SPR={"fish": [370, 220], "clown": [375, 252], "puffer": [320, 260], "seahorse": [190, 292], "manta": [411, 254], "shark": [451, 230], "shrimp": [384, 284], "crab": [386, 233], "hermit": [352, 267], "lobster": [466, 263], "jelly": [382, 315], "octopus": [400, 306], "squid": [443, 192], "dolphin": [449, 311], "whale": [464, 316]};   // cell width, height in px
-const SEA_LEN={fish:1.3,clown:1.1,puffer:1.1,seahorse:.9,manta:2.6,shark:3.4,shrimp:1,crab:1.1,hermit:1,lobster:1.4,jelly:1.3,octopus:1.7,squid:1.8,dolphin:2.9,whale:6.2};
-const SEA_HZ={fish:6,clown:6,puffer:3,seahorse:2,manta:1.6,shark:2.5,shrimp:3,crab:3,hermit:2.5,lobster:2,jelly:1.4,octopus:1.2,squid:2,dolphin:2.6,whale:1.1};
-const seaTex={}, seaSprites=[];
-function seaSprite(id){ const g=new THREE.Group(), [cw,chh]=SEA_SPR[id], L=SEA_LEN[id]||1.2;
-  const m=new THREE.SpriteMaterial({transparent:false, alphaTest:.45, fog:true, toneMapped:false}); m.color.setRGB(...nightTint()); nightMats.push(m);
-  const use=base=>{ const t=base.clone(); t.colorSpace=THREE.SRGBColorSpace; t.repeat.set(.5,1); t.needsUpdate=true; m.map=t; m.needsUpdate=true; sp.visible=true; };
-  if(!seaTex[id]){ seaTex[id]={base:null, wait:[]}; new THREE.TextureLoader().load(`assets/sprites/sea/${id}.webp`, t=>{ t.colorSpace=THREE.SRGBColorSpace; seaTex[id].base=t; seaTex[id].wait.forEach(fn=>fn(t)); seaTex[id].wait=[]; }); }
-  const sp=new THREE.Sprite(m); sp.visible=false; sp.scale.set(L, L*chh/cw, 1); g.add(sp); if(seaTex[id].base) use(seaTex[id].base); else seaTex[id].wait.push(use);
-  seaSprites.push({id, sp, m, g, prev:null, left:false, ph:Math.random()*6}); g.userData.sprite=true; return g; }
-// flip toward the direction of travel, flap between the two frames, tilt when climbing or diving
-function updateSea(t){ if(!seaSprites.length) return; const w=new THREE.Vector3();
-  for(let i=seaSprites.length-1;i>=0;i--){ const e=seaSprites[i]; if(!e.g.parent){ seaSprites.splice(i,1); continue; } e.g.getWorldPosition(w);
-    if(e.prev){ const dx=w.x-e.prev.x, dy=w.y-e.prev.y, dz=w.z-e.prev.z, side=dx*_cr.x+dy*_cr.y+dz*_cr.z, flat=Math.hypot(dx,dz);
-      if(Math.abs(side)>1e-4) e.left=side<0; const tilt=flat>1e-5?Math.max(-.6,Math.min(.6,Math.atan2(dy,flat)*.8)):0; e.m.rotation=e.left?-tilt:tilt; }
-    e.prev=(e.prev||new THREE.Vector3()).copy(w);
-    const f=Math.floor(t*(SEA_HZ[e.id]||3)+e.ph)%2, mp=e.m.map; if(mp){ mp.repeat.x=e.left?-.5:.5; mp.offset.x=f*.5+(e.left?.5:0); } } }
 /* ---------- v4 sea creatures: sculpted 3D (tapered tubes, lathe shells, segmented bodies, big friendly eyes) ---------- */
 // a tube whose radius follows r(u) along the curve (u 0→1)
 function taperTube(pts, r, col, segs=40, radial=12, opts){ const curve=new THREE.CatmullRomCurve3(pts.map(p=>p.isVector3?p:new THREE.Vector3(...p)));
@@ -3138,7 +3040,6 @@ const SEA3D={
 };
 
 function creature(id){
-  if(window.SEA_AS_SPRITES && SEA_SPR[id]) return seaSprite(id);   // painted versions kept for reference; the 3D models are used
   if(SEA3D[id]){ const c=SEA3D[id](), ud={}; c.traverse(o=>{ if(o!==c){ if(o.userData.wiggle) ud.wiggle=(ud.wiggle||[]).concat(o.userData.wiggle); if(o.userData.tail){ ud.tail=o.userData.tail; ud.tailAxis=o.userData.tailAxis; } if(o.userData.fl) ud.fl=o.userData.fl; if(o.userData.wings) ud.wings=o.userData.wings; } if(o.isMesh){ o.castShadow=false; o.receiveShadow=false; } });
     Object.assign(c.userData, ud); return c; }
   const sculpted={dolphin:makeDolphin, shark:makeShark, whale:makeWhale, fish:()=>makeFish(0x2f8fe0,0xdff3ff,1.2), clown:()=>makeFish(0xff6a00,0xffb066,1.0,[.32,.6,.85])}[id];
@@ -3387,8 +3288,6 @@ const Music = (() => {
 
 
 /* ============================== 我的成绩 · list · settings ============================== */
-const encodeProgress = () => "HYZD1-" + btoa(unescape(encodeURIComponent(JSON.stringify(Object.assign({}, state, {teacher:false})))));
-function decodeProgress(code){ const s=code.trim().replace(/^HYZD1-/,""); const o=JSON.parse(decodeURIComponent(escape(atob(s)))); if(!o || typeof o.stars!=="object") throw new Error("bad"); return Object.assign(freshState(), o, {teacher:false}); }
 const G_ICON={sb:"积木 Builder",mm:"配对 Match",wm:"地鼠 Whack",sw:"笔顺 Strokes"};
 function openSide(kind){
   stopGame(); panel.hidden=true; cur=-1;
@@ -3408,14 +3307,6 @@ function openSide(kind){
               <span class="gi">${["sb","mm","wm","sw"].map(k=>{ const ok=k==="sw"?(g.sw||[]).length>=8:!!g[k]; return `<span class="${ok?"ok":""}">${ok?"✓":""}${G_ICON[k]}${k==="sw"?` ${(g.sw||[]).length}/8`:""}</span>`; }).join("")}</span>
               <span class="bar"><i style="width:${pct}%"></i></span></span>
             <span class="pc">${pct}%</span></button>`; }).join("")}</div>
-        <section class="spot"><h3 class="spot-h" style="margin:0">换设备继续 <span class="en">Progress code</span></h3>
-          <p class="sw-msg" style="text-align:left">进度保存在这台设备的浏览器里。要在 iPad、电脑、手机之间换着玩：先在这里生成进度码，复制到另一台设备，贴在下面再按“读取”。<span class=ui-en data-b>Progress lives in this browser. To switch between iPad, laptop and phone: create a code here, copy it to the other device, paste it below and tap Load.</span></p>
-          <div class="row"><button class="btn ghost" type="button" id="mk">生成我的进度码<span class=ui-en>Create my code</span></button></div>
-          <textarea id="codeOut" readonly rows="3" hidden aria-label="我的进度码"></textarea>
-          <div class="row" id="cpRow" hidden><button class="btn" type="button" id="cp">复制进度码<span class=ui-en>Copy</span></button></div>
-          <textarea id="codeIn" rows="3" placeholder="把另一台设备的进度码贴在这里 · Paste a code from another device" aria-label="输入进度码"></textarea>
-          <div class="row"><button class="btn ghost" type="button" id="ld">读取进度码<span class=ui-en>Load code</span></button></div>
-          <p class="sw-msg" id="codeMsg" style="text-align:left"></p></section>
         ${API?`<section class="spot"><h3 class="spot-h" style="margin:0">我的账号<span class=ui-en>My account</span></h3>
           ${auth?`<p class="sw-msg" style="text-align:left">班级 ${esc(auth.cls)} · 学号 ${esc(auth.sid)} · 进度自动存到云端。<span class=ui-en data-b>Class ${esc(auth.cls)} · Student ID ${esc(auth.sid)} · progress saves to the cloud.</span></p><div class="row"><button class="btn ghost" type="button" id="syncBtn">立刻同步<span class=ui-en>Sync now</span></button><button class="btn ghost" type="button" id="outBtn">登出<span class=ui-en>Log out</span></button></div><p class="sw-msg" style="text-align:left">在共用的 iPad 上玩完，请记得登出。<span class=ui-en data-b>Log out when you finish on a shared iPad.</span></p>`
           :`<p class="sw-msg" style="text-align:left">现在是教师模式，进度只存在这台设备。<span class=ui-en data-b>Teacher mode: progress is saved on this device only.</span></p><div class="row"><button class="btn" type="button" id="inBtn">退出教师模式，学生登入<span class=ui-en>Leave teacher mode — student log-in</span></button></div>`}</section>`:""}
@@ -3424,12 +3315,6 @@ function openSide(kind){
       </div>`);
     side.querySelectorAll(".prow").forEach(b=>b.onclick=()=>openIsland(+b.dataset.i));
     const rs=$("#resume"); if(rs) rs.onclick=()=>openIsland(state.last.i, state.last.mode);
-    $("#mk").onclick=()=>{ const o=$("#codeOut"); o.value=encodeProgress(); o.hidden=false; $("#cpRow").hidden=false; o.select(); };
-    $("#cp").onclick=()=>{ const o=$("#codeOut"); o.select(); const done=()=>setHTML($("#codeMsg"),"已复制。<span class=ui-en>Copied.</span>"); try{ navigator.clipboard.writeText(o.value).then(done,()=>{ document.execCommand&&document.execCommand("copy"); done(); }); }catch(e){ setHTML($("#codeMsg"),"请长按或按 Ctrl+C 复制上面的文字。<span class=ui-en>Long-press or press Ctrl+C to copy.</span>"); } };
-    let armed=false; $("#ld").onclick=e=>{ const v=$("#codeIn").value; if(!v.trim()){ setHTML($("#codeMsg"),"请先贴上进度码。<span class=ui-en>Paste a code first.</span>"); return; }
-      let ns; try{ ns=decodeProgress(v); }catch(err){ setHTML($("#codeMsg"),"进度码不正确，请检查有没有复制完整。<span class=ui-en>That code isn't valid — check it was copied in full.</span>"); return; }
-      if(!armed){ armed=true; setHTML(e.currentTarget,"再点一次确认（会取代这台设备的进度）<span class=ui-en>Tap again to confirm — replaces this device's progress</span>"); return; }
-      state=ns; save(); applyPy(); applyEn(); updateCoins(); refreshLabels(); ISLANDS.forEach((_,i)=>{ render3DBuild(i); render3DFarm(i); }); openSide("me"); toast(`已读取 ${state.nick||"同学"} 的进度`, "Progress loaded"); };
     const ob=$("#outBtn"); if(ob) ob.onclick=()=>logout(); const sb=$("#syncBtn"); if(sb) sb.onclick=async()=>{ await syncNow(); toast(syncState==="ok"?"已同步":"同步失败，稍后再试", syncState==="ok"?"Synced":"Sync failed — will retry"); }; const ib=$("#inBtn"); if(ib) ib.onclick=()=>{ side.hidden=true; updateOffsetGoal(); adoptState(null); refreshRoute(); welcome(true); };
     $("#nkSave").onclick=()=>{ const v=$("#nick2").value.trim(); if(!v) return; state.nick=v.slice(0,16); save(); openSide("me"); toast("昵称已保存","Nickname saved"); };
   } else if(kind==="list"){
