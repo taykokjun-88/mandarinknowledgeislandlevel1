@@ -87,8 +87,13 @@ td.isl[data-s="0"]{background:var(--s0)}td.isl[data-s="1"]{background:var(--s1)}
       <h2>各 Chapter 通过率 <small>Share of students with at least 1 star on each Chapter (island)</small></h2>
       <div class="chart" id="chart"></div>
     </section>
+    <section class="card" id="missCard" hidden>
+      <h2>常错题 <small>Most-missed questions</small></h2>
+      <p class="note">全班同学答错过的题目，按答错人数排序。学生答对后会从自己的错题本移出，所以这里反映的是最近一次的情况。<br>Questions the class has answered wrongly, ranked by the number of students who got them wrong. Each student's list is their current mistakes book.</p>
+      <div class="tablewrap"><table id="missTbl"><thead><tr><th>Chapter</th><th>题目 Question</th><th>答错人数 Students</th><th>答错次数 Misses</th></tr></thead><tbody></tbody></table></div>
+    </section>
     <section class="card">
-      <div class="row" style="justify-content:space-between"><h2 style="margin:0">学生进度 <small>Roster</small></h2><input id="search" placeholder="搜索学号或昵称 Search ID or nickname" style="width:220px"></div>
+      <div class="row" style="justify-content:space-between"><h2 style="margin:0">学生进度 <small>Roster</small></h2><label class="note" style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="idleOnly"><span id="idleLbl">只看 7 天没上线 Not seen for 7 days</span></label><input id="search" placeholder="搜索学号或昵称 Search ID or nickname" style="width:220px"></div>
       <div class="legend" style="margin:8px 0"><span>每个 Chapter 的星星 Stars per Chapter:</span><span><i style="background:var(--s0)"></i>0</span><span><i style="background:var(--s1)"></i>1</span><span><i style="background:var(--s2)"></i>2</span><span><i style="background:var(--s3)"></i>3</span><span>🔒 未解锁 locked</span></div>
       <div class="tablewrap"><table id="tbl"><thead></thead><tbody></tbody></table></div>
       <p class="note" id="empty" hidden>这个班还没有学生注册。把班级代码告诉学生，让他们在游戏里选「第一次来：注册」。<br>No students yet. Give students the class code and ask them to choose “New here: sign up”.</p>
@@ -127,7 +132,12 @@ async function loadRoster(){ const code=$("#cls").value, c=classes.find(x=>x.cod
   $("#ids").value=(c&&c.ids||[]).join(", "); $("#idsMsg").textContent="";
   const j=await api("tRoster",{cls:code}); if(!j.ok) return alertBox(errText(j.error)); roster=j.students; listIds=j.ids||[]; render(); }
 
-function render(){ tiles(); chart(); table(); idsInfo(); islTable(); }
+function render(){ tiles(); chart(); missTable(); table(); idsInfo(); islTable(); }
+// questions most often answered wrongly across the class (each student's summary carries their top current mistakes)
+function missTable(){ const agg={}; roster.forEach(s=>((s.summary&&s.summary.miss)||[]).forEach(([i,l,m])=>{ const k=i+"|"+l, a=agg[k]||(agg[k]={i,l,students:0,misses:0}); a.students++; a.misses+=m; }));
+  const rows=Object.values(agg).sort((a,b)=>b.students-a.students||b.misses-a.misses).slice(0,15); $("#missCard").hidden=!rows.length;
+  $("#missTbl tbody").innerHTML=rows.map(r=>`<tr><td><b>${ISL[r.i]||""}</b></td><td>${esc(r.l)}</td><td>${r.students} / ${roster.length}</td><td>${r.misses}</td></tr>`).join(""); }
+const idle=s=>!s.updated || s.updated<Date.now()-7*864e5;
 const MODES=[["auto","按进度 By progress"],["open","直接开放 Open now"],["closed","🚧 维修升级中 Maintenance"]];
 function islTable(){ const c=classes.find(x=>x.code===$("#cls").value), cfg=(c&&c.islands)||ISL.map(()=>({mode:"auto",date:""}));
   $("#islTbl tbody").innerHTML=ISL.map((m,i)=>{ const x=cfg[i]||{mode:"auto",date:""}; return `<tr data-i="${i}"><td><b>${m}</b></td><td>${ISL_NAME[i]}</td><td><select class="islMode" aria-label="${m} 开放方式">${MODES.map(([v,l])=>`<option value="${v}" ${x.mode===v?"selected":""}>${l}</option>`).join("")}</select></td><td><input type="date" class="islDate" value="${esc(x.date||"")}" aria-label="${m} 开放日期"> <button class="btn ghost sm islClr" type="button" title="清除日期 Clear">×</button></td></tr>`; }).join("");
@@ -166,7 +176,8 @@ function chart(){ const el=$("#chart"), n=roster.length;
 const COLS=[["sid","学号 Student ID"],["nick","昵称 Nickname"],["pct","总进度 Progress"],["done","完成岛 Done"],["stars","星星 Stars"],["coins","椰子币 Coins"]].concat(ISL.map((m,i)=>["i"+i,m])).concat([["updated","最后活跃 Last active"],["act",""]]);
 function val(s,k){ if(k.startsWith("i")){ const x=((s.summary&&s.summary.islands)||[])[+k.slice(1)]||{}; return x.locked?-1:(x.s||0)*100+(x.best||0); } return s[k]; }
 function ago(t){ if(!t) return "—"; const d=(Date.now()-t)/6e4; return d<60?Math.round(d)+" 分钟前":d<1440?Math.round(d/60)+" 小时前":Math.round(d/1440)+" 天前"; }
-function table(){ const q=$("#search").value.trim().toLowerCase(); let rows=roster.filter(s=>!q||(String(s.nick)+" "+String(s.sid)).toLowerCase().includes(q));
+function table(){ const q=$("#search").value.trim().toLowerCase(); const idleN=roster.filter(idle).length; $("#idleLbl").textContent=`只看 7 天没上线 (${idleN}) Not seen for 7 days`;
+  let rows=roster.filter(s=>(!q||(String(s.nick)+" "+String(s.sid)).toLowerCase().includes(q)) && (!$("#idleOnly").checked||idle(s)));
   rows.sort((a,b)=>{ const x=val(a,sortBy.k), y=val(b,sortBy.k); return (typeof x==="string"?x.localeCompare(y):(x||0)-(y||0))*sortBy.dir; });
   $("#tbl thead").innerHTML="<tr>"+COLS.map(([k,l])=>`<th data-k="${k}" ${k==="act"?"":`aria-sort="${sortBy.k===k?(sortBy.dir>0?"ascending":"descending"):"none"}"`}>${l}</th>`).join("")+"</tr>";
   $("#tbl tbody").innerHTML=rows.map(s=>{ const isl=((s.summary&&s.summary.islands)||[]);
@@ -176,7 +187,7 @@ function table(){ const q=$("#search").value.trim().toLowerCase(); let rows=rost
   $("#empty").hidden=roster.length>0;
   $("#tbl thead").querySelectorAll("th[data-k]").forEach(th=>{ if(th.dataset.k==="act") return; th.onclick=()=>{ const k=th.dataset.k; sortBy={k, dir:sortBy.k===k?-sortBy.dir:(k==="nick"||k==="sid"?1:-1)}; table(); }; });
   $("#tbl tbody").querySelectorAll("button[data-a]").forEach(b=>b.onclick=()=>rowAction(b, b.closest("tr").dataset.n, b.dataset.a)); }
-$("#search").oninput=table;
+$("#search").oninput=table; $("#idleOnly").onchange=table;
 async function rowAction(b, sid, a){ const cls=$("#cls").value, td=b.parentElement;
   if(a==="pin"){ td.innerHTML=`<input class="np" inputmode="numeric" maxlength="4" placeholder="新密码 new PIN" style="width:110px"> <button class="btn sm">确定 OK</button> <button class="btn ghost sm">取消</button>`; const [inp,ok,cancel]=[td.querySelector("input"),...td.querySelectorAll("button")]; inp.focus();
     cancel.onclick=table; ok.onclick=async()=>{ const pin=inp.value.trim(); const j=await api("tResetPin",{cls,sid,pin}); if(!j.ok){ inp.value=""; inp.placeholder=errText(j.error).split(" ")[0]; return; } td.innerHTML=`<span class="chip on">已重设为 ${esc(pin)} · reset</span>`; setTimeout(loadRoster,2500); }; return; }
