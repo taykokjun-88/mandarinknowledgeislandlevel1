@@ -293,6 +293,10 @@ button.gcard:hover{border-color:var(--gold)}
 #fx{position:fixed;inset:0;pointer-events:none;z-index:60;overflow:hidden;perspective:600px}
 #fx .fxp{position:absolute;left:0;top:0;will-change:transform,opacity;user-select:none}
 .lbl .maint{font-size:11.5px;font-weight:700;color:#7a4a00;background:#ffd84d;border-radius:999px;padding:1px 8px;margin-left:2px;white-space:nowrap}.lbl .maint .ui-en{font-weight:400;margin-left:3px}
+#dailyCard{position:fixed;left:0;right:0;margin:0 auto;top:calc(88px + env(safe-area-inset-top,0px));z-index:45;width:min(360px,calc(100vw - 32px));background:var(--panel);border:2px solid var(--gold);border-radius:18px;box-shadow:var(--shadow);padding:14px 16px;display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center;animation:pop .45s cubic-bezier(.3,1.6,.5,1) both}
+#dailyCard p{margin:0}#dailyCard .cn{font-weight:800;color:var(--red);font-size:20px}
+#dailyCard .dd{display:flex;gap:6px}#dailyCard .dd i{width:28px;height:28px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-style:normal;font-size:12px;color:var(--muted)}
+#dailyCard .dd i.on{background:var(--gold);border-color:var(--gold);color:#4a3200}#dailyCard .dd i.now{background:var(--red);border-color:var(--red);color:var(--red-ink);transform:scale(1.15)}
 .cats{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:5px}
 .cat{font:inherit;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:10px;padding:4px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;line-height:1.15;min-height:40px;justify-content:center;touch-action:manipulation}
 .cat b{font-size:13px;font-weight:600}.cat .ui-en{font-size:10px;color:var(--muted)}.cat small{font-size:10px;color:var(--muted)}
@@ -1080,7 +1084,7 @@ function addLife(){ addWalkers(); const L=new THREE.TextureLoader(), rr=rng(77);
   Promise.all(["seagull","butterflies"].map(n=>L.loadAsync(`assets/sprites/${n}.webp`))).then(([gBase,bBase])=>{
     const mk=(base, w)=>{ const t=base.clone(); t.colorSpace=THREE.SRGBColorSpace; t.needsUpdate=true; const m=new THREE.SpriteMaterial({map:t, transparent:true, alphaTest:.4, depthWrite:false, fog:true, toneMapped:false}); m.color.setRGB(...nightTint()); nightMats.push(m); const sp=new THREE.Sprite(m); sp.scale.set(w,w,1); scene.add(sp); return sp; };
     for(let k=0;k<7;k++){ const sp=mk(gBase, 3.4); sp.material.map.repeat.set(.5,.5); life.gulls.push({s:sp, cx:CENTER.x+(rr()-.5)*120, cz:CENTER.z+(rr()-.5)*90, R:22+rr()*40, y:15+rr()*12, sp:(.12+rr()*.12)*(k%2?1:-1), ph:rr()*6.28, glide:rr()*10}); }
-    isles.forEach(o=>{ for(let k=0;k<2;k++){ const sp=mk(bBase, .62); sp.material.map.repeat.set(1/3,1/3); const a=rr()*6.28, d=o.r*(.35+rr()*.3); life.flies.push({s:sp, o, cx:Math.cos(a)*d, cz:Math.sin(a)*d, kind:Math.floor(rr()*3), ph:rr()*6.28, R:1.2+rr()*1.6}); } });
+    isles.forEach(o=>{ for(let k=0;k<1;k++){ const sp=mk(bBase, .7); sp.material.map.repeat.set(1/3,1/3); const a=rr()*6.28, d=o.r*(.35+rr()*.3); life.flies.push({s:sp, o, cx:Math.cos(a)*d, cz:Math.sin(a)*d, kind:Math.floor(rr()*3), ph:rr()*6.28, R:1.2+rr()*1.6}); } });
   }).catch(e=>console.warn("life sprites", e)); }
 let _cr, _cu, _v, _kv, lastKidT=0;   // created once THREE has loaded
 function updateKids(t){ if(!_kv) _kv=new THREE.Vector3(); const dt=Math.min(.1, Math.max(0, t-lastKidT)); lastKidT=t;
@@ -1198,8 +1202,8 @@ function buildIsland(d, i){
   // soft clouds over locked islands
   // magic mist over locked islands: hand-painted sprites that drift apart and fade when the island unlocks
   const clouds=new THREE.Group();
-  for(let k=0;k<6;k++){ const a=k/6*6.28+rr()*.4, c=spriteOf(`mist-${k%2}`, r*(2+rr()*.5)); c.position.set(Math.cos(a)*r*.62, 3.2+rr()*2, Math.sin(a)*r*.62); c.material.rotation=(rr()-.5)*.2; clouds.add(c); }
-  for(let k=0;k<2;k++){ const c=spriteOf(`mist-${2+k%2}`, r*(2+rr()*.4)); const a=k/2*6.28; c.position.set(Math.cos(a)*r*.25, 6.5+k*2.2, Math.sin(a)*r*.25); c.material.rotation=rr()*6.28; clouds.add(c); }
+  for(let k=0;k<4;k++){ const a=k/4*6.28+rr()*.5, c=spriteOf(`mist-${k%2}`, r*(2.4+rr()*.5)); c.position.set(Math.cos(a)*r*.6, 3.2+rr()*2, Math.sin(a)*r*.6); c.material.rotation=(rr()-.5)*.2; clouds.add(c); }
+  { const c=spriteOf("mist-2", r*(2.5+rr()*.3)); c.position.set(0, 7, 0); c.material.rotation=rr()*6.28; clouds.add(c); }
   clouds.children.forEach(c=>{ c.userData.base=c.position.clone(); c.userData.spin=(rr()-.5)*.08; });
   g.add(clouds); scene.add(g);
   const k0=mistGoal(i); clouds.visible=!!k0;
@@ -1275,6 +1279,20 @@ const TiltShader=()=>({ uniforms:{tDiffuse:{value:null}, uDir:{value:new THREE.V
 const GradeShader=()=>({ uniforms:{tDiffuse:{value:null}, uSat:{value:1.26}, uCon:{value:1.07}, uVig:{value:.18}},
   vertexShader:"varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }",
   fragmentShader:"uniform sampler2D tDiffuse; uniform float uSat,uCon,uVig; varying vec2 vUv; void main(){ vec4 c=texture2D(tDiffuse,vUv); float l=dot(c.rgb,vec3(.2126,.7152,.0722)); vec3 s=mix(vec3(l),c.rgb,uSat); s=(s-.18)*uCon+.18; float v=1.-uVig*smoothstep(.45,.95,length(vUv-.5)*1.25); gl_FragColor=vec4(max(s,0.)*v,c.a); }" });
+/* ---- 每日登入奖励 Daily login bonus: a streak of consecutive days; coins grow from 5 to 15, plus a weekly bonus ---- */
+const dayAdd=(d,k)=>{ const t=new Date(d+"T12:00:00"); t.setDate(t.getDate()+k); return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,"0")}-${String(t.getDate()).padStart(2,"0")}`; };
+function dailyReward(){ if(state.teacher||!state.nick) return; const today=todayStr(), st=state.streak;
+  if(st && st.d===today) return;
+  const n=(st && st.d===dayAdd(today,-1)) ? st.n+1 : 1, coins=Math.min(15,5+(n-1)*2)+(n%7===0?15:0);
+  state.streak={d:today, n, best:Math.max(n,(st&&st.best)||0)}; state.coins+=coins; save(); updateCoins(); showDaily(n, coins); }
+function showDaily(n, coins){ const old=$("#dailyCard"); if(old) old.remove(); const day=(n-1)%7+1;
+  const c=document.createElement("div"); c.id="dailyCard"; c.setAttribute("role","status");
+  c.innerHTML=`<b>每日登入奖励<span class=ui-en>Daily bonus</span></b>
+    <div class="dd">${[1,2,3,4,5,6,7].map(k=>`<i class="${k<day?"on":k===day?"now":""}">${k}</i>`).join("")}</div>
+    <p>连续登入第 <b>${n}</b> 天${n%7===0?"，一周奖励！":""}　<span class="cn">+${coins}</span> ${'<span class="coin sm" aria-hidden="true"></span>'}<span class=ui-en data-b>Day ${n} in a row${n%7===0?" — weekly bonus!":""} +${coins} coins</span></p>
+    <button class="btn sm" type="button">好<span class=ui-en>OK</span></button>`;
+  document.body.appendChild(c); rubify(c); c.querySelector("button").onclick=()=>c.remove(); setTimeout(()=>{ try{ FX.coins(coins); }catch(e){} },300); setTimeout(()=>{ if(c.isConnected) c.remove(); },9000); }
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden && (auth||!API)) dailyReward(); });
 /* ---- add to home screen (no offline cache; the game still needs the internet) ---- */
 let installEvt=null;
 addEventListener("beforeinstallprompt",e=>{ e.preventDefault(); installEvt=e; const el=$("#installBtn"); if(el) el.hidden=false; });
@@ -1333,25 +1351,33 @@ function findMoving(root, extra){
   [1.37, 4.91, 9.73].forEach(t=>{ try{ animateAll(t); }catch(e){} objs.forEach(o=>{ if(snap(o)!==base.get(o)) moving.add(o); }); });
   try{ animateAll(simT); }catch(e){}
   return moving; }
+// plain coloured materials (no texture, no transparency) can share one material if each mesh carries its colour in its vertices:
+// that turns dozens of colours per island into a handful of draw calls
+const vcShared={};
+function simpleKey(m){ if(!m.isMeshStandardMaterial || m.isMeshPhysicalMaterial || m.map || m.normalMap || m.roughnessMap || m.metalnessMap || m.emissiveMap || m.alphaMap || m.vertexColors || m.transparent || m.side!==THREE.FrontSide || m.alphaTest>0 || m.wireframe) return null;
+  return "S|"+m.roughness+"|"+m.metalness+"|"+(m.flatShading?1:0)+"|"+m.emissive.getHex()+"|"+m.emissiveIntensity; }
+function sharedVcMaterial(key, m){ return vcShared[key]||(vcShared[key]=new THREE.MeshStandardMaterial({vertexColors:true, roughness:m.roughness, metalness:m.metalness, flatShading:m.flatShading, emissive:m.emissive.clone(), emissiveIntensity:m.emissiveIntensity})); }
 function bakeStatic(root, moving){
   root.updateMatrixWorld(true);
   const inv=new THREE.Matrix4().copy(root.matrixWorld).invert(), groups=new Map(), subRoots=[], m4=new THREE.Matrix4();
   (function walk(o){ o.children.forEach(c=>{
     if(moving.has(c)){ subRoots.push(c); return; }
     if(c.isMesh && !c.isInstancedMesh && !c.isSkinnedMesh && !Array.isArray(c.material) && c.visible && !c.morphTargetInfluences && c.geometry.attributes.position){
-      const k=c.material.uuid+"|"+(c.castShadow?1:0)+(c.receiveShadow?1:0)+"|"+(c.material.vertexColors&&c.geometry.attributes.color?"c":"");
+      const sk=simpleKey(c.material), k=(sk||c.material.uuid)+"|"+(c.castShadow?1:0)+(c.receiveShadow?1:0)+"|"+(c.material.vertexColors&&c.geometry.attributes.color?"c":"");
       (groups.get(k)||groups.set(k,[]).get(k)).push(c); }
     if(c.children.length) walk(c); }); })(root);
   groups.forEach(list=>{ if(list.length<2) return;
     const geos=list.map(c=>{ let g=c.geometry.index?c.geometry.toNonIndexed():c.geometry.clone(); const keep=new THREE.BufferGeometry();
       keep.setAttribute("position", g.attributes.position); if(g.attributes.normal) keep.setAttribute("normal", g.attributes.normal); else { keep.computeVertexNormals(); }
       if(c.material.vertexColors && g.attributes.color) keep.setAttribute("color", g.attributes.color.itemSize===3?g.attributes.color:null);
+      else if(simpleKey(c.material)){ const n=keep.attributes.position.count, col=new Float32Array(n*3), cc=c.material.color; for(let q=0;q<n;q++){ col[q*3]=cc.r; col[q*3+1]=cc.g; col[q*3+2]=cc.b; } keep.setAttribute("color", new THREE.BufferAttribute(col,3)); }
       m4.multiplyMatrices(inv, c.matrixWorld); keep.applyMatrix4(m4);
       if(m4.determinant()<0){ ["position","normal","color"].forEach(n=>{ const a=keep.attributes[n]; if(!a) return; const s=a.itemSize, arr=a.array; for(let i=0;i<arr.length;i+=s*3) for(let j=0;j<s;j++){ const t=arr[i+s+j]; arr[i+s+j]=arr[i+2*s+j]; arr[i+2*s+j]=t; } }); }
       return keep; });
-    if(geos.some(g=>!g.attributes.normal || (list[0].material.vertexColors && !g.attributes.color))) return;
+    const sk0=simpleKey(list[0].material);
+    if(geos.some(g=>!g.attributes.normal || ((list[0].material.vertexColors||sk0) && !g.attributes.color))) return;
     const merged=THREE.BGU.mergeGeometries(geos, false); if(!merged) return; merged.computeBoundingSphere();
-    const mm=new THREE.Mesh(merged, list[0].material); mm.castShadow=list[0].castShadow; mm.receiveShadow=list[0].receiveShadow; mm.userData.baked=true; root.add(mm);
+    const mm=new THREE.Mesh(merged, sk0?sharedVcMaterial(sk0, list[0].material):list[0].material); mm.castShadow=list[0].castShadow; mm.receiveShadow=list[0].receiveShadow; mm.userData.baked=true; root.add(mm);
     list.forEach(c=>{ c.parent.remove(c); }); });
   // drop the now-empty helper groups so the scene graph stays small
   (function prune(o){ [...o.children].forEach(c=>{ prune(c); if(c.type==="Group" && !c.children.length && !moving.has(c) && c!==root) o.remove(c); }); })(root);
@@ -1442,7 +1468,8 @@ function go(pos,tgt,dur){ if(!dur){ camera.position.copy(pos); controls.target.c
 const ease = k => k<.5 ? 4*k*k*k : 1-Math.pow(-2*k+2,3)/2;
 
 function resize(){ if(!renderer) return; const w=innerWidth, h=innerHeight; renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix();
-  if(composer){ composer.setPixelRatio(renderer.getPixelRatio()); composer.setSize(w,h); const pr=renderer.getPixelRatio(); tiltH.uniforms.uDir.value.set(1/(w*pr),0); tiltV.uniforms.uDir.value.set(0,1/(h*pr)); }
+  /* the glow is soft anyway: compute it at half resolution */
+  if(composer){ composer.setPixelRatio(renderer.getPixelRatio()); composer.setSize(w,h); if(bloomPass) bloomPass.setSize(Math.max(64,Math.round(w*renderer.getPixelRatio()/2)), Math.max(64,Math.round(h*renderer.getPixelRatio()/2))); const pr=renderer.getPixelRatio(); tiltH.uniforms.uDir.value.set(1/(w*pr),0); tiltV.uniforms.uDir.value.set(0,1/(h*pr)); }
   applyOffset(); }
 function applyOffset(){ const w=innerWidth, h=innerHeight; if(Math.abs(viewOff.x)<.5 && Math.abs(viewOff.y)<.5){ camera.clearViewOffset(); } else camera.setViewOffset(w,h,viewOff.x,viewOff.y,w,h); }
 const SHEET_MQ = matchMedia("(max-width:720px), (max-width:1100px) and (orientation:portrait)");
@@ -3346,6 +3373,7 @@ function openSide(kind){
     setHTML(side, `<div class="d-head"><button class="d-close" type="button" id="sClose" aria-label="关闭">${X_SVG}</button><div class="chip">我的成绩<span class=ui-en>My progress</span></div><h2 class="d-title" data-nopy>${esc(state.nick||"同学")}</h2><p class="d-sub">每做完一件事都会自动保存，下次打开会从这里继续。<span class=ui-en data-b>Everything saves automatically — next time you open the game, you carry on from here.</span></p></div>
       <div class="d-body">
         <div class="sum"><div><b>${overall}%</b><span>总进度<span class=ui-en data-b>Overall</span></span></div><div><b>${full}/9</b><span>完成的岛<span class=ui-en data-b>Islands done</span></span></div><div><b>${totalStars}/27</b><span>星星<span class=ui-en data-b>Stars</span></span></div><div><b>${state.coins}</b><span>椰子币<span class=ui-en data-b>Coins</span></span></div></div>
+        ${state.streak&&!state.teacher?`<p class="sw-msg" style="text-align:left;margin:0">连续登入 <b>${(state.streak.d===todayStr()||state.streak.d===dayAdd(todayStr(),-1))?state.streak.n:0}</b> 天 · 最长 ${state.streak.best} 天。每天来玩都有椰子币奖励。<span class=ui-en data-b>Login streak: ${(state.streak.d===todayStr()||state.streak.d===dayAdd(todayStr(),-1))?state.streak.n:0} day(s) · best ${state.streak.best}. Come back every day for coins.</span></p>`:""}
         ${L?`<button class="btn" type="button" id="resume">继续上次<span class=ui-en>Continue</span>：${state.last.i>=0?ISLANDS[state.last.i].no:""}「${L.name}」</button>`:""}
         <div class="ptable">${ISLANDS.map((d,i)=>{ const un=isUnlocked(i), g=state.games[i]||{}, ql=state.quiz[i], pct=islandPct(i);
           return `<button class="prow ${un?"":"locked"}" type="button" data-i="${i}">
@@ -3445,6 +3473,7 @@ function afterLogin(j, isNew){
   else if(!server && local.owner && !sameOwner) adoptState(null);                                   // another student's progress on a shared device — start fresh
   state.owner=`${j.cls}/${j.sid}`; state.nick=j.nick; save(); setSync("ok"); scheduleSync();
   $("#welcome").hidden=true;
+  setTimeout(dailyReward,1400);
   toast(isNew?`欢迎你，${j.nick}！你的进度会自动存到云端。`:`欢迎回来，${j.nick}！`, isNew?`Welcome, ${j.nick}! Your progress now saves to the cloud.`:`Welcome back, ${j.nick}!`); }
 const remember=(c,s)=>{ try{ localStorage.setItem("m1-isles-last", JSON.stringify({c,s})); }catch(e){} };
 const remembered=()=>{ try{ return JSON.parse(localStorage.getItem("m1-isles-last"))||{}; }catch(e){ return {}; } };
@@ -3459,7 +3488,7 @@ function teacherIn(){ if(state.owner!=="teacher") adoptState(null); state.teache
 function welcome(force){
   const w=$("#welcome");
   if(!API){ if(state.nick && !force){ w.hidden=true; return; } return nickOnly(w); }
-  if(auth && !force){ w.hidden=true; setSync("busy"); api("load",{token:auth.token}).then(j=>{ if(j.ok){ if(j.islands) setIsleCfg(j.islands); if(j.state && !(state.owner===`${j.cls}/${j.sid}` && state.updatedAt>j.state.updatedAt)) adoptState(j.state); state.owner=`${j.cls}/${j.sid}`; if(j.nick) state.nick=j.nick; save(); setSync("ok"); } else { auth=null; saveAuth(); welcome(true); } }).catch(()=>setSync("err")); return; }
+  if(auth && !force){ w.hidden=true; setSync("busy"); api("load",{token:auth.token}).then(j=>{ if(j.ok){ setTimeout(dailyReward,1800); if(j.islands) setIsleCfg(j.islands); if(j.state && !(state.owner===`${j.cls}/${j.sid}` && state.updatedAt>j.state.updatedAt)) adoptState(j.state); state.owner=`${j.cls}/${j.sid}`; if(j.nick) state.nick=j.nick; save(); setSync("ok"); } else { auth=null; saveAuth(); welcome(true); } }).catch(()=>setSync("err")); return; }
   if(!auth && state.teacher && state.owner==="teacher" && !force){ w.hidden=true; setSync("off"); return; }   // teacher mode stays signed in on this device
   const last=remembered(); let mode="login";
   const render=()=>{ setHTML(w, `<div class="wcard" role="dialog" aria-modal="true" aria-labelledby="wTitle">
@@ -3502,7 +3531,7 @@ function welcome(force){
   w.hidden=false; render();
 }
 function nickOnly(w){ w.hidden=false; rubify(w); const inp=$("#nickIn"); if(!inp) return; setTimeout(()=>inp.focus(),50);
-  const go=()=>{ const v=inp.value.trim(); if(!v){ inp.focus(); return; } state.nick=v.slice(0,16); save(); w.hidden=true; toast(`欢迎你，${state.nick}！先登上 C1「拼音灯塔」吧。`, `Welcome, ${state.nick}! Start at C1, the Pinyin Lighthouse.`); };
+  const go=()=>{ const v=inp.value.trim(); if(!v){ inp.focus(); return; } state.nick=v.slice(0,16); save(); w.hidden=true; setTimeout(dailyReward,1400); toast(`欢迎你，${state.nick}！先登上 C1「拼音灯塔」吧。`, `Welcome, ${state.nick}! Start at C1, the Pinyin Lighthouse.`); };
   $("#nickGo").onclick=go; inp.onkeydown=e=>{ if(e.key==="Enter") go(); }; }
 
 $("#zIn").onclick=()=>zoomBy(.7);
