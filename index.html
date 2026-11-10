@@ -4,6 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Mandarin 1的知识群岛</title>
+<meta name="description" content="南洋风格的 3D 中文学习游戏 · Mandarin 1 Knowledge Isles">
+<meta name="theme-color" content="#1f7d98">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="知识群岛">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Sans+SC:wght@400;500;700&display=swap">
@@ -1266,6 +1275,19 @@ const TiltShader=()=>({ uniforms:{tDiffuse:{value:null}, uDir:{value:new THREE.V
 const GradeShader=()=>({ uniforms:{tDiffuse:{value:null}, uSat:{value:1.26}, uCon:{value:1.07}, uVig:{value:.18}},
   vertexShader:"varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }",
   fragmentShader:"uniform sampler2D tDiffuse; uniform float uSat,uCon,uVig; varying vec2 vUv; void main(){ vec4 c=texture2D(tDiffuse,vUv); float l=dot(c.rgb,vec3(.2126,.7152,.0722)); vec3 s=mix(vec3(l),c.rgb,uSat); s=(s-.18)*uCon+.18; float v=1.-uVig*smoothstep(.45,.95,length(vUv-.5)*1.25); gl_FragColor=vec4(max(s,0.)*v,c.a); }" });
+/* ---- add to home screen (no offline cache; the game still needs the internet) ---- */
+let installEvt=null;
+addEventListener("beforeinstallprompt",e=>{ e.preventDefault(); installEvt=e; const el=$("#installBtn"); if(el) el.hidden=false; });
+addEventListener("appinstalled",()=>{ installEvt=null; toast("已加到主屏幕！","Added to your home screen!"); });
+const isStandalone=()=>matchMedia("(display-mode: standalone)").matches || navigator.standalone===true;
+function installSection(){ if(isStandalone()) return "";
+  const ios=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+  const how = ios
+    ? `用 <b>Safari</b> 打开这个网页 → 点下方的 <b>分享</b> 按钮（方框加向上箭头）→ 选 <b>「添加到主屏幕」</b> → 点 <b>添加</b>。<span class=ui-en data-b>Open this page in <b>Safari</b> → tap the <b>Share</b> button (square with an arrow) → choose <b>Add to Home Screen</b> → tap <b>Add</b>.</span>`
+    : `<b>手机（Chrome）</b>：右上角菜单 ⋮ → <b>「添加到主屏幕」</b> 或 <b>「安装应用」</b>。<br><b>电脑（Chrome / Edge）</b>：网址栏右边的 <b>安装</b> 图标，或菜单 → <b>应用 → 安装此网站</b>。<span class=ui-en data-b><b>Phone (Chrome):</b> menu ⋮ → Add to Home screen / Install app. <b>Computer (Chrome / Edge):</b> the install icon in the address bar, or menu → Apps → Install this site.</span>`;
+  return `<div class="lookset"><b>加到主屏幕<span class=ui-en>Add to Home Screen</span></b><small>像 App 一样一点就能打开，全屏游玩，没有网址栏。需要网络才能玩。<span class=ui-en data-b>Opens like an app, full screen, no address bar. You still need the internet to play.</span></small>
+    <small>${how}</small>
+    <div class="row"><button class="btn" type="button" id="installBtn" ${installEvt?"":"hidden"}>安装到主屏幕<span class=ui-en>Install</span></button></div></div>`; }
 // 画面 Scene: "day" (default) | "night" | "auto" (follow the device's dark mode)
 function applyLook(){ const v=state.look||"day", el=document.documentElement; if(v==="auto") delete el.dataset.theme; else el.dataset.theme = v==="night"?"dark":"light"; }
 function themeDark(){ return document.documentElement.dataset.theme==="dark"||(document.documentElement.dataset.theme!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches); }
@@ -3327,6 +3349,7 @@ function openSide(kind){
         <button class="switch" type="button" role="switch" id="swP" aria-checked="${state.py}"><span><b>显示拼音<span class=ui-en>Show pinyin</span></b><small>关掉可以练习无拼音阅读。<span class=ui-en data-b>Turn off to practise reading without pinyin.</span></small></span><span class="tr"></span></button>
         <button class="switch" type="button" role="switch" id="swE" aria-checked="${state.en}"><span><b>显示英文<span class=ui-en>Show English</span></b><small>按钮和说明旁边的英文。<span class=ui-en data-b>English next to buttons and instructions.</span></small></span><span class="tr"></span></button>
         <button class="switch" type="button" role="switch" id="swT" aria-checked="${state.teacher}"><span><b>教师模式：解锁全部岛屿<span class=ui-en>Teacher mode: unlock all</span></b><small>上课演示用。不会获得椰子币，建设免费。<span class=ui-en data-b>For class demos. No coins are earned; building is free.</span></small></span><span class="tr"></span></button>
+        ${installSection()}
         <div class="lookset"><b>画面<span class=ui-en>Scene</span></b><small>默认白天；“跟随系统”会在手机或电脑切到深色模式时变成夜晚。<span class=ui-en data-b>Day by default. “Auto” turns to night when your device is in dark mode.</span></small>
           <div class="seg" role="radiogroup" aria-label="画面 Scene">${[["day","白天","Day","ic-sun"],["night","夜晚","Night","ic-moon"],["auto","跟随系统","Auto",""]].map(([v,zh,en,ic])=>`<button type="button" class="segb" role="radio" data-look="${v}" aria-selected="${(state.look||"day")===v}" aria-checked="${(state.look||"day")===v}">${ic?ICON(ic)+" ":""}${zh}<span class=ui-en>${en}</span></button>`).join("")}</div></div>
         <button class="switch" type="button" role="switch" id="swMu" aria-checked="${state.music!==false}"><span><b>背景海风声<span class=ui-en>Sea-breeze sound</span></b><small>轻柔的海风和海浪声。<span class=ui-en data-b>A soft sea breeze and waves.</span></small></span><span class="tr"></span></button>
@@ -3342,6 +3365,7 @@ function openSide(kind){
     $("#swT").onclick=async e=>{ const sw=e.currentTarget;
       if(API && !state.teacher){ const k=prompt("请输入老师密码 Teacher password"); if(!k) return; try{ const j=await api("tLogin",{key:k}); if(!j.ok){ toast("老师密码不对","Wrong teacher password"); return; } }catch(err){ toast("连不上服务器","Can't reach the server"); return; } }
       state.teacher=!state.teacher; save(); sw.setAttribute("aria-checked",state.teacher); refreshLabels(); refreshRoute(); toast(state.teacher?"已解锁全部岛屿（教师模式）":"已关闭教师模式", state.teacher?"All islands unlocked (teacher mode)":"Teacher mode off"); };
+    const ib=$("#installBtn"); if(ib) ib.onclick=async()=>{ if(!installEvt) return; installEvt.prompt(); try{ await installEvt.userChoice; }catch(e){} installEvt=null; ib.hidden=true; };
     side.querySelectorAll("[data-look]").forEach(b=>b.onclick=()=>{ state.look=b.dataset.look; save(); applyLook(); side.querySelectorAll("[data-look]").forEach(x=>{ x.setAttribute("aria-selected", x===b); x.setAttribute("aria-checked", x===b); }); });
     $("#swMu").onclick=e=>{ const on=state.music===false; Music.setOn(on); applyMusicBtn(); e.currentTarget.setAttribute("aria-checked",on); };
     $("#volR").oninput=e=>Music.setVol(+e.target.value);

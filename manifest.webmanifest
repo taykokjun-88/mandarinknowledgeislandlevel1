@@ -1,0 +1,17 @@
+{
+  "name": "Mandarin 1的知识群岛",
+  "short_name": "知识群岛",
+  "description": "南洋风格的 3D 中文学习游戏 · Mandarin 1 Knowledge Isles",
+  "lang": "zh-Hans",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#7fd6e6",
+  "theme_color": "#1f7d98",
+  "icons": [
+    {"src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "assets/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
