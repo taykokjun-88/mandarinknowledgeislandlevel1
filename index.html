@@ -1283,7 +1283,7 @@ const GradeShader=()=>({ uniforms:{tDiffuse:{value:null}, uSat:{value:1.26}, uCo
 const dayAdd=(d,k)=>{ const t=new Date(d+"T12:00:00"); t.setDate(t.getDate()+k); return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,"0")}-${String(t.getDate()).padStart(2,"0")}`; };
 function dailyReward(){ if(state.teacher||!state.nick) return; const today=todayStr(), st=state.streak;
   if(st && st.d===today) return;
-  const n=(st && st.d===dayAdd(today,-1)) ? st.n+1 : 1, coins=Math.min(4,2+Math.floor((n-1)/2))+(n%7===0?6:0);   // small on purpose: 2 → 4 coins a day, +6 on every 7th day (a quiz star is worth 10)
+  const n=(st && st.d===dayAdd(today,-1)) ? st.n+1 : 1, base=n<=2?1:n<=4?2:3, coins=n%7===0?base*2:base;   // 1,1,2,2,3,3,3… coins a day; every 7th day is doubled (a quiz star is worth 10)
   state.streak={d:today, n, best:Math.max(n,(st&&st.best)||0)}; state.coins+=coins; save(); updateCoins(); showDaily(n, coins); }
 function showDaily(n, coins){ const old=$("#dailyCard"); if(old) old.remove(); const day=(n-1)%7+1;
   const c=document.createElement("div"); c.id="dailyCard"; c.setAttribute("role","status");
