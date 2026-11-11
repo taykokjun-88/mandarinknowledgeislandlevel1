@@ -1499,6 +1499,7 @@ function loop(now){
   viewOff.x+=(viewOffGoal.x-viewOff.x)*Math.min(1,dt*7); viewOff.y+=(viewOffGoal.y-viewOff.y)*Math.min(1,dt*7); applyOffset();
   controls.update();
   loop.n=(loop.n||0)+1;
+  { const ar=document.getElementById("arStage"); if(ar && !ar.hidden) return; }   // full-screen camera game: stop drawing the 3D scene behind it (two GPU jobs at once can crash laptop graphics drivers)
   if(media && (media.stream) && loop.n%4){ placeLabels(); return; }
   const still=!fly && !HIGH() && (document.body.classList.contains("drawer-open") || now-lastTouch>1500);   // phones/tablets only
   if(still && loop.n%2) return;   // view is still or a panel is open: 30 fps is plenty
@@ -2315,7 +2316,7 @@ function recordWeb(body, it){ const r=new SRec(); media.rec=r; r.lang="zh-CN"; r
 let handsP=null;
 function loadHands(){ if(handsP) return handsP; handsP=(async()=>{ const V=await import("./lib/mediapipe/vision_bundle.mjs"); const fs=await V.FilesetResolver.forVisionTasks("./lib/mediapipe/wasm");
   const opt=d=>({baseOptions:{modelAssetPath:"./lib/mediapipe/hand_landmarker.task", delegate:d}, runningMode:"VIDEO", numHands:2, minHandDetectionConfidence:.5, minTrackingConfidence:.5});
-  try{ return await V.HandLandmarker.createFromOptions(fs,opt("GPU")); }catch(e){ return await V.HandLandmarker.createFromOptions(fs,opt("CPU")); } })(); handsP.catch(()=>{ handsP=null; }); return handsP; }
+  const cpuFirst=!(IS_IOS||/Android/i.test(navigator.userAgent)); try{ return await V.HandLandmarker.createFromOptions(fs,opt(cpuFirst?"CPU":"GPU")); }catch(e){ return await V.HandLandmarker.createFromOptions(fs,opt(cpuFirst?"GPU":"CPU")); } })(); handsP.catch(()=>{ handsP=null; }); return handsP; }
 // tiny sound effects
 let sfxAC=null;
 function sfx(kind){ try{ sfxAC=sfxAC||new (window.AudioContext||window.webkitAudioContext)(); if(sfxAC.state!=="running") sfxAC.resume(); const t=sfxAC.currentTime;
@@ -2327,7 +2328,7 @@ function gestStart(body){ withConsent("cam", body, async()=>{
   const qs=shuffle(bankOf(cur).filter(q=>q.t==="mc" && q.d && q.d.length>=3 && String(q.a).length<=14)).slice(0,AR_LEN).map(q=>Object.assign({},q,{opts:shuffle([q.a].concat(pickN(q.d,3,[q.a])))}));
   gs={qs, k:0, score:0, answered:false, parts:[], grabbed:-1, dwell:[0,0,0,0], seenHand:false};
   setHTML(body, `${BACK}<p class="sw-msg">正在打开摄像头和手势识别（第一次大约要等 5–10 秒）…<span class=ui-en data-b>Opening the camera and hand tracking (the first time takes about 5–10 s)…</span></p>`); bindBack(body);
-  try{ media.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user", width:{ideal:960}, height:{ideal:720}}, audio:false}); }catch(err){ return mediaError(body,err,"cam"); }
+  try{ media.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user", width:{ideal:640}, height:{ideal:480}, frameRate:{ideal:30,max:30}}, audio:false}); }catch(err){ return mediaError(body,err,"cam"); }
   let lm; try{ lm=await loadHands(); }catch(err){ stopMedia(); return mediaError(body,{name:"HandLandmarker"},"cam"); }
   if(game!=="gest"){ stopMedia(); return; }
   gs.lm=lm; arOpen(body); }); }
@@ -2347,7 +2348,7 @@ function arOpen(body){
   const loop=()=>{ if(game!=="gest"||!media.stream) return; media.raf=requestAnimationFrame(loop);
     const W=st.clientWidth, H=st.clientHeight; if(cv.width!==W||cv.height!==H){ cv.width=W; cv.height=H; }
     cx.clearRect(0,0,W,H);
-    let hands=[]; if(v.readyState>=2){ try{ const r=gs.lm.detectForVideo(v, performance.now()); hands=r.landmarks||[]; }catch(e){} }
+    let hands=gs.lastHands||[]; { const tn=performance.now(); if(v.readyState>=2 && v.currentTime!==gs.lastVT && tn-(gs.lastDet||0)>=45){ gs.lastDet=tn; gs.lastVT=v.currentTime; try{ const r=gs.lm.detectForVideo(v, tn); hands=gs.lastHands=r.landmarks||[]; }catch(e){} } }
     // map normalised landmarks onto the mirrored, cover-fitted video
     const vw=v.videoWidth||640, vh=v.videoHeight||480, s=Math.max(W/vw,H/vh), ox=(W-vw*s)/2, oy=(H-vh*s)/2;
     const P=p=>({x: W-(p.x*vw*s+ox), y: p.y*vh*s+oy});
