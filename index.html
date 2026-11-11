@@ -77,6 +77,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .tbtn{display:flex;align-items:center;gap:6px;border:0;background:transparent;border-radius:11px;padding:8px 11px;font-size:13px;font-weight:500}
 .tbtn:hover{background:var(--panel-2)}
 .tbtn svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tbtn .tbi{width:24px;height:24px;flex:none;object-fit:contain}.tbtn .tbi.off{filter:grayscale(1);opacity:.7}
 .tbtn[aria-pressed="true"]{background:var(--gold-soft)}
 
 @media (min-width:721px) and (orientation:landscape), (min-width:1101px){ body.drawer-open .topbar{right:auto;max-width:calc(100% - 492px)} body.drawer-open .brand p,body.drawer-open .tbtn span{display:none} body.drawer-open .tbtn{padding:9px} body.drawer-open .hint{display:none} }
@@ -198,6 +199,7 @@ body.nopy rt{display:none}
 .ui-en[data-b]{display:block;margin-left:0}
 body.noen .ui-en{display:none}
 .tab .ui-en{display:block;margin-left:0;font-size:11px}
+.tab .tbi{width:22px;height:22px;flex:none;object-fit:contain}
 .d-title .ui-en{font-size:.4em;letter-spacing:0}
 .hint .ui-en{font-size:11px}
 body:not(.nopy) :is(.tips li,.meta dd,.meta dt,.sw-msg,.notice,.explain,.start li,.wcard p,.wcard small,.d-sub,.ds,.why,.gcard .ds,.hint,.brand p){line-height:2.05}
@@ -212,7 +214,10 @@ body.nopy .py,body.nopy .apy{display:none}
 .ico{width:1.2em;height:1.2em;vertical-align:-.25em;display:inline-block}.bigico{width:64px;height:64px}
 .cat .ci{width:20px;height:20px;vertical-align:-5px;margin-right:3px}
 /* welcome */
-#welcome{position:absolute;inset:0;z-index:30;display:grid;place-items:center;padding:16px;background:rgba(20,30,40,.45);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+#welcome{--wscrim:rgba(255,248,230,.08);position:absolute;inset:0;z-index:30;display:grid;place-items:center;padding:16px;background:linear-gradient(var(--wscrim),var(--wscrim)),#7fd6e6 url(assets/sprites/art/welcome-wide.webp) center/cover no-repeat}
+@media (orientation:portrait){#welcome{background-image:linear-gradient(var(--wscrim),var(--wscrim)),url(assets/sprites/art/welcome-tall.webp)}}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) #welcome{--wscrim:rgba(8,14,34,.55)}}
+:root[data-theme="dark"] #welcome{--wscrim:rgba(8,14,34,.55)}
 .wcard{width:min(420px,100%);background:var(--panel);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:22px;display:flex;flex-direction:column;gap:10px}
 .wcard h2{margin:0;font-family:var(--f-display);font-weight:400;font-size:30px;line-height:1.2}
 .wcard p{margin:0;font-size:14px;color:var(--muted)}
@@ -227,6 +232,9 @@ input:focus,textarea:focus{outline:none;border-color:var(--gold)}
 /* games */
 .back{align-self:flex-start;border:0;background:transparent;color:var(--red);font-weight:700;padding:0}
 .gcards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.gcard .cov{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;margin-bottom:6px;box-shadow:0 2px 6px rgba(60,40,20,.18)}
+.mascot{width:72px;height:auto;flex:none;object-fit:contain;filter:drop-shadow(0 3px 4px rgba(60,40,20,.25))}.mascot.big{width:110px}
+.mrow{display:flex;gap:10px;align-items:flex-end}.mrow>.explain{flex:1;min-width:0}
 .gcard{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;border:1.5px solid var(--line);background:var(--panel);border-radius:14px;padding:12px;min-width:0}
 .gcard b{font-size:17px}.gcard .en{font-size:12px;color:var(--muted)}.gcard .ds{font-size:13px}.gcard .st{margin-top:6px;font-size:12px;font-weight:700;color:var(--muted)}
 button.gcard:hover{border-color:var(--gold)}
@@ -428,14 +436,14 @@ textarea{resize:vertical;font-size:12px;font-family:ui-monospace,Menlo,monospace
       </div>
     </div>
     <nav class="tools" aria-label="工具">
-      <button class="tbtn" id="bMe" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>我的成绩<span class=ui-en>My progress</span></span></button>
-      <button class="tbtn" id="bPy" type="button" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M4 7h16M7 4v3M17 4v3M5 20l4-9 4 9M6.5 17h5M15 12h5M17.5 12v8"/></svg><span>拼音<span class=ui-en>Pinyin</span></span></button>
-      <button class="tbtn" id="bEn" type="button" aria-pressed="true" title="English on/off"><svg viewBox="0 0 24 24"><path d="M4 6h7M4 12h6M4 18h7M4 6v12M14 18V9l6 9V9"/></svg><span>英文<span class=ui-en>English</span></span></button>
-      <button class="tbtn" id="bMusic" type="button" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg><span>海风<span class=ui-en>Sea breeze</span></span></button>
-      <button class="tbtn" id="bList" type="button"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg><span>地点清单<span class=ui-en>Islands</span></span></button>
-      <button class="tbtn" id="bHome" type="button"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>回到全景<span class=ui-en>Overview</span></span></button>
-      <button class="tbtn" id="bMotion" type="button" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M10 5v14M14 5v14"/></svg><span>暂停动态</span></button>
-      <button class="tbtn" id="bSet" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span>设置<span class=ui-en>Settings</span></span></button>
+      <button class="tbtn" id="bMe" type="button"><img class="tbi" src="assets/sprites/ui/tb-me.webp" alt="" aria-hidden="true" draggable="false"><span>我的成绩<span class=ui-en>My progress</span></span></button>
+      <button class="tbtn" id="bPy" type="button" aria-pressed="true"><img class="tbi" src="assets/sprites/ui/tb-pinyin.webp" alt="" aria-hidden="true" draggable="false"><span>拼音<span class=ui-en>Pinyin</span></span></button>
+      <button class="tbtn" id="bEn" type="button" aria-pressed="true" title="English on/off"><img class="tbi" src="assets/sprites/ui/tb-english.webp" alt="" aria-hidden="true" draggable="false"><span>英文<span class=ui-en>English</span></span></button>
+      <button class="tbtn" id="bMusic" type="button" aria-pressed="true"><img class="tbi" src="assets/sprites/ui/tb-breeze.webp" alt="" aria-hidden="true" draggable="false"><span>海风<span class=ui-en>Sea breeze</span></span></button>
+      <button class="tbtn" id="bList" type="button"><img class="tbi" src="assets/sprites/ui/tb-list.webp" alt="" aria-hidden="true" draggable="false"><span>地点清单<span class=ui-en>Islands</span></span></button>
+      <button class="tbtn" id="bHome" type="button"><img class="tbi" src="assets/sprites/ui/tb-home.webp" alt="" aria-hidden="true" draggable="false"><span>回到全景<span class=ui-en>Overview</span></span></button>
+      <button class="tbtn" id="bMotion" type="button" aria-pressed="false"><img class="tbi" src="assets/sprites/ui/tb-pause.webp" alt="" aria-hidden="true" draggable="false"><span>暂停动态</span></button>
+      <button class="tbtn" id="bSet" type="button"><img class="tbi" src="assets/sprites/ui/tb-settings.webp" alt="" aria-hidden="true" draggable="false"><span>设置<span class=ui-en>Settings</span></span></button>
     </nav>
   </header>
 
@@ -747,6 +755,10 @@ const isUnlocked = i => state.teacher || (!isleBlock(i) && ((ISLE_CFG[i]||{}).mo
 /* ============================== helpers ============================== */
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+// 犀鸟 the hornbill mascot: 0 idle · 1 cheer · 2 wave · 3 think · 4 encourage · 5 proud
+const MASCOT=(pose,cls="")=>`<img class="mascot ${cls}" src="assets/sprites/mascot/hornbill-${pose}.webp" alt="" aria-hidden="true" draggable="false">`;
+const COVER=n=>`<img class="cov" src="assets/sprites/ui/cover-${n}.webp" alt="" aria-hidden="true" draggable="false" loading="lazy">`;
+const TBI=n=>`<img class="tbi" src="assets/sprites/ui/tb-${n}.webp" alt="" aria-hidden="true" draggable="false">`;
 // hand-painted interface icons (assets/sprites/ic-*.webp, cat-*.webp)
 const ICON = (n, cls="ico") => `<img class="${cls}" src="assets/sprites/${n}.webp" alt="" aria-hidden="true" draggable="false">`;
 const STAR = on => ICON(on?"ic-star":"ic-star-empty", "star "+(on?"on":"off"));
@@ -1287,7 +1299,7 @@ function dailyReward(){ if(state.teacher||!state.nick) return; const today=today
   state.streak={d:today, n, best:Math.max(n,(st&&st.best)||0)}; state.coins+=coins; save(); updateCoins(); showDaily(n, coins); }
 function showDaily(n, coins){ const old=$("#dailyCard"); if(old) old.remove(); const day=(n-1)%7+1;
   const c=document.createElement("div"); c.id="dailyCard"; c.setAttribute("role","status");
-  c.innerHTML=`<b>每日登入奖励<span class=ui-en>Daily bonus</span></b>
+  c.innerHTML=`${MASCOT(n%7===0?1:2)}<b>每日登入奖励<span class=ui-en>Daily bonus</span></b>
     <div class="dd">${[1,2,3,4,5,6,7].map(k=>`<i class="${k<day?"on":k===day?"now":""}">${k}</i>`).join("")}</div>
     <p>连续登入第 <b>${n}</b> 天${n%7===0?"，一周奖励！":""}　<span class="cn">+${coins}</span> ${'<span class="coin sm" aria-hidden="true"></span>'}<span class=ui-en data-b>Day ${n} in a row${n%7===0?" — weekly bonus!":""} +${coins} coins</span></p>
     <button class="btn sm" type="button">好<span class=ui-en>OK</span></button>`;
@@ -1652,10 +1664,10 @@ function renderPanel(){
      <dl class="meta"><dt>主题<span class=ui-en>Topic</span></dt><dd>${d.module} <span style="color:var(--muted)">${d.moduleEn}</span></dd><dt>课本<span class=ui-en>Textbook</span></dt><dd>${d.lesson}</dd></dl>
    </div>
    <div class="tabbar"><div class="tabs" role="tablist">
-       <button class="tab" role="tab" data-t="explore" aria-selected="${tab==="explore"}" type="button">探索<span class=ui-en data-b>Explore</span></button>
-       <button class="tab" role="tab" data-t="quiz" aria-selected="${tab==="quiz"}" type="button">闯关<span class=ui-en>Quiz</span> <span class="lbl-stars" style="display:flex">${stars3(st)}</span></button>
-       <button class="tab" role="tab" data-t="games" aria-selected="${tab==="games"}" type="button">游戏<span class=ui-en>Games</span> <small>${gamesDone(cur)}/4</small></button>
-       <button class="tab" role="tab" data-t="build" aria-selected="${tab==="build"}" type="button">建设<span class=ui-en data-b>Build</span></button>
+       <button class="tab" role="tab" data-t="explore" aria-selected="${tab==="explore"}" type="button"><img class="tbi" src="assets/sprites/ui/tb-explore.webp" alt="" aria-hidden="true" draggable="false">探索<span class=ui-en data-b>Explore</span></button>
+       <button class="tab" role="tab" data-t="quiz" aria-selected="${tab==="quiz"}" type="button"><img class="tbi" src="assets/sprites/ui/tb-quiz.webp" alt="" aria-hidden="true" draggable="false">闯关<span class=ui-en>Quiz</span> <span class="lbl-stars" style="display:flex">${stars3(st)}</span></button>
+       <button class="tab" role="tab" data-t="games" aria-selected="${tab==="games"}" type="button"><img class="tbi" src="assets/sprites/ui/tb-games.webp" alt="" aria-hidden="true" draggable="false">游戏<span class=ui-en>Games</span> <small>${gamesDone(cur)}/4</small></button>
+       <button class="tab" role="tab" data-t="build" aria-selected="${tab==="build"}" type="button"><img class="tbi" src="assets/sprites/ui/tb-build.webp" alt="" aria-hidden="true" draggable="false">建设<span class=ui-en data-b>Build</span></button>
    </div></div>
    <div class="d-body" id="pBody"></div>`);
   $("#pClose").onclick=closePanel;
@@ -1784,14 +1796,14 @@ function enX2(zh, en){ return en?`<button class="enbtn" type="button" aria-expan
 function renderQuiz(body){
   const d=ISLANDS[cur];
   if(!quiz || quiz.i!==cur){ const n=d.mixed?QUIZ_LEN_FINAL:QUIZ_LEN, need=Math.ceil(n*.6), ql=state.quiz[cur], bs=bankSize(cur);
-    setHTML(body, `<div class="start"><h3>${d.name} · 闯关挑战<span class=ui-en>Quiz challenge</span></h3>
+    setHTML(body, `<div class="start"><div class="mrow">${MASCOT(2,"big")}<h3 style="margin:0">${d.name} · 闯关挑战<span class=ui-en>Quiz challenge</span></h3></div>
       <ul><li>每次 ${n} 题，从 ${bs} 题的题库里随机抽出，每次都不一样。<span class=ui-en data-b>${n} questions drawn at random from a bank of ${bs} — different every time.</span></li>
       <li>题型：选择、听力、拼音、声调、对错、填空、排句子、配对。<span class=ui-en data-b>Types: multiple choice, listening, pinyin, tones, true/false, fill in the blank, word order, matching.</span></li>
       <li>答对 ${need} 题得 1 颗星${cur<8?`，并解锁下一座岛 ${ISLANDS[cur+1].no}「${ISLANDS[cur+1].name}」`:""}。<span class=ui-en data-b>${need} correct = 1 star${cur<8?" and the next island unlocks":""}.</span></li>
       <li>答对 ${Math.ceil(n*.8)} 题得 2 颗星，全对得 3 颗星。每多 1 颗星 +10 椰子币。<span class=ui-en data-b>${Math.ceil(n*.8)} correct = 2 stars, all correct = 3 stars. +10 coins for each new star.</span></li>
       ${d.mixed?"<li>终点舞台的题目来自全部九个岛。<span class=ui-en data-b>Questions come from all nine islands.</span></li>":""}<li>听力题请打开声音。<span class=ui-en data-b>Turn your sound on for listening questions.</span></li></ul>
       <p style="margin:0;color:var(--muted);font-size:13px">最佳成绩<span class=ui-en>Best</span>：${stars3(starsOf(cur))}${ql?` · 最高 ${ql.best}/${ql.n} 分 · 已挑战 ${ql.att} 次<span class=ui-en>best ${ql.best}/${ql.n} · ${ql.att} tries</span>`:""}</p>
-      ${wrongIds(cur).length?`<div class="notice" style="margin:0"><b>错题本<span class=ui-en>Mistakes book</span></b>：有 ${wrongIds(cur).length} 道做错的题还没掌握。复习不影响星星和椰子币，答对就会从错题本里移出。<span class=ui-en data-b>${wrongIds(cur).length} question(s) you got wrong are waiting. Reviewing doesn't change your stars or coins; answer one correctly and it leaves the book.</span><div class="row" style="margin-top:8px"><button class="btn ghost" type="button" id="qRev">复习错题 (${wrongIds(cur).length})<span class=ui-en>Review mistakes</span></button></div></div>`:""}
+      ${wrongIds(cur).length?`<div class="notice" style="margin:0"><div class="mrow">${COVER("mistakes").replace('class="cov"','class="cov" style="width:84px;aspect-ratio:1;margin:0"')}<div><b>错题本<span class=ui-en>Mistakes book</span></b>：有 ${wrongIds(cur).length} 道做错的题还没掌握。复习不影响星星和椰子币，答对就会从错题本里移出。<span class=ui-en data-b>${wrongIds(cur).length} question(s) you got wrong are waiting. Reviewing doesn't change your stars or coins; answer one correctly and it leaves the book.</span></div></div><div class="row" style="margin-top:8px"><button class="btn ghost" type="button" id="qRev">复习错题 (${wrongIds(cur).length})<span class=ui-en>Review mistakes</span></button></div></div>`:""}
       <button class="btn" type="button" id="qGo">开始闯关<span class=ui-en>Start</span></button></div>`);
     $("#qGo").onclick=()=>{ quiz=buildQuiz(cur); quiz.k=0; renderQuiz(body); speakIfListen(); };
     const rv=$("#qRev"); if(rv) rv.onclick=()=>{ const q2=buildReview(cur); if(!q2){ save(); renderQuiz(body); return; } quiz=q2; quiz.k=0; renderQuiz(body); speakIfListen(); };
@@ -1843,7 +1855,7 @@ function finishQ(ok, body, shown, x, xe){
 }
 function showAfter(body){
   const q=quiz.qs[quiz.k], L=quiz.last||{}, ok=quiz.res[quiz.k], last=quiz.k===quiz.qs.length-1, box=$("#qAfter"); if(!box) return;
-  setHTML(box, `<div class="explain"><b style="color:${ok?"var(--ok)":"var(--bad)"}">${ok?"答对了！<span class=ui-en>Correct!</span>":"再想想：<span class=ui-en>Not quite.</span>"}</b> 正确答案是<span class=ui-en>Answer</span>「<span${(q.np&&!ok)?"":""}>${esc(L.shown||"")}</span>」。${L.x?esc(L.x)+enX2(L.x,L.xe):""}${q.au?` <span class="apy">（${esc(q.au)} · ${esc(q.apy)}）</span>`:""}</div>
+  setHTML(box, `<div class="mrow">${MASCOT(ok?(Math.random()<.5?1:5):4)}<div class="explain"><b style="color:${ok?"var(--ok)":"var(--bad)"}">${ok?"答对了！<span class=ui-en>Correct!</span>":"再想想：<span class=ui-en>Not quite.</span>"}</b> 正确答案是<span class=ui-en>Answer</span>「<span${(q.np&&!ok)?"":""}>${esc(L.shown||"")}</span>」。${L.x?esc(L.x)+enX2(L.x,L.xe):""}${q.au?` <span class="apy">（${esc(q.au)} · ${esc(q.apy)}）</span>`:""}</div></div>
     <div class="row" style="margin-top:12px"><button class="btn" type="button" id="qNext">${last?"看成绩<span class=ui-en>Results</span>":"下一题<span class=ui-en>Next</span>"}</button></div>`);
   $("#qNext").onclick=()=>{ quiz.k++; quiz.last=null; renderQuiz(body); speakIfListen(); };
   $("#qNext").focus();
@@ -1852,7 +1864,7 @@ function showAfter(body){
 function newRewards(t){ const d=BUILD.filter(x=>x.tier===t), c=SEA.filter(x=>x.tier===t); if(!d.length&&!c.length) return "";
   return `<p class="unlock" style="margin:0">${ICON("ic-gift")} 新摆设：${d.map(x=>x.name).join("、")||"—"}${c.length?`；新海洋生物：${c.map(x=>x.zh).join("、")}`:""}${t===3?"（海洋养殖开放了！）":""}<span class=ui-en data-b>New in the shop: ${d.map(x=>x.en).join(", ")}${c.length?`; sea creatures: ${c.map(x=>x.en).join(", ")}`:""}${t===3?" — the sea farm is now open!":""}</span></p>`; }
 function renderReviewResult(body){ const n=quiz.qs.length, sc=quiz.score, left=wrongIds(cur).length; save();
-  setHTML(body, `<div class="result"><div class="big">${sc} / ${n}</div>
+  setHTML(body, `<div class="result">${MASCOT(sc===n?1:sc*2>=n?5:4,"big")}<div class="big">${sc} / ${n}</div>
     <p style="margin:0">${sc===n?"全部答对，太棒了！":"再看看没答对的题。"}<span class=ui-en data-b>${sc===n?"All correct — well done!":"Have another look at the ones you missed."}</span></p>
     <p style="margin:0;color:var(--muted)">移出错题本 ${quiz.cleared||0} 道，还剩 ${left} 道。<span class=ui-en data-b>${quiz.cleared||0} left the book; ${left} to go.</span></p>
     <div class="row" style="justify-content:center;margin-top:8px">${left?`<button class="btn" type="button" id="rvAgain">继续复习<span class=ui-en>Review more</span></button>`:""}<button class="btn ${left?"ghost":""}" type="button" id="rvBack">回到闯关<span class=ui-en>Back to the quiz</span></button></div></div>`);
@@ -1868,10 +1880,11 @@ function renderResult(body){
   if(st>prev) earn((st-prev)*10, `${ISLANDS[cur].name}闯关 +${st-prev} 颗星`);
   const newly = wasLocked && progressOpen(cur+1), nextBlk = cur<8 && !state.teacher ? isleBlock(cur+1) : null;
   refreshLabels();
-  const tq=panel.querySelector('[data-t="quiz"]'); if(tq){ tq.innerHTML=`闯关 <span class="lbl-stars" style="display:flex">${stars3(starsOf(cur))}</span>`; rubify(tq); }
+  const tq=panel.querySelector('[data-t="quiz"]'); if(tq){ tq.innerHTML=`${TBI("quiz")}闯关 <span class="lbl-stars" style="display:flex">${stars3(starsOf(cur))}</span>`; rubify(tq); }
   const msg = st===3?"满分！太棒了！<span class=ui-en data-b>Perfect score!</span>": st===2?"很好！差一点就满分。<span class=ui-en data-b>Great — almost perfect.</span>": st===1?"过关了！再练练可以拿更多星。<span class=ui-en data-b>Passed! Practise more for extra stars.</span>":"还差一点，回到「探索」复习一下再来。<span class=ui-en data-b>Almost — review in Explore and try again.</span>";
   setTimeout(()=>{ const se=body.querySelector(".result .stars"); if(st===3) FX.confetti(); if(se && st>prev && st>0){ const r=se.getBoundingClientRect(); FX.sparkle(r.left+r.width/2, r.top+r.height/2, st===3); } }, 120);
   setHTML(body, `<div class="result">
+    ${MASCOT(st>=3?1:st>=1?5:4,"big")}
     <div class="stars">${stars3(st)}</div>
     <div class="big">${sc} / ${n}</div>
     <p style="margin:0">${msg}</p>
@@ -1895,9 +1908,9 @@ function renderGames(body){
     const status=id=> id==="sw" ? `${(g.sw||[]).length}/8 字 chars` : g[id] ? (id==="mm"&&g.mmBest?`最快 ${g.mmBest} 秒 best ${g.mmBest}s`: id==="wm"&&g.wmBest?`最高 ${g.wmBest} 分 best ${g.wmBest}`:"已完成 Done") : "未完成 Not done";
     const done=id=> id==="sw" ? (g.sw||[]).length>=8 : !!g[id];
     setHTML(body, `<p class="notice">每个游戏第一次完成 +15 椰子币，再玩一次 +2。椰子币可以在「建设」里建设你的南洋岛。<span class=ui-en data-b>First finish +15 coins, replays +2. Spend coins in Build.</span></p>
-      <div class="gcards">${GAMES.map(x=>`<button class="gcard ${done(x.id)?"done":""}" type="button" data-g="${x.id}"><b>${x.name}</b><span class="en">${x.en}</span><span class="ds">${x.desc}<span class=ui-en data-b>${x.descEn}</span></span><span class="st">${done(x.id)?"✓ ":""}${status(x.id)}</span></button>`).join("")}</div>
+      <div class="gcards">${GAMES.map(x=>`<button class="gcard ${done(x.id)?"done":""}" type="button" data-g="${x.id}">${COVER({sb:"blocks",mm:"memory",wm:"whack",sw:"strokes"}[x.id])}<b>${x.name}</b><span class="en">${x.en}</span><span class="ds">${x.desc}<span class=ui-en data-b>${x.descEn}</span></span><span class="st">${done(x.id)?"✓ ":""}${status(x.id)}</span></button>`).join("")}</div>
       <h3 class="spot-h" style="margin:4px 0 0">声音与动作<span class=ui-en>Voice &amp; motion</span> <span class="en">需要麦克风或摄像头 · needs mic or camera · 首次完成 +20</span></h3>
-      <div class="gcards">${GAMES2.map(x=>{ const c=(state.consent||{})[x.need], dn=!!g[x.id]; return `<button class="gcard ${dn?"done":""} ${c===false?"skipped":""}" type="button" data-g="${x.id}"><b>${x.need==="cam"?"📷":"🎤"} ${x.name}</b><span class="en">${x.en}</span><span class="ds">${x.desc}<span class=ui-en data-b>${x.descEn}</span></span><span class="st">${dn?"✓ 已完成 Done":c===false?"已跳过 Skipped":"未完成 Not done"}</span></button>`; }).join("")}</div>`);
+      <div class="gcards">${GAMES2.map(x=>{ const c=(state.consent||{})[x.need], dn=!!g[x.id]; return `<button class="gcard ${dn?"done":""} ${c===false?"skipped":""}" type="button" data-g="${x.id}">${COVER({tone:"surf",read:"read",gest:"grab"}[x.id])}<b>${x.need==="cam"?"📷":"🎤"} ${x.name}</b><span class="en">${x.en}</span><span class="ds">${x.desc}<span class=ui-en data-b>${x.descEn}</span></span><span class="st">${dn?"✓ 已完成 Done":c===false?"已跳过 Skipped":"未完成 Not done"}</span></button>`; }).join("")}</div>`);
     body.querySelectorAll("[data-g]").forEach(b=>b.onclick=()=>{ game=b.dataset.g; setLast("games"); renderGames(body); });
     return;
   }
@@ -2207,7 +2220,7 @@ function watchASR(body){ const set=p=>{ if(gs) gs.dlPct=p; const bar=$("#dlBar")
 function readRender(body){
   if(readEngine()==="ai" && gs.dl && gs.dl!=="ready"){ const d=gs.dl;
     setHTML(body, `${BACK}<div class="result" style="gap:12px">
-      <div class="big" style="font-size:44px">📥</div>
+      ${MASCOT(3,"big")}
       <h3 style="margin:0">需要下载语音识别模型<span class=ui-en data-b>Speech model download needed</span></h3>
       ${d==="check"?`<p style="margin:0">检查中…<span class=ui-en data-b>Checking…</span></p>`:""}
       ${d==="ask"?`<p style="margin:0;text-align:left">“跟读过关”用手机或电脑里的 AI 听你的发音。第一次玩要先下载语音识别模型，<b>大约 75MB</b>，<b>只需要下载一次</b>，以后打开就能直接用。<br>请连上 <b>Wi-Fi</b> 再下载，下载时不要关闭这个页面。<span class=ui-en data-b>“Read aloud” uses an AI on your device to listen to you. The first time, it needs to download a speech model of <b>about 75 MB</b> — <b>only once</b>. Please use <b>Wi-Fi</b> and keep this page open while it downloads.</span></p>
@@ -3431,7 +3444,7 @@ function openSide(kind){
   $("#sClose").onclick=()=>{ side.hidden=true; updateOffsetGoal(); };
   side.hidden=false; side.querySelector(".d-body").scrollTop=0; updateOffsetGoal();
 }
-function setAnim(on){ animOn=on; const b=$("#bMotion"); b.setAttribute("aria-pressed",String(!on)); const s=b.querySelector("span"); s.innerHTML=on?"暂停动态<span class=ui-en>Pause</span>":"恢复动态<span class=ui-en>Resume</span>"; rubify(s); b.querySelector("svg").innerHTML=on?'<path d="M10 5v14M14 5v14"/>':'<path d="M8 5v14l11-7z"/>'; }
+function setAnim(on){ animOn=on; const b=$("#bMotion"); b.setAttribute("aria-pressed",String(!on)); const s=b.querySelector("span"); s.innerHTML=on?"暂停动态<span class=ui-en>Pause</span>":"恢复动态<span class=ui-en>Resume</span>"; rubify(s); b.querySelector(".tbi").classList.toggle("off",!on); }
 
 /* ---------- welcome / nickname ---------- */
 /* ============================== 登入与云端同步 Login + cloud sync (class code + Student ID + 4-digit PIN) ============================== */
