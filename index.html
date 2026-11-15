@@ -518,7 +518,55 @@ const ISLANDS = [
    {q:"“人” 的笔顺是？", a:"撇、捺", d:["捺、撇","竖、横","横、撇"], x:"先撇后捺。"},
    {q:"笔画 “丿” 叫什么？", a:"撇 piě", d:["捺 nà","提 tí","点 diǎn"]},
    {q:"听一听，你听到的是哪一个？", au:"马", apy:"mǎ", a:"mǎ（马）", d:["mā（妈）","má（麻）","mà（骂）"]},
-   {q:"写 “国” 字，最后一笔是？", a:"最下面封口的横", d:["第一笔的竖","里面的点","右边的横折"], x:"先进人，后关门。"} ] },
+   {q:"写 “国” 字，最后一笔是？", a:"最下面封口的横", d:["第一笔的竖","里面的点","右边的横折"], x:"先进人，后关门。"},
+   {"q": "“mā” 是第几声？", "qe": "Which tone is this?", "a": "第一声 1st tone", "d": ["第二声 2nd tone", "第三声 3rd tone", "第四声 4th tone"]},
+   {"q": "“má” 是第几声？", "qe": "Which tone is this?", "a": "第二声 2nd tone", "d": ["第一声 1st tone", "第三声 3rd tone", "第四声 4th tone"]},
+   {"q": "“mà” 是第几声？", "qe": "Which tone is this?", "a": "第四声 4th tone", "d": ["第一声 1st tone", "第二声 2nd tone", "第三声 3rd tone"]},
+   {"q": "“ma”（吗）是第几声？", "qe": "Which tone is “ma” (the question particle)?", "a": "轻声 neutral tone", "d": ["第一声 1st tone", "第二声 2nd tone", "第四声 4th tone"], "x": "“吗”读得又轻又短，是轻声。", "xe": "“吗” is read light and short: the neutral tone."},
+   {"q": "「妈」的拼音是？", "qe": "Which is the correct pinyin?", "a": "mā", "d": ["má", "mǎ", "mà"], "np": 1},
+   {"q": "「马」的拼音是？", "qe": "Which is the correct pinyin?", "a": "mǎ", "d": ["mā", "má", "mà"], "np": 1},
+   {"q": "「骂」的拼音是？", "qe": "Which is the correct pinyin?", "a": "mà", "d": ["mā", "má", "mǎ"], "np": 1},
+   {"q": "「麻」的拼音是？", "qe": "Which is the correct pinyin?", "a": "má", "d": ["mā", "mǎ", "mà"], "np": 1},
+   {"q": "哪一个字是第二声？", "qe": "Which character is read in the 2nd tone?", "a": "麻", "d": ["妈", "马", "骂"], "x": "麻 má 是第二声（上扬）。", "xe": "麻 má is the 2nd tone (rising)."},
+   {"q": "哪一个字的意思是 “horse”？", "qe": "Which character means “horse”?", "a": "马", "d": ["妈", "麻", "骂"]},
+   {"q": "哪一个字的意思是 “to scold”？", "qe": "Which character means “to scold”?", "a": "骂", "d": ["妈", "麻", "马"]},
+   {"q": "哪一个字的意思是 “mum”？", "qe": "Which character means “mum”?", "a": "妈", "d": ["麻", "马", "骂"]},
+   {"q": "听一听，你听到的是哪一个？", "qe": "Listen. Which one did you hear?", "a": "mā（妈）", "d": ["má（麻）", "mǎ（马）", "mà（骂）"], "au": "妈", "apy": "mā"},
+   {"q": "听一听，你听到的是哪一个？", "qe": "Listen. Which one did you hear?", "a": "má（麻）", "d": ["mā（妈）", "mǎ（马）", "mà（骂）"], "au": "麻", "apy": "má"},
+   {"q": "听一听，你听到的是哪一个？", "qe": "Listen. Which one did you hear?", "a": "mǎ（马）", "d": ["mā（妈）", "má（麻）", "mà（骂）"], "au": "马", "apy": "mǎ"},
+   {"q": "听一听，你听到的是哪一个？", "qe": "Listen. Which one did you hear?", "a": "mà（骂）", "d": ["mā（妈）", "má（麻）", "mǎ（马）"], "au": "骂", "apy": "mà"},
+   {"q": "“gui”（贵）的声调符号应标在哪个字母上？", "qe": "On which letter does the tone mark of “gui” go?", "a": "i", "d": ["u", "g", "不用标 no mark"], "x": "i 和 u 在一起，标在后面那个：guì。", "xe": "When i and u are together, mark the second one: guì.", "np": 1},
+   {"q": "“liu”（六）的声调符号应标在哪个字母上？", "qe": "On which letter does the tone mark of “liu” go?", "a": "u", "d": ["i", "l", "不用标 no mark"], "x": "i 和 u 在一起，标在后面那个：liù。", "xe": "When i and u are together, mark the second one: liù.", "np": 1},
+   {"q": "“mei”（没）的声调符号应标在哪个字母上？", "qe": "On which letter does the tone mark of “mei” go?", "a": "e", "d": ["m", "i", "不用标 no mark"], "x": "没有 a，找 o 或 e：méi。", "xe": "No a? Look for o or e: méi.", "np": 1},
+   {"q": "“xie”（谢）的声调符号应标在哪个字母上？", "qe": "On which letter does the tone mark of “xie” go?", "a": "e", "d": ["x", "i", "不用标 no mark"], "x": "没有 a，找 o 或 e：xiè。", "xe": "No a? Look for o or e: xiè.", "np": 1},
+   {"q": "“duo”（多）的声调符号应标在哪个字母上？", "qe": "On which letter does the tone mark of “duo” go?", "a": "o", "d": ["d", "u", "不用标 no mark"], "x": "没有 a，找 o 或 e：duō。", "xe": "No a? Look for o or e: duō.", "np": 1},
+   {"q": "“hao”（好）的声调符号应标在哪个字母上？", "qe": "On which letter does the tone mark of “hao” go?", "a": "a", "d": ["h", "o", "不用标 no mark"], "x": "有 a 标 a：hǎo。", "xe": "If there is an a, mark the a: hǎo.", "np": 1},
+   {"q": "「绿」的拼音是？", "qe": "Which is the correct pinyin?", "a": "lǜ", "d": ["lù", "lǚ", "lǘ"], "x": "l 后面的 ü 要保留两点：lǜ。", "xe": "After l, ü keeps its two dots: lǜ.", "np": 1},
+   {"q": "「去」的拼音是？", "qe": "Which is the correct pinyin?", "a": "qù", "d": ["qǜ", "qǔ", "qū"], "x": "j、q、x 后面的 ü 省略两点，写成 u：qù。", "xe": "After j, q, x, ü drops its dots and is written u: qù.", "np": 1},
+   {"q": "「女」的拼音是？", "qe": "Which is the correct pinyin?", "a": "nǚ", "d": ["nǔ", "nù", "nǘ"], "x": "n 后面的 ü 要保留两点：nǚ。", "xe": "After n, ü keeps its two dots: nǚ.", "np": 1},
+   {"q": "“qü” 按规则应该写成？", "qe": "How should “qü” be written, by the rule?", "a": "qu", "d": ["qü", "qiu", "kü"], "x": "j、q、x 后面的 ü 省略两点。", "xe": "After j, q, x, ü drops its two dots.", "np": 1},
+   {"q": "两个第三声连在一起，前一个会变成第几声？", "qe": "When two 3rd tones come together, the first one changes to which tone?", "a": "第二声 2nd tone", "d": ["第一声 1st tone", "第三声 3rd tone", "第四声 4th tone"], "x": "例如：你好 nǐ hǎo → ní hǎo。", "xe": "For example: 你好 nǐ hǎo → ní hǎo."},
+   {"q": "“不” 在第四声前面读？", "qe": "How is “不” read before a 4th tone?", "a": "bú（第二声）", "d": ["bù（第四声）", "bǔ（第三声）", "bū（第一声）"], "x": "例如：不是 bú shì。", "xe": "For example: 不是 bú shì.", "np": 1},
+   {"q": "“不好” 里的 “不” 读？", "qe": "How is “不” read in “不好”?", "a": "bù", "d": ["bú", "bǔ", "bū"], "x": "“好”是第三声，“不”不变调，仍读 bù。", "xe": "好 is 3rd tone, so 不 does not change: bù.", "np": 1},
+   {"q": "“不对” 里的 “不” 读？", "qe": "How is “不” read in “不对”?", "a": "bú", "d": ["bù", "bǔ", "bū"], "x": "“对”是第四声，“不”变成第二声：bú duì。", "xe": "对 is 4th tone, so 不 becomes 2nd tone: bú duì.", "np": 1},
+   {"q": "“不去” 实际读作？", "qe": "How is “不去” actually read?", "a": "bú qù", "d": ["bù qù", "bǔ qù", "bú qǔ"], "x": "“去”是第四声，“不”变第二声。", "xe": "去 is 4th tone, so 不 becomes 2nd tone.", "np": 1},
+   {"q": "笔画 “一” 叫什么？", "qe": "What is the stroke “一” called?", "a": "横 héng", "d": ["竖 shù", "撇 piě", "捺 nà"]},
+   {"q": "笔画 “丨” 叫什么？", "qe": "What is the stroke “丨” called?", "a": "竖 shù", "d": ["横 héng", "撇 piě", "捺 nà"]},
+   {"q": "笔画 “丶” 叫什么？", "qe": "What is the stroke “丶” called?", "a": "点 diǎn", "d": ["横 héng", "竖 shù", "撇 piě"]},
+   {"q": "笔画 “㇏” 叫什么？", "qe": "What is the stroke “㇏” called?", "a": "捺 nà", "d": ["横 héng", "竖 shù", "撇 piě"]},
+   {"q": "笔画 “㇀” 叫什么？", "qe": "What is the stroke “㇀” called?", "a": "提 tí", "d": ["横 héng", "竖 shù", "撇 piě"]},
+   {"q": "笔画 “㇕” 叫什么？", "qe": "What is the stroke “㇕” called?", "a": "折 zhé", "d": ["横 héng", "竖 shù", "撇 piě"]},
+   {"q": "笔画 “㇚” 叫什么？", "qe": "What is the stroke “㇚” called?", "a": "钩 gōu", "d": ["横 héng", "竖 shù", "撇 piě"]},
+   {"q": "“héng” 是哪一个笔画？", "qe": "Which stroke is “héng”?", "a": "㇐", "d": ["㇑", "㇒", "㇏"], "np": 1},
+   {"q": "“piě” 是哪一个笔画？", "qe": "Which stroke is “piě”?", "a": "㇒", "d": ["㇐", "㇑", "㇔"], "np": 1},
+   {"q": "“十” 的笔顺是？", "qe": "What is the stroke order of 十?", "a": "先横后竖", "d": ["先竖后横", "先撇后捺", "先点后横"], "x": "先横后竖：十。", "xe": "Horizontal before vertical: 十."},
+   {"q": "“三” 要怎么写？", "qe": "How is 三 written?", "a": "从上到下", "d": ["从下到上", "从右到左", "从里到外"], "x": "从上到下：三。", "xe": "Top to bottom: 三."},
+   {"q": "写 “你” 字，应该先写哪一边？", "qe": "Writing 你, which side comes first?", "a": "左边（亻）", "d": ["右边（尔）", "随便先写哪边", "最下面"], "x": "从左到右：你。", "xe": "Left to right: 你."},
+   {"q": "“国” 里面的 “玉” 什么时候写？", "qe": "When do you write the 玉 inside 国?", "a": "外框写好以后，封口以前", "d": ["最先写", "最后写，在封口以后", "可以不写"], "x": "先进人，后关门：先写里面，最后一横封口。", "xe": "Enter first, then shut the door: write the inside, then seal with the last stroke."},
+   {"q": "“人” 有几画？", "qe": "How many strokes does 人 have?", "a": "2 画", "d": ["1 画", "3 画", "4 画"]},
+   {"q": "“十” 有几画？", "qe": "How many strokes does 十 have?", "a": "2 画", "d": ["1 画", "3 画", "4 画"]},
+   {"q": "“三” 有几画？", "qe": "How many strokes does 三 have?", "a": "3 画", "d": ["2 画", "4 画", "5 画"]},
+   {"q": "“国” 有几画？", "qe": "How many strokes does 国 have?", "a": "8 画", "d": ["7 画", "9 画", "10 画"]} ] },
 
 { no:"C2", name:"问候码头", py:"Wènhòu Mǎtóu", en:"Greetings Pier", module:"问候礼貌与姓名表达", moduleEn:"Greetings, Courtesy & Names",
   lesson:"Unit 1 Lesson 2《问候》& Lesson 3《姓名》",
@@ -1744,6 +1792,10 @@ function bankOf(i){
     bank.push({t:"mc", key:w.zh, np:1, q:`「${w.zh}」的拼音是？`, qe:"Which is the correct pinyin?", a:w.py, d:pd2, x:`「${w.zh}」读 ${w.py}。`, xe:`It is read ${w.py}.`});
     const first=[...w.zh][0], t=HAS_PY?toneOf(pyOf(w.zh)[0]||""):0;
     if(t>0) bank.push({t:"mc", key:w.zh, np:1, q:[...w.zh].length>1?`「${w.zh}」的「${first}」是第几声？`:`「${w.zh}」是第几声？`, qe:[...w.zh].length>1?"Which tone is the first character?":"Which tone is this character?", a:`${TONE_NAME[t]} ${TONE_EN[t]}`, d:[1,2,3,4].filter(x=>x!==t).map(x=>`${TONE_NAME[x]} ${TONE_EN[x]}`), x:`「${first}」读 ${pyOf(w.zh)[0]}。`, xe:`${first} is read ${pyOf(w.zh)[0]}.`});
+    { const homo=ALL.filter(x=>x.py===w.py).map(x=>x.zh).concat([w.zh]);
+      const dpz=dz(homo); if(dpz.length>=3) bank.push({t:"mc", key:w.zh, q:`“${w.py}” 是哪一个词？`, qe:"Which word has this pinyin?", a:w.zh, d:dpz, np:1});
+      bank.push({t:"mc", key:w.zh, q:"听一听，这个词是什么意思？", qe:"Listen. What does this word mean?", au:w.zh, apy:w.py, a:w.en, d:de([w.en])});
+      bank.push({t:"mc", key:w.zh, np:1, q:`“${w.en}” 的拼音是？`, qe:"Which is the correct pinyin?", a:w.py, d:pd2}); }
     bank.push({t:"tf", key:w.zh, q:`「${w.zh}」的意思是 “${w.en}”。`, qe:"True or false?", a:"对"});
     const wrong=de([w.en],1)[0]; if(wrong) bank.push({t:"tf", key:w.zh, q:`「${w.zh}」的意思是 “${wrong}”。`, qe:"True or false?", a:"错", x:`「${w.zh}」的意思是 “${w.en}”。`, xe:`It means "${w.en}".`});
   });
@@ -1751,7 +1803,7 @@ function bankOf(i){
   S.forEach(s=>{
     if(s.toks.length>=3) bank.push({t:"order", key:s.toks.join(""), q:"把词语排成正确的句子。", qe:`Put the words in order: "${s.en}"`, toks:s.toks, end:s.end, en:s.en});
     const cand=s.toks.map((x,k)=>k).filter(k=>HZ_RE.test(s.toks[k]));
-    pickN(cand, 2).forEach(k=>{ const a=s.toks[k], blank=s.toks.map((x,j)=>j===k?"___":x).join("")+s.end; const dd=pickN(tokPool.filter(x=>x!==a && [...x].length===[...a].length),3,[a]); const dd2=dd.concat(pickN(tokPool,3-dd.length,[a].concat(dd)));
+    pickN(cand, 3).forEach(k=>{ const a=s.toks[k], blank=s.toks.map((x,j)=>j===k?"___":x).join("")+s.end; const dd=pickN(tokPool.filter(x=>x!==a && [...x].length===[...a].length),3,[a]); const dd2=dd.concat(pickN(tokPool,3-dd.length,[a].concat(dd)));
       if(dd2.length>=2) bank.push({t:"mc", key:s.toks.join(""), q:`选词填空：${blank}`, qe:`Fill in the blank: "${s.en}"`, a, d:dd2}); });
   });
   const D=islandDialogs(i), allD=ISLANDS.flatMap((_,j)=>islandDialogs(j));
@@ -1762,6 +1814,7 @@ function bankOf(i){
     bank.push({t:"mc", key:dl.A, q:`「${dl.B}」是在回答哪个问题？`, qe:"Which question does this answer?", a:dl.A, d:oq2});
   });
   for(let k=0;k+4<=W.length;k+=4) bank.push({t:"match", key:"m"+k, q:"把汉字和英文配对。", qe:"Match each word to its English.", pairs:W.slice(k,k+4).map(w=>[w.zh,w.en])});
+  if(W.length>=6) for(let r=0;r<Math.floor(W.length/4);r++) bank.push({t:"match", key:"mr"+r, q:"把汉字和英文配对。", qe:"Match each word to its English.", pairs:pickN(W,4).map(w=>[w.zh,w.en])});
   if(W.length%4>=2) bank.push({t:"match", key:"mlast", q:"把汉字和英文配对。", qe:"Match each word to its English.", pairs:W.slice(-4).map(w=>[w.zh,w.en])});
   d.quiz.forEach((q,j)=>bank.push(Object.assign({t:"mc", key:"h"+j, qe:QUIZ_EN[q.q], xe:EXPLAIN_EN[q.x]}, q)));
   // keep only well-formed multiple-choice items (an answer + at least 2 distinct distractors)
