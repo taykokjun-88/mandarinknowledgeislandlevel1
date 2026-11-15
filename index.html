@@ -393,7 +393,13 @@ textarea{resize:vertical;font-size:12px;font-family:ui-monospace,Menlo,monospace
   .d-head .chip .mus .ui-en{display:none}
   .d-title{font-size:30px}
   .imap-wrap{top:var(--tabbar-h,64px)}
-  .brand h1{font-size:18px;white-space:nowrap}
+  .brand{gap:9px;padding:9px 12px}
+  .brand h1{font-size:15px;letter-spacing:0;white-space:nowrap}
+  .brand>div:nth-child(2){flex:1 1 auto;min-width:0}
+  .brand p{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .prog{flex:none;padding-left:10px}
+  .tools{gap:0}
+  .tbtn{padding:8px 7px}
   .brand h1 rt{font-size:9px}
   .prog small{display:none}
   .prog{gap:4px;font-size:15px}
@@ -402,7 +408,7 @@ textarea{resize:vertical;font-size:12px;font-family:ui-monospace,Menlo,monospace
 @media (max-width:720px), (max-width:1100px) and (orientation:portrait){
   .brand{padding:8px 12px;gap:10px}
   .seal{width:36px;height:36px;font-size:21px}
-  .brand h1{font-size:21px}
+  .brand h1{font-size:clamp(14px,4.3vw,21px)}
   .brand p{display:none}
   .prog{padding-left:10px}
   .tbtn span{display:none}
@@ -508,7 +514,9 @@ const ISLANDS = [
      tips:[{r:"j、q、x 后面的 u 其实是 ü：ju = jü，qu = qü，xu = xü。"},{r:"n、l 后面要保留两点：nǚ（女）、lǜ（绿）。"}] },
    { h:"基本笔画与笔顺", en:"Basic strokes & stroke order",
      v:[["横","héng","horizontal ㇐"],["竖","shù","vertical ㇑"],["撇","piě","left-falling ㇒"],["捺","nà","right-falling ㇏"],["点","diǎn","dot ㇔"],["提","tí","rising ㇀"],["折","zhé","turning ㇕"],["钩","gōu","hook ㇚"]],
-     tips:[{r:"先横后竖：十　·　先撇后捺：人　·　从上到下：三　·　从左到右：你"},{r:"全包围的字“先进人，后关门”：国 —— 先写里面的“玉”，最后一横封口。"}] } ],
+     tips:[{r:"先横后竖：十　·　先撇后捺：人　·　从上到下：三　·　从左到右：你"},{r:"全包围的字“先进人，后关门”：国 —— 先写里面的“玉”，最后一横封口。"},{"r":"先中间后两边：小（先写中间的竖钩，再写左右两点）· 水（先竖钩，再横撇、撇、捺）。"},{"r":"例字笔画数：大 3 画 · 主 5 画 · 汉 5 画 · 回 6 画 · 水 4 画。"}] },
+   {"h": "声母 21 个", "en": "Initials", "v": [["爸", "bà", "father · initial b (unaspirated)"], ["破", "pò", "broken · initial p (aspirated)"], ["米", "mǐ", "rice · initial m"], ["发", "fā", "to send · initial f"], ["大", "dà", "big · initial d (unaspirated)"], ["他", "tā", "he · initial t (aspirated)"], ["你", "nǐ", "you · initial n"], ["来", "lái", "to come · initial l"], ["个", "gè", "measure word · initial g (unaspirated)"], ["看", "kàn", "to look · initial k (aspirated)"], ["好", "hǎo", "good · initial h"], ["家", "jiā", "home · initial j (unaspirated)"], ["去", "qù", "to go · initial q (aspirated)"], ["谢", "xiè", "to thank · initial x"], ["住", "zhù", "to live · initial zh (unaspirated, tongue curled)"], ["吃", "chī", "to eat · initial ch (aspirated, tongue curled)"], ["是", "shì", "to be · initial sh (tongue curled)"], ["人", "rén", "person · initial r"], ["在", "zài", "at; in · initial z (unaspirated, tongue flat)"], ["才", "cái", "only then · initial c (aspirated, tongue flat)"], ["四", "sì", "four · initial s (tongue flat)"], ["一", "yī", "one · initial y"], ["我", "wǒ", "I; me · initial w"]], "tips": [{"r": "声母 21 个：b p m f · d t n l · g k h · j q x · zh ch sh r · z c s（y、w 是半元音，用在 i、u 开头的音节里）。"}, {"r": "纸巾测试：嘴前放一张纸，读 p t k q ch c（送气音）时纸会被吹动；读 b d g j zh z（不送气音）时纸几乎不动。"}, {"r": "翘舌音 zh ch sh r：舌尖向上卷；平舌音 z c s：舌尖平放在上齿后面。"}]},
+   {"h": "韵母", "en": "Finals", "v": [["白", "bái", "white · final ai"], ["黑", "hēi", "black · final ei"], ["老", "lǎo", "old · final ao"], ["六", "liù", "six · final iu"], ["贵", "guì", "expensive · final ui"], ["写", "xiě", "to write · final ie"], ["学", "xué", "to study · final üe"], ["下", "xià", "down; below · final ia"], ["三", "sān", "three · final an"], ["本", "běn", "book (measure word) · final en"], ["您", "nín", "you (polite) · final in"], ["顺", "shùn", "smooth · final un"], ["方", "fāng", "square; direction · final ang"], ["能", "néng", "can · final eng"], ["中", "zhōng", "middle · final ong"], ["儿", "ér", "son; -er suffix · final er"]], "tips": [{"r": "一个音节 = 声母 + 韵母 + 声调。例如 mā：m 是声母，a 是韵母，ˉ 是第一声。"}, {"r": "单韵母 6 个：a o e i u ü　·　复韵母：ai ei ui ao ou iu ie üe er。"}, {"r": "前鼻韵母（-n）：an en in un ün　·　后鼻韵母（-ng）：ang eng ing ong。"}, {"r": "结合韵母：ia ian iang iao iong ua uai uan uang uo üan。"}]} ],
   quiz:[
    {q:"“mǎ” 是第几声？", a:"第三声 3rd tone", d:["第一声 1st tone","第二声 2nd tone","第四声 4th tone"]},
    {q:"“hao” 的声调符号应标在哪个字母上？", a:"a", d:["h","o"], x:"有 a 标 a：hǎo。"},
@@ -566,7 +574,43 @@ const ISLANDS = [
    {"q": "“人” 有几画？", "qe": "How many strokes does 人 have?", "a": "2 画", "d": ["1 画", "3 画", "4 画"]},
    {"q": "“十” 有几画？", "qe": "How many strokes does 十 have?", "a": "2 画", "d": ["1 画", "3 画", "4 画"]},
    {"q": "“三” 有几画？", "qe": "How many strokes does 三 have?", "a": "3 画", "d": ["2 画", "4 画", "5 画"]},
-   {"q": "“国” 有几画？", "qe": "How many strokes does 国 have?", "a": "8 画", "d": ["7 画", "9 画", "10 画"]} ] },
+   {"q": "“国” 有几画？", "qe": "How many strokes does 国 have?", "a": "8 画", "d": ["7 画", "9 画", "10 画"]},
+   {"q": "「爸」的声母是？", "qe": "What is the initial of this character?", "a": "b", "d": ["p", "d", "m"], "x": "爸 读 bà，声母是 b。", "xe": "爸 is read bà; its initial is b.", "np": 1},
+   {"q": "「破」的声母是？", "qe": "What is the initial of this character?", "a": "p", "d": ["b", "f", "m"], "x": "破 读 pò，声母是 p。", "xe": "破 is read pò; its initial is p.", "np": 1},
+   {"q": "「大」的声母是？", "qe": "What is the initial of this character?", "a": "d", "d": ["t", "b", "g"], "x": "大 读 dà，声母是 d。", "xe": "大 is read dà; its initial is d.", "np": 1},
+   {"q": "「他」的声母是？", "qe": "What is the initial of this character?", "a": "t", "d": ["d", "n", "l"], "x": "他 读 tā，声母是 t。", "xe": "他 is read tā; its initial is t.", "np": 1},
+   {"q": "「看」的声母是？", "qe": "What is the initial of this character?", "a": "k", "d": ["g", "h", "j"], "x": "看 读 kàn，声母是 k。", "xe": "看 is read kàn; its initial is k.", "np": 1},
+   {"q": "「去」的声母是？", "qe": "What is the initial of this character?", "a": "q", "d": ["j", "x", "ch"], "x": "去 读 qù，声母是 q。", "xe": "去 is read qù; its initial is q.", "np": 1},
+   {"q": "「吃」的声母是？", "qe": "What is the initial of this character?", "a": "ch", "d": ["zh", "sh", "q"], "x": "吃 读 chī，声母是 ch。", "xe": "吃 is read chī; its initial is ch.", "np": 1},
+   {"q": "「住」的声母是？", "qe": "What is the initial of this character?", "a": "zh", "d": ["z", "ch", "j"], "x": "住 读 zhù，声母是 zh。", "xe": "住 is read zhù; its initial is zh.", "np": 1},
+   {"q": "「是」的声母是？", "qe": "What is the initial of this character?", "a": "sh", "d": ["s", "x", "zh"], "x": "是 读 shì，声母是 sh。", "xe": "是 is read shì; its initial is sh.", "np": 1},
+   {"q": "「四」的声母是？", "qe": "What is the initial of this character?", "a": "s", "d": ["sh", "x", "z"], "x": "四 读 sì，声母是 s。", "xe": "四 is read sì; its initial is s.", "np": 1},
+   {"q": "「才」的声母是？", "qe": "What is the initial of this character?", "a": "c", "d": ["z", "zh", "s"], "x": "才 读 cái，声母是 c。", "xe": "才 is read cái; its initial is c.", "np": 1},
+   {"q": "「在」的声母是？", "qe": "What is the initial of this character?", "a": "z", "d": ["c", "zh", "s"], "x": "在 读 zài，声母是 z。", "xe": "在 is read zài; its initial is z.", "np": 1},
+   {"q": "「六」的韵母是？", "qe": "What is the final of this character?", "a": "iu", "d": ["ui", "u", "ou"], "x": "六 读 liù，韵母是 iu。", "xe": "六 is read liù; its final is iu.", "np": 1},
+   {"q": "「贵」的韵母是？", "qe": "What is the final of this character?", "a": "ui", "d": ["iu", "ei", "i"], "x": "贵 读 guì，韵母是 ui。", "xe": "贵 is read guì; its final is ui.", "np": 1},
+   {"q": "「学」的韵母是？", "qe": "What is the final of this character?", "a": "üe", "d": ["ue", "ie", "ü"], "x": "学 读 xué，韵母是 üe。", "xe": "学 is read xué; its final is üe.", "np": 1},
+   {"q": "「写」的韵母是？", "qe": "What is the final of this character?", "a": "ie", "d": ["üe", "ei", "e"], "x": "写 读 xiě，韵母是 ie。", "xe": "写 is read xiě; its final is ie.", "np": 1},
+   {"q": "「能」的韵母是？", "qe": "What is the final of this character?", "a": "eng", "d": ["en", "ang", "ing"], "x": "能 读 néng，韵母是 eng。", "xe": "能 is read néng; its final is eng.", "np": 1},
+   {"q": "「中」的韵母是？", "qe": "What is the final of this character?", "a": "ong", "d": ["ang", "eng", "ou"], "x": "中 读 zhōng，韵母是 ong。", "xe": "中 is read zhōng; its final is ong.", "np": 1},
+   {"q": "「三」的韵母是？", "qe": "What is the final of this character?", "a": "an", "d": ["ang", "en", "ai"], "x": "三 读 sān，韵母是 an。", "xe": "三 is read sān; its final is an.", "np": 1},
+   {"q": "「方」的韵母是？", "qe": "What is the final of this character?", "a": "ang", "d": ["an", "eng", "ao"], "x": "方 读 fāng，韵母是 ang。", "xe": "方 is read fāng; its final is ang.", "np": 1},
+   {"q": "汉语拼音的一个音节由哪三部分组成？", "qe": "What three parts make up a pinyin syllable?", "a": "声母 + 韵母 + 声调", "d": ["声母 + 笔画 + 声调", "汉字 + 拼音 + 声调", "韵母 + 部首 + 声调"], "x": "例如 mā：m 声母 + a 韵母 + 第一声。", "xe": "For example mā: initial m + final a + 1st tone."},
+   {"q": "“mā” 里的 “m” 是什么？", "qe": "What is the “m” in “mā”?", "a": "声母 initial", "d": ["韵母 final", "声调 tone", "部首 radical"]},
+   {"q": "纸巾测试：读哪个声母时，嘴前的纸会被吹动？", "qe": "Tissue test: which initial makes the paper move?", "a": "p", "d": ["b", "d", "g"], "x": "p t k q ch c 是送气音。", "xe": "p t k q ch c are aspirated."},
+   {"q": "下面哪一组都是送气音？", "qe": "Which group is all aspirated?", "a": "p、t、k", "d": ["b、d、g", "p、d、k", "j、zh、z"]},
+   {"q": "哪一组是翘舌音？", "qe": "Which group are the retroflex initials?", "a": "zh ch sh r", "d": ["z c s", "b p m f", "j q x"], "x": "翘舌音：舌尖向上卷。", "xe": "Retroflex: curl the tongue tip up."},
+   {"q": "哪一组是平舌音？", "qe": "Which group are the dental sibilants?", "a": "z c s", "d": ["zh ch sh r", "b p m f", "j q x"], "x": "平舌音：舌尖平放在上齿后面。", "xe": "Flat: tongue tip behind the upper teeth."},
+   {"q": "哪一组是后鼻韵母？", "qe": "Which group are the back nasal finals?", "a": "ang eng ing ong", "d": ["an en in un", "ai ei ui ao", "a o e i u ü"], "x": "后鼻韵母以 -ng 结尾。", "xe": "Back nasal finals end in -ng."},
+   {"q": "单韵母一共有几个？", "qe": "How many simple finals are there?", "a": "6 个：a o e i u ü", "d": ["4 个", "5 个", "8 个"]},
+   {"q": "“小” 的第一笔是？", "qe": "What is the first stroke of 小?", "a": "中间的竖钩", "d": ["左边的点", "右边的点", "横"], "x": "先中间后两边。", "xe": "Centre before both sides."},
+   {"q": "“水” 的第一笔是？", "qe": "What is the first stroke of 水?", "a": "竖钩", "d": ["横撇", "撇", "捺"], "x": "先写中间的竖钩，再写横撇、撇、捺。", "xe": "Vertical hook first, then the rest."},
+   {"q": "“回” 的最后一笔是？", "qe": "What is the last stroke of 回?", "a": "底部的横（封口）", "d": ["里面的口", "第一笔竖", "右边的竖"], "x": "先外后里再封口。", "xe": "Outside, inside, then close."},
+   {"q": "“大” 的笔顺是？", "qe": "What is the stroke order of 大?", "a": "横、撇、捺", "d": ["撇、横、捺", "横、捺、撇", "竖、横、撇"]},
+   {"q": "“水” 有几画？", "qe": "How many strokes does 水 have?", "a": "4 画", "d": ["3 画", "5 画", "6 画"]},
+   {"q": "“回” 有几画？", "qe": "How many strokes does 回 have?", "a": "6 画", "d": ["5 画", "7 画", "8 画"]},
+   {"q": "“主” 有几画？", "qe": "How many strokes does 主 have?", "a": "5 画", "d": ["4 画", "6 画", "7 画"]},
+   {"q": "“汉” 有几画？", "qe": "How many strokes does 汉 have?", "a": "5 画", "d": ["4 画", "6 画", "7 画"]} ] },
 
 { no:"C2", name:"问候码头", py:"Wènhòu Mǎtóu", en:"Greetings Pier", module:"问候礼貌与姓名表达", moduleEn:"Greetings, Courtesy & Names",
   lesson:"Unit 1 Lesson 2《问候》& Lesson 3《姓名》",
@@ -579,7 +623,9 @@ const ISLANDS = [
    { h:"姓名", en:"Names",
      v:[["我","wǒ","I, me"],["你","nǐ","you"],["他","tā","he, him"],["她","tā","she, her"],["叫","jiào","to be called"],["什么","shénme","what"],["名字","míngzi","name"],["姓","xìng","surname; to be surnamed"]],
      p:[["你叫什么名字？——我叫阿里。","Nǐ jiào shénme míngzi? — Wǒ jiào Ālǐ.","What's your name? — I'm Ali."],["您贵姓？——我姓王。","Nín guìxìng? — Wǒ xìng Wáng.","May I ask your surname? — My surname is Wang."]],
-     tips:[{r:"中文姓名：姓在前，名在后。王小明 = 姓“王” + 名“小明”。"},{w:"你叫什么名字吗？", ok:"你叫什么名字？", why:"有“什么”的问句，句末不再加“吗”。"}] } ],
+     tips:[{r:"中文姓名：姓在前，名在后。王小明 = 姓“王” + 名“小明”。"},{w:"你叫什么名字吗？", ok:"你叫什么名字？", why:"有“什么”的问句，句末不再加“吗”。"}] },
+   {"h": "请求与告别", "en": "Requests & farewells", "v": [["同学们好", "tóngxuémen hǎo", "hello, everyone (teacher to class)"], ["明天见", "míngtiān jiàn", "see you tomorrow"], ["请", "qǐng", "please"], ["请问", "qǐngwèn", "excuse me, may I ask…"], ["请坐", "qǐng zuò", "please sit down"], ["请进", "qǐng jìn", "please come in"], ["很高兴认识你", "hěn gāoxìng rènshi nǐ", "nice to meet you"]], "p": [["请问，你叫什么名字？——我叫阿里。", "Qǐngwèn, nǐ jiào shénme míngzi? — Wǒ jiào Ālǐ.", "Excuse me, what's your name? — I'm Ali."]], "tips": [{"r": "三声变调：“你好”实际读 ní hǎo（两个第三声连读，前一个变第二声），书写仍然是 nǐ hǎo。"}, {"r": "“不”在第四声前读 bú：不客气 bú kèqi、不是 bú shì；在一、二、三声前仍读 bù：不好 bù hǎo。"}, {"w": "老师郑", "ok": "郑老师", "why": "称呼老师：姓在前，称呼在后。"}]},
+   {"h": "人称代词与“是”“吗”", "en": "Pronouns, 是 and 吗", "v": [["我们", "wǒmen", "we, us"], ["你们", "nǐmen", "you (plural)"], ["他们", "tāmen", "they (males or mixed)"], ["她们", "tāmen", "they (all female)"], ["是", "shì", "to be"], ["不是", "bú shì", "is not"], ["吗", "ma", "question particle"], ["也", "yě", "also, too"], ["和", "hé", "and (nouns only)"], ["大学生", "dàxuéshēng", "university student"]], "p": [["你是大学生吗？——是，我是大学生。", "Nǐ shì dàxuéshēng ma? — Shì, wǒ shì dàxuéshēng.", "Are you a university student? — Yes, I am."], ["我是大学生，她也是大学生。", "Wǒ shì dàxuéshēng, tā yě shì dàxuéshēng.", "I'm a university student; she is one too."]], "tips": [{"r": "“吗”放在句末变成是非问句，词序不变：你是大学生吗？"}, {"r": "“也”放在主语后、动词前：我也是大学生。“和”只连接名词：老师和我。"}, {"w": "我是大学生也。", "ok": "我也是大学生。", "why": "“也”必须放在动词前面，不能放在句末。"}, {"r": "常见偏旁：亻（你、他、们）· 女（好、她、妈）· 口（叫、吗）· 夕（名）· 宀（字、家）· 心（您）。"}]} ],
   quiz:[
    {q:"见到老师，最礼貌的问候是？", a:"您好！", d:["再见！","谢谢！","没关系！"]},
    {q:"“你叫什么名字？” 怎么回答？", a:"我叫阿里。", d:["我是好。","我名字阿里。","阿里叫我。"]},
@@ -588,7 +634,19 @@ const ISLANDS = [
    {q:"“不客气” 的意思是？", a:"You're welcome", d:["Thank you","Sorry","Goodbye"]},
    {q:"别人对你说 “谢谢！”，你回答？", a:"不客气！", d:["没关系！","再见！","对不起！"]},
    {q:"听一听，你听到的是哪一个？", au:"再见", apy:"zàijiàn", a:"再见", d:["谢谢","你好","老师"]},
-   {q:"“他” 和 “她” 的读音？", np:1, a:"一样，都读 tā", d:["“她”读 tà","“他”读 tǎ","完全不一样"]} ] },
+   {q:"“他” 和 “她” 的读音？", np:1, a:"一样，都读 tā", d:["“她”读 tà","“他”读 tǎ","完全不一样"]},
+   {"q": "“我们” 的意思是？", "qe": "What does 我们 mean?", "a": "we", "d": ["you (plural)", "they", "I"]},
+   {"q": "“她们” 的意思是？", "qe": "What does 她们 mean?", "a": "they (all female)", "d": ["she", "we", "you (plural)"], "x": "“她们”只用于全是女生；男生或男女混合用“他们”。", "xe": "她们 is only for an all-female group; use 他们 for males or mixed."},
+   {"q": "哪一句是对的？", "qe": "Which sentence is correct?", "a": "我也是大学生。", "d": ["我是也大学生。", "我是大学生也。", "也我是大学生。"], "x": "“也”放在动词前面。", "xe": "Put 也 before the verb."},
+   {"q": "下面哪一个用对了 “和”？", "qe": "Which one uses 和 correctly?", "a": "老师和我", "d": ["我叫大明，和他叫小月。", "我是学生，和他是老师。", "你好，和再见。"], "x": "“和”只连接名词，不能连接两个句子。", "xe": "和 only joins nouns, never two sentences."},
+   {"q": "称呼姓郑的老师，正确的是？", "qe": "How do you address a teacher surnamed Zheng?", "a": "郑老师", "d": ["老师郑", "郑的老师", "老师的郑"]},
+   {"q": "“请问” 的意思是？", "qe": "What does 请问 mean?", "a": "Excuse me, may I ask…", "d": ["Please sit down", "Thank you", "Goodbye"]},
+   {"q": "“请进” 的意思是？", "qe": "What does 请进 mean?", "a": "Please come in", "d": ["Please sit down", "Please speak", "Goodbye"]},
+   {"q": "“明天见” 的意思是？", "qe": "What does 明天见 mean?", "a": "See you tomorrow", "d": ["See you on Monday", "Good morning", "Happy birthday"]},
+   {"q": "“你是大学生吗？” 肯定回答是？", "qe": "How do you answer “yes” to 你是大学生吗？", "a": "是，我是大学生。", "d": ["是，我是大学生吗。", "我是大学生是。", "不是，我是大学生。"]},
+   {"q": "哪一个字有 “女字旁”？", "qe": "Which character has the 女 radical?", "a": "好", "d": ["你", "叫", "他"]},
+   {"q": "“您” 下面的部首是？", "qe": "Which radical is at the bottom of 您?", "a": "心", "d": ["口", "女", "亻"]},
+   {"q": "“同学们好！” 是谁对谁说的？", "qe": "Who says 同学们好 to whom?", "a": "老师对全班同学", "d": ["同学对老师", "同学对同学", "同学对长辈"]} ] },
 
 { no:"C3", name:"日历钟楼", py:"Rìlì Zhōnglóu", en:"Calendar Clock Tower", module:"数字系统、日期与年龄", moduleEn:"Numbers, Calendar Dates & Age",
   lesson:"Unit 2 Lesson 4《数字与日期》",
@@ -604,7 +662,8 @@ const ISLANDS = [
    { h:"年龄与生日", en:"Age & birthdays",
      v:[["岁","suì","years old"],["多大","duō dà","how old (teens & adults)"],["几岁","jǐ suì","how old (young children)"],["生日","shēngrì","birthday"]],
      p:[["你今年多大？——我今年二十岁。","Nǐ jīnnián duō dà? — Wǒ jīnnián èrshí suì.","How old are you? — I'm 20 this year."],["你的生日是几月几号？——八月十五号。","Nǐ de shēngrì shì jǐ yuè jǐ hào? — Bā yuè shíwǔ hào.","When's your birthday? — 15 August."]],
-     tips:[{w:"我是二十岁。", ok:"我今年二十岁。", why:"说年龄不用“是”。"}] } ],
+     tips:[{w:"我是二十岁。", ok:"我今年二十岁。", why:"说年龄不用“是”。"}] },
+   {"h": "月份与时间词", "en": "Months & time words", "v": [["十月", "shíyuè", "October"], ["十一月", "shíyīyuè", "November"], ["十二月", "shí'èryuè", "December"], ["去年", "qùnián", "last year"], ["今年", "jīnnián", "this year"], ["明年", "míngnián", "next year"], ["星期二", "xīngqī'èr", "Tuesday"], ["星期三", "xīngqīsān", "Wednesday"], ["星期四", "xīngqīsì", "Thursday"], ["星期五", "xīngqīwǔ", "Friday"], ["几", "jǐ", "how many; which (number)"], ["快乐", "kuàilè", "happy"]], "p": [["请问，今天几月几号？——今天是九月十八号。", "Qǐngwèn, jīntiān jǐ yuè jǐ hào? — Jīntiān shì jiǔ yuè shíbā hào.", "Excuse me, what's the date today? — It's 18 September."], ["我的生日是十月五号。", "Wǒ de shēngrì shì shí yuè wǔ hào.", "My birthday is 5 October."], ["祝你生日快乐！", "Zhù nǐ shēngrì kuàilè!", "Happy birthday!"]], "tips": [{"r": "月份 = 数字 + 月：一月、二月 …… 十二月，没有特别的名字。"}, {"r": "星期天 / 星期日才是周日，没有“星期七”。"}, {"r": "时间词放在主语前，或主语后、动词前：今天我上课 / 我今天上课；不能说“我上课今天”。"}, {"r": "口语说“号”，正式书写（表格、公文）用“日”。"}]} ],
   quiz:[
    {q:"“37” 怎么说？", a:"三十七", d:["七十三","三七","三十和七"]},
    {q:"“星期六” 是？", a:"Saturday", d:["Sunday","Friday","Monday"]},
@@ -613,7 +672,18 @@ const ISLANDS = [
    {q:"中文日期的顺序是？", a:"年 → 月 → 日", d:["日 → 月 → 年","月 → 日 → 年","月 → 年 → 日"], x:"由大到小。"},
    {q:"问同学的年龄，哪一句最得体？", a:"你今年多大？", d:["你是几岁吗？","你多大岁？","你岁多大？"]},
    {q:"星期五的明天是？", a:"星期六", d:["星期四","星期天","星期一"]},
-   {q:"听一听，你听到的日期是？", au:"十一月四号", apy:"shíyī yuè sì hào", a:"11月4号", d:["10月4号","11月14号","4月11号"]} ] },
+   {q:"听一听，你听到的日期是？", au:"十一月四号", apy:"shíyī yuè sì hào", a:"11月4号", d:["10月4号","11月14号","4月11号"]},
+   {"q": "“星期天” 还可以怎么说？", "qe": "What is another way to say 星期天?", "a": "星期日", "d": ["星期七", "星期零", "星期八"], "x": "星期天（口语）/ 星期日（书面），没有“星期七”。", "xe": "星期天 (spoken) / 星期日 (written); there is no 星期七."},
+   {"q": "“明年” 的意思是？", "qe": "What does 明年 mean?", "a": "next year", "d": ["last year", "this year", "every year"]},
+   {"q": "“去年” 的意思是？", "qe": "What does 去年 mean?", "a": "last year", "d": ["next year", "this year", "every year"]},
+   {"q": "哪一句是对的？", "qe": "Which sentence is correct?", "a": "今天我上课。", "d": ["我上课今天。", "上课我今天。", "今天上课我。"], "x": "时间词放在主语前，或主语后、动词前。", "xe": "Put time words before the subject, or between subject and verb."},
+   {"q": "在表格上，正式的写法是？", "qe": "What is the formal way to write it on a form?", "a": "八月十五日", "d": ["八月十五号", "八月十五天", "八月十五年"], "x": "书面用“日”，口语用“号”。", "xe": "Written: 日. Spoken: 号."},
+   {"q": "“你几岁？” 适合问谁？", "qe": "Who is 你几岁？ suitable for?", "a": "10 岁以下的小孩", "d": ["大学老师", "大学同学", "长辈"], "x": "问大人用“你今年多大？”。", "xe": "For adults ask 你今年多大？"},
+   {"q": "“祝你生日快乐！” 的意思是？", "qe": "What does 祝你生日快乐 mean?", "a": "Happy birthday!", "d": ["Good luck!", "Welcome!", "See you tomorrow!"]},
+   {"q": "“十二月” 怎么读？", "qe": "How do you read 十二月?", "a": "shí'èr yuè", "d": ["shí yī yuè", "èr shí yuè", "shí liǎng yuè"], "np": 1},
+   {"q": "“90” 怎么说？", "qe": "How do you say 90?", "a": "九十", "d": ["十九", "九零", "九百"]},
+   {"q": "“20” 怎么说？", "qe": "How do you say 20?", "a": "二十", "d": ["两十", "十二", "二零"]},
+   {"q": "问日期应该问？", "qe": "How do you ask the date?", "a": "今天几月几号？", "d": ["今天什么月什么号？", "今天几号月几？", "几月几号今天？"], "x": "问日期用“几”。", "xe": "Use 几 to ask the date."} ] },
 
 { no:"C4", name:"文莱住址村", py:"Wénlái Zhùzhǐ Cūn", en:"Address Village", module:"联系方式与文莱居住地点", moduleEn:"Contact Details, Phone & Residence",
   lesson:"Unit 2 Lesson 5《电话号码与住址》",
@@ -626,7 +696,8 @@ const ISLANDS = [
    { h:"住在哪儿", en:"Where you live",
      v:[["住","zhù","to live"],["在","zài","at, in"],["哪儿","nǎr","where"],["家","jiā","home; family"],["文莱","Wénlái","Brunei"],["斯里巴加湾市","Sīlǐbājiāwān Shì","Bandar Seri Begawan"],["加东","Jiādōng","Gadong"],["都东","Dūdōng","Tutong"],["马来奕","Mǎláiyì","Belait"],["淡布隆","Dànbùlóng","Temburong"]],
      p:[["你住在哪儿？——我住在斯里巴加湾市。","Nǐ zhù zài nǎr? — Wǒ zhù zài Sīlǐbājiāwān Shì.","Where do you live? — I live in BSB."],["你家在哪儿？——我家在加东。","Nǐ jiā zài nǎr? — Wǒ jiā zài Jiādōng.","Where's your home? — In Gadong."]],
-     tips:[{r:"地址由大到小：文莱 → 文莱-摩拉县 → 加东。"},{w:"我在住加东。", ok:"我住在加东。", why:"“住在 + 地方”。"}] } ],
+     tips:[{r:"地址由大到小：文莱 → 文莱-摩拉县 → 加东。"},{w:"我在住加东。", ok:"我住在加东。", why:"“住在 + 地方”。"}] },
+   {"h": "礼貌询问与更多地名", "en": "Polite questions & more places", "v": [["哪里", "nǎlǐ", "where (same as 哪儿)"], ["住在", "zhù zài", "to live in"], ["斯市", "Sīshì", "BSB (short form)"], ["诗里亚", "Shīlǐyà", "Seria"], ["北京", "Běijīng", "Beijing"], ["上海", "Shànghǎi", "Shanghai"]], "p": [["请问，您的电话号码是多少？", "Qǐngwèn, nín de diànhuà hàomǎ shì duōshao?", "Excuse me, what is your telephone number? (polite)"], ["你家的电话号码是多少？", "Nǐ jiā de diànhuà hàomǎ shì duōshao?", "What is your home telephone number?"]], "tips": [{"r": "问电话号码用“多少”（号码很长）；“几”一般只问 1–10 的数。"}, {"r": "房间号、航班号、身份证号里的 “1” 也读 yāo。"}, {"r": "哪儿 / 哪里 都是 where；哪 nǎ = which；那 nà = that。"}, {"r": "常见部首：阝（城市、地方）· 讠（说话）· 囗（国界）· 宀（住所）· 亻（人）。"}]} ],
   quiz:[
    {q:"电话号码里的 “1” 读？", a:"yāo", d:["yī","yí","yì"]},
    {q:"问电话号码，用哪个词？", a:"多少", d:["几岁","什么时候","哪国"]},
@@ -634,7 +705,15 @@ const ISLANDS = [
    {q:"中文地址的顺序是？", a:"由大到小：国家 → 地区 → 地方", d:["由小到大：门牌号先写","随便排都可以","先写电话号码"]},
    {q:"“马来奕” 是文莱的哪个地方？", a:"Belait", d:["Tutong","Temburong","Gadong"]},
    {q:"哪一句是对的？", a:"我住在斯里巴加湾市。", d:["我在住斯里巴加湾市。","我住斯里巴加湾市在。","斯里巴加湾市住在我。"]},
-   {q:"听一听，你听到的号码是？", au:"八七六幺四幺二", apy:"bā qī liù yāo sì yāo èr", a:"876-1412", d:["876-4142","867-1412","876-1422"]} ] },
+   {q:"听一听，你听到的号码是？", au:"八七六幺四幺二", apy:"bā qī liù yāo sì yāo èr", a:"876-1412", d:["876-4142","867-1412","876-1422"]},
+   {"q": "问电话号码为什么用 “多少” 而不用 “几”？", "qe": "Why use 多少 instead of 几 to ask a phone number?", "a": "号码很长，不止 1–10", "d": ["因为“几”太不礼貌", "因为“多少”更短", "没有原因，随便用"], "x": "“几”一般问 1–10 的数。", "xe": "几 is for numbers up to about 10."},
+   {"q": "“哪里” 和 “哪儿” 的意思？", "qe": "What do 哪里 and 哪儿 mean?", "a": "一样，都是 where", "d": ["哪里是 when，哪儿是 who", "哪里是 what，哪儿是 which", "完全不同"]},
+   {"q": "“斯市” 是哪里？", "qe": "What place is 斯市?", "a": "Bandar Seri Begawan (BSB)", "d": ["Seria", "Tutong", "Gadong"]},
+   {"q": "“诗里亚” 是哪里？", "qe": "What place is 诗里亚?", "a": "Seria", "d": ["Gadong", "Tutong", "Temburong"]},
+   {"q": "“上海” 是？", "qe": "What is 上海?", "a": "Shanghai", "d": ["Beijing", "Seria", "Singapore"]},
+   {"q": "“北京” 是？", "qe": "What is 北京?", "a": "Beijing", "d": ["Shanghai", "Seria", "Singapore"]},
+   {"q": "房间号 “101” 怎么读最清楚？", "qe": "How is room 101 read most clearly?", "a": "幺零幺", "d": ["一零一", "七零七", "幺零七"], "x": "“1” 读 yāo，避免和 “七” 混淆。", "xe": "Read 1 as yāo to avoid confusion with 七."},
+   {"q": "请问，您的电话号码是多少？这样问适合谁？", "qe": "Who is this polite question suitable for?", "a": "老师或长辈", "d": ["只能问小孩", "只能问自己", "只能问家人"]} ] },
 
 { no:"C5", name:"家庭树林", py:"Jiātíng Shùlín", en:"Family Grove", module:"家庭结构与父母职业（上、下）", moduleEn:"Family, Classifier 口, Occupations & 也",
   lesson:"Unit 3 Lesson 6《家庭成员》& Lesson 7《职业与工作》",
@@ -647,7 +726,8 @@ const ISLANDS = [
    { h:"职业与工作地点", en:"Occupations & workplaces",
      v:[["工作","gōngzuò","job; to work"],["做","zuò","to do"],["老师","lǎoshī","teacher"],["医生","yīshēng","doctor"],["护士","hùshi","nurse"],["工程师","gōngchéngshī","engineer"],["律师","lǜshī","lawyer"],["公务员","gōngwùyuán","civil servant"],["商人","shāngrén","businessperson"],["家庭主妇","jiātíng zhǔfù","homemaker"],["退休","tuìxiū","to retire"],["医院","yīyuàn","hospital"],["公司","gōngsī","company"],["也","yě","also, too"]],
      p:[["你爸爸做什么工作？——他是工程师。","Nǐ bàba zuò shénme gōngzuò? — Tā shì gōngchéngshī.","What does your dad do? — He's an engineer."],["我姐姐在医院工作。","Wǒ jiějie zài yīyuàn gōngzuò.","My elder sister works at a hospital."],["我爸爸是老师，我妈妈也是老师。","Wǒ bàba shì lǎoshī, wǒ māma yě shì lǎoshī.","My dad is a teacher, and my mum is a teacher too."],["我爷爷奶奶退休了。","Wǒ yéye nǎinai tuìxiū le.","My grandparents are retired."]],
-     tips:[{w:"他工作在医院。", ok:"他在医院工作。", why:"“在 + 地方”放在动词前面。"},{w:"我妈妈也老师。", ok:"我妈妈也是老师。", why:"“也”是副词，后面要有动词“是”。"},{w:"我妈妈是老师也。", ok:"我妈妈也是老师。", why:"“也”不能放在句末。"}] } ],
+     tips:[{w:"他工作在医院。", ok:"他在医院工作。", why:"“在 + 地方”放在动词前面。"},{w:"我妈妈也老师。", ok:"我妈妈也是老师。", why:"“也”是副词，后面要有动词“是”。"},{w:"我妈妈是老师也。", ok:"我妈妈也是老师。", why:"“也”不能放在句末。"}] },
+   {"h": "家庭补充", "en": "More about family", "v": [["家庭", "jiātíng", "family; household"], ["家庭树", "jiātíngshù", "family tree"], ["兄弟姐妹", "xiōngdì jiěmèi", "siblings"], ["独生子", "dúshēngzǐ", "only son"], ["独生女", "dúshēngnǚ", "only daughter"], ["这", "zhè", "this"], ["那", "nà", "that"], ["个", "gè", "general measure word"], ["学生", "xuésheng", "student"], ["经理", "jīnglǐ", "manager"], ["学校", "xuéxiào", "school"]], "p": [["你有兄弟姐妹吗？——我有两个姐姐。", "Nǐ yǒu xiōngdì jiěmèi ma? — Wǒ yǒu liǎng gè jiějie.", "Do you have siblings? — I have two elder sisters."], ["我是独生子。", "Wǒ shì dúshēngzǐ.", "I am an only son."], ["我爸爸是公司经理。", "Wǒ bàba shì gōngsī jīnglǐ.", "My dad is a company manager."]], "tips": [{"r": "两个字相同的亲属称谓（爸爸、妈妈、哥哥、姐姐、弟弟、妹妹、爷爷、奶奶），第二个字读轻声。"}, {"w": "我有二个姐姐。", "ok": "我有两个姐姐。", "why": "“个”前面的数字 2 用“两”，不用“二”。"}, {"w": "我有一口哥哥。", "ok": "我有一个哥哥。", "why": "“口”只用来数家里的总人数；数每一个人用“个”。"}, {"w": "我家有爸爸和妈妈和我。", "ok": "我家有爸爸、妈妈和我。", "why": "“和”只放在最后一项前面，前面用顿号。"}]} ],
   quiz:[
    {q:"“我___哥哥。”（I don't have an elder brother.）", a:"没有", d:["不有","不是","没是"], x:"“有”的否定是“没有”。"},
    {q:"课本里，问家庭人数用哪个量词：你家有几___人？", a:"口", d:["岁","号","名"]},
@@ -657,7 +737,16 @@ const ISLANDS = [
    {q:"“妹妹” 是？", a:"younger sister", d:["elder sister","younger brother","mum"]},
    {q:"问职业：“你爸爸___？”", a:"做什么工作", d:["叫什么名字","今年多大","住在哪儿"]},
    {q:"爷爷奶奶以前工作，现在不工作了，可以说？", a:"他们退休了。", d:["他们是家庭主妇。","他们是学生。","他们没有工作在。"]},
-   {q:"听一听，你听到的是？", au:"我家有五口人", apy:"Wǒ jiā yǒu wǔ kǒu rén.", a:"我家有五口人。", d:["我家有四口人。","我家有九口人。","我家有五个哥哥。"]} ] },
+   {q:"听一听，你听到的是？", au:"我家有五口人", apy:"Wǒ jiā yǒu wǔ kǒu rén.", a:"我家有五口人。", d:["我家有四口人。","我家有九口人。","我家有五个哥哥。"]},
+   {"q": "“我有一___哥哥。”", "qe": "Fill in the measure word.", "a": "个", "d": ["口", "岁", "号"], "x": "数每一个人用“个”，“口”只数家里的总人数。", "xe": "Use 个 for each person; 口 only for the whole family."},
+   {"q": "“我有___个姐姐。”（two elder sisters）", "qe": "Fill in the number.", "a": "两", "d": ["二", "三个", "双"], "x": "“个”前面的 2 用“两”。", "xe": "Before 个, use 两 for 2."},
+   {"q": "“爸爸” 的第二个字怎么读？", "qe": "How is the second syllable of 爸爸 read?", "a": "轻声", "d": ["第一声", "第二声", "第四声"], "x": "叠词亲属称谓第二个字读轻声。", "xe": "In reduplicated family terms the second syllable is neutral."},
+   {"q": "哪一句是对的？", "qe": "Which sentence is correct?", "a": "我家有爸爸、妈妈和我。", "d": ["我家有爸爸和妈妈和我。", "我家有和爸爸妈妈我。", "和我家有爸爸妈妈。"], "x": "“和”只放在最后一项前面。", "xe": "和 goes only before the last item."},
+   {"q": "“独生女” 是？", "qe": "What is 独生女?", "a": "only daughter", "d": ["only son", "elder sister", "younger sister"]},
+   {"q": "“经理” 是？", "qe": "What is 经理?", "a": "manager", "d": ["nurse", "lawyer", "engineer"]},
+   {"q": "“学校” 是？", "qe": "What is 学校?", "a": "school", "d": ["hospital", "company", "home"]},
+   {"q": "“这” 是近指还是远指？", "qe": "Is 这 near or far?", "a": "近指 this", "d": ["远指 that", "问人 who", "问地方 where"]},
+   {"q": "“兄弟姐妹” 的意思是？", "qe": "What does 兄弟姐妹 mean?", "a": "siblings", "d": ["parents", "grandparents", "classmates"]} ] },
 
 { no:"C6", name:"国籍港口", py:"Guójí Gǎngkǒu", en:"Nationality Harbour", module:"国家国籍、多语言与注册表（上、下）", moduleEn:"Countries, Nationalities, Languages & Registration Form",
   lesson:"Unit 3 Lesson 8《国家与语言》·《学生个人中文注册表》",
@@ -673,7 +762,8 @@ const ISLANDS = [
      tips:[{w:"我会说汉语一点儿。", ok:"我会说一点儿汉语。", why:"“一点儿”在动词后、语言前。"},{w:"我会英语。", ok:"我会说英语。", why:"初学阶段，“会”后面加动词“说”。"},{r:"“-语”多指口头说的，“-文”多指书面写的：英语 / 英文，马来语 / 马来文。"}] },
    { h:"个人中文注册表", en:"Personal registration form",
      v:[["姓名","xìngmíng","full name"],["性别","xìngbié","gender"],["男","nán","male"],["女","nǚ","female"],["国籍","guójí","nationality"],["出生日期","chūshēng rìqī","date of birth"],["年龄","niánlíng","age"],["地址","dìzhǐ","address"]],
-     tips:[{r:"表格上的日期用“日”：八月十五日（口语才说“号”）。"},{r:"年龄栏只写“二十一岁”，不写“是”。"},{r:"地址由大到小填写。"}] } ],
+     tips:[{r:"表格上的日期用“日”：八月十五日（口语才说“号”）。"},{r:"年龄栏只写“二十一岁”，不写“是”。"},{r:"地址由大到小填写。"}] },
+   {"h": "更多国家与语言", "en": "More countries & languages", "v": [["澳大利亚", "Àodàlìyà", "Australia"], ["加拿大", "Jiānádà", "Canada"], ["英文", "Yīngwén", "English (written)"], ["马来文", "Mǎláiwén", "Malay (written)"], ["话", "huà", "speech; words"]], "p": [["不是，我不是马来西亚人，我是中国人。", "Bú shì, wǒ bú shì Mǎláixīyàrén, wǒ shì Zhōngguórén.", "No, I'm not Malaysian; I'm Chinese."], ["他们不会说华语，他们只会说马来语和英语。", "Tāmen bú huì shuō Huáyǔ, tāmen zhǐ huì shuō Mǎláiyǔ hé Yīngyǔ.", "They can't speak Mandarin; they only speak Malay and English."], ["你会说几种语言？", "Nǐ huì shuō jǐ zhǒng yǔyán?", "How many languages can you speak?"]], "tips": [{"r": "口字旁（哪、吗、叫）和大口框“囗”（国）不同：口 = 嘴巴，囗 = 国界。"}, {"r": "说、语、话、请 都有言字旁（讠），和说话、语言有关。"}, {"r": "“会”表示学来的技能：会说汉语、会写汉字。"}, {"w": "我是文莱，我也会英语。", "ok": "我是文莱人，我也会说英语。", "why": "国籍要加“人”；“会”后面要加动词“说”。"}]} ],
   quiz:[
    {q:"哪一句是对的？", a:"你是哪国人？", d:["你是哪国人吗？","你是哪人国？","哪国你是人？"]},
    {q:"“我是___。”（I am Bruneian.）", a:"文莱人", d:["文莱","文莱国","文莱的"], x:"国家 + 人 = 国籍。"},
@@ -683,7 +773,16 @@ const ISLANDS = [
    {q:"注册表上的出生日期，规范写法是？", a:"八月十五日", d:["八月十五号","十五日八月","八号十五月"]},
    {q:"问 “which” 用哪一个字？", a:"哪 nǎ", d:["那 nà","哪儿 nǎr","吗 ma"]},
    {q:"“新加坡” 是？", a:"Singapore", d:["Malaysia","Japan","South Korea"]},
-   {q:"听一听，你听到的是？", au:"你是哪国人", apy:"Nǐ shì nǎ guó rén?", a:"你是哪国人？", d:["你是中国人吗？","你住在哪儿？","你会说英语吗？"]} ] },
+   {q:"听一听，你听到的是？", au:"你是哪国人", apy:"Nǐ shì nǎ guó rén?", a:"你是哪国人？", d:["你是中国人吗？","你住在哪儿？","你会说英语吗？"]},
+   {"q": "“澳大利亚” 是？", "qe": "What is 澳大利亚?", "a": "Australia", "d": ["Canada", "Japan", "South Korea"]},
+   {"q": "“加拿大” 是？", "qe": "What is 加拿大?", "a": "Canada", "d": ["Australia", "Japan", "Malaysia"]},
+   {"q": "多指书面文字的是哪一个？", "qe": "Which one mostly refers to the written language?", "a": "英文", "d": ["英语", "汉语", "华语"], "x": "“-语”多指口头，“-文”多指书面。", "xe": "-语 is mostly spoken, -文 is mostly written."},
+   {"q": "“说” 的部首是？", "qe": "What is the radical of 说?", "a": "讠（言字旁）", "d": ["口", "亻", "囗"]},
+   {"q": "“哪” 的部首是？", "qe": "What is the radical of 哪?", "a": "口（口字旁）", "d": ["囗", "讠", "亻"]},
+   {"q": "“国” 里面的框是？", "qe": "What is the enclosure in 国?", "a": "囗（大口框）", "d": ["口（口字旁）", "冂", "厂"]},
+   {"q": "“我是文莱，我也会英语。” 怎样改对？", "qe": "How do you correct this sentence?", "a": "我是文莱人，我也会说英语。", "d": ["我是文莱，我也会说英语。", "我是文莱人，我也会英语。", "我文莱人，我也说英语会。"]},
+   {"q": "“你会说几种语言？” 问的是？", "qe": "What does this ask?", "a": "How many languages you can speak", "d": ["Which country you are from", "Where you live", "How old you are"]},
+   {"q": "“他们不会说华语。” 的意思是？", "qe": "What does this mean?", "a": "They can't speak Mandarin.", "d": ["They speak Mandarin well.", "They can write Chinese.", "They live in China."]} ] },
 
 { no:"C7", name:"交通车站", py:"Jiāotōng Chēzhàn", en:"Transport Station", module:"校园交通与日常出行", moduleEn:"Transportation & Commuting to University",
   lesson:"Unit 4 Lesson 9《交通工具》",
@@ -757,7 +856,7 @@ const EXPLAIN_EN = {"标调顺序：有 a 标 a；没有 a，找 o 或 e；i 和
 /* Mini-game content per island.
    hz: 8 characters for 笔顺描红 · sb: [sentence tokens separated by spaces, English] for 句子积木 */
 const EXTRA = {
-  C1:{ hz:"一二三十人口大中", sb:[["妈妈 骂 马 吗 ？","Does Mum scold the horse? (four tones!)"],["马 不 是 人 。","A horse is not a person."],["我 不 是 马 。","I am not a horse."]] },
+  C1:{ hz:"一二三十人口大中水回主汉", sb:[["妈妈 骂 马 吗 ？","Does Mum scold the horse? (four tones!)"],["马 不 是 人 。","A horse is not a person."],["我 不 是 马 。","I am not a horse."]] },
   C2:{ hz:"你好我他她叫名字", sb:[["你 叫 什么 名字 ？","What's your name?"],["我 叫 阿里 。","My name is Ali."],["我 姓 王 ， 叫 小明 。","My surname is Wang; my given name is Xiaoming."]] },
   C3:{ hz:"年月日天今明几岁", sb:[["今天 十一月 四号 。","Today is 4 November."],["今天 星期三 。","Today is Wednesday."],["我 今年 二十 岁 。","I'm 20 this year."],["我 的 生日 是 八月 十五号 。","My birthday is 15 August."]] },
   C4:{ hz:"住在家电话号多少", sb:[["你 住 在 哪儿 ？","Where do you live?"],["我 住 在 斯里巴加湾市 。","I live in Bandar Seri Begawan."],["你 的 手机 号码 是 多少 ？","What's your mobile number?"]] },
