@@ -54,9 +54,15 @@ function purgeFromMenu(){
 }
 
 /* ---------------- web API ---------------- */
-function doGet(){ return json({ok:true, service:'mandarin1-isles', version:2, time:new Date().toISOString()}); }
+function doGet(){ return json({ok:true, service:'mandarin1-isles', version:3, time:new Date().toISOString()}); }
 function doPost(e){
   let req; try{ req = JSON.parse(e.postData.contents || '{}'); }catch(err){ return json({ok:false, error:'bad_json'}); }
+  // saving, loading, the island settings and the leaderboard only touch the student's own row (or read), so they do not queue behind the global lock:
+  // with 60+ students playing at once, a single lock for everything makes requests time out. Sign-up, login, log-out and teacher actions keep the lock.
+  if(req.action==='save' || req.action==='load' || req.action==='cfg' || req.action==='board'){
+    try{ return json(route_(req)); }
+    catch(err){ return json({ok:false, error:'server', detail:String(err && err.message || err)}); }
+  }
   const lock = LockService.getScriptLock();
   try{ lock.waitLock(15000); }catch(err){ return json({ok:false, error:'busy'}); }
   try{ return json(route_(req)); }
@@ -70,6 +76,7 @@ function route_(r){
     case 'load':     return load_(r);
     case 'save':     return save_(r);
     case 'logout':   return logout_(r);
+    case 'board':    return board_(r);
     case 'cfg':      { const a = auth_(r.token); if(!a) return {ok:false, error:'auth'}; return {ok:true, islands:islandsOf_(a.values[COL.cls])}; }
     case 'tLogin':   return teacher_(r, ()=>({ok:true}));
     case 'tClasses': return teacher_(r, ()=>({ok:true, classes:classes_()}));
@@ -97,6 +104,7 @@ function register_(r){
   row[COL.cls]=cls; row[COL.sid]=sid; row[COL.nick]=nick; row[COL.salt]=salt; row[COL.hash]=sha(salt+pin); row[COL.created]=now; row[COL.last]=now;
   row[COL.token]=token; row[COL.exp]=new Date(now.getTime()+TOKEN_DAYS*864e5); row[COL.fails]=0; row[COL.lock]=''; row[COL.updated]=now; row[COL.state]='';
   sh.appendRow(row); sh.getRange(sh.getLastRow(), COL.sid+1).setNumberFormat('@').setValue(sid);
+  cacheRow_(token, sh.getLastRow());
   return {ok:true, token, cls, sid, nick, state:null, updated:0, islands:islandsOf_(cls)};
 }
 function login_(r){
@@ -113,9 +121,26 @@ function login_(r){
   // keep an existing session so the student stays signed in on their other devices
   const token = (v[COL.token] && v[COL.exp] && new Date(v[COL.exp]) > now) ? v[COL.token] : Utilities.getUuid();
   sh.getRange(f.row, COL.last+1, 1, 5).setValues([[now, token, new Date(now.getTime()+TOKEN_DAYS*864e5), 0, '']]);
+  cacheRow_(token, f.row);
   return {ok:true, token, cls:v[COL.cls], sid:String(v[COL.sid]), nick:v[COL.nick], state:parseState_(v[COL.state]), updated:time_(v[COL.updated]), islands:islandsOf_(v[COL.cls])};
 }
-function load_(r){ const a = auth_(r.token); if(!a) return {ok:false, error:'auth'}; const v=a.values; return {ok:true, cls:v[COL.cls], sid:String(v[COL.sid]), nick:v[COL.nick], state:parseState_(v[COL.state]), updated:time_(v[COL.updated]), islands:islandsOf_(v[COL.cls])}; }
+/* ---------------- class leaderboard (nicknames only) ---------------- */
+function board_(r){
+  const a = auth_(r.token); if(!a) return {ok:false, error:'auth'};
+  const cls = a.values[COL.cls], sid = normSid_(a.values[COL.sid]);
+  const cache = CacheService.getScriptCache(), key = 'b:'+cls; let rows = null;
+  try{ const hit = cache.get(key); if(hit) rows = JSON.parse(hit); }catch(e){}
+  if(!rows){
+    const sh = students_(), n = sh.getLastRow(); rows = [];
+    if(n > 1) sh.getRange(2, 1, n-1, COL.stars+1).getValues().forEach(x=>{ if(x[COL.cls]===cls && x[COL.nick]) rows.push({i:normSid_(x[COL.sid]), n:String(x[COL.nick]), s:Number(x[COL.stars]||0), p:Number(x[COL.pct]||0)}); });
+    rows.sort((p,q)=> q.s-p.s || q.p-p.p || (p.n<q.n?-1:1));
+    let rank = 0, prev = null; rows.forEach((x,k)=>{ if(!prev || x.s!==prev.s || x.p!==prev.p) rank = k+1; x.r = rank; prev = x; });
+    try{ cache.put(key, JSON.stringify(rows), 60); }catch(e){}
+  }
+  const me = rows.filter(x=>x.i===sid)[0] || null;
+  return {ok:true, total:rows.length, top:rows.filter(x=>x.s>0).slice(0,10).map(x=>({r:x.r, n:x.n, s:x.s, p:x.p, me:x.i===sid})), me: me ? {r:me.r, n:me.n, s:me.s, p:me.p} : null};
+}
+function load_(r){ const a = auth_(r.token, true); if(!a) return {ok:false, error:'auth'}; const v=a.values; return {ok:true, cls:v[COL.cls], sid:String(v[COL.sid]), nick:v[COL.nick], state:parseState_(v[COL.state]), updated:time_(v[COL.updated]), islands:islandsOf_(v[COL.cls])}; }
 function save_(r){
   const a = auth_(r.token); if(!a) return {ok:false, error:'auth'};
   const st = JSON.stringify(r.state||{}); if(st.length > MAX_STATE) return {ok:false, error:'too_big'};
@@ -124,7 +149,7 @@ function save_(r){
   a.sheet.getRange(a.row, COL.updated+1, 1, vals.length).setValues([vals]);
   return {ok:true, updated:now.getTime()};
 }
-function logout_(r){ const a = auth_(r.token); if(a) a.sheet.getRange(a.row, COL.token+1, 1, 2).setValues([['','']]); return {ok:true}; }
+function logout_(r){ const a = auth_(r.token); if(a){ a.sheet.getRange(a.row, COL.token+1, 1, 2).setValues([['','']]); try{ CacheService.getScriptCache().remove('r:'+r.token); }catch(e){} } return {ok:true}; }
 
 /* ---------------- teacher ---------------- */
 function teacher_(r, fn){
@@ -179,6 +204,20 @@ function students_(){ const ss=SpreadsheetApp.getActive(); let sh=ss.getSheetByN
   return sh; }
 function classRow_(code){ const sh=classSheet_(), v=sh.getDataRange().getValues(), c=normCode_(code); for(let i=1;i<v.length;i++) if(v[i][0]===c) return {sheet:sh, row:i+1, values:v[i]}; return null; }
 function findClass_(code){ const f=classRow_(code); return f ? {code:f.values[0], active:f.values[2]!==false && f.values[2]!=='FALSE', ids:parseIds_(f.values[4])} : null; }
-function findStudent_(sh, cls, sid){ if(!sid) return null; const v = sh.getDataRange().getValues(); for(let i=1;i<v.length;i++) if(v[i][COL.cls]===cls && normSid_(v[i][COL.sid])===sid) return {row:i+1, values:v[i]}; return null; }
-function auth_(token){ token = String(token||''); if(token.length<20) return null; const sh = students_(), v = sh.getDataRange().getValues();
-  for(let i=1;i<v.length;i++) if(v[i][COL.token]===token){ if(v[i][COL.exp] && new Date(v[i][COL.exp]) < new Date()) return null; return {sheet:sh, row:i+1, values:v[i]}; } return null; }
+function findStudent_(sh, cls, sid){ if(!sid) return null; const n = sh.getLastRow(); if(n < 2) return null;
+  const v = sh.getRange(1, 1, n, COL.lock+1).getValues();          // only the columns needed to find the student, not the big save-state column
+  for(let i=1;i<v.length;i++) if(v[i][COL.cls]===cls && normSid_(v[i][COL.sid])===sid) return {row:i+1, values:sh.getRange(i+1, 1, 1, sh.getLastColumn()).getValues()[0]};
+  return null; }
+// a login token -> its row number is cached for a few hours, so a save reads one small row instead of the whole sheet
+const TOKEN_CACHE_SEC = 21600;
+function cacheRow_(token, row){ try{ CacheService.getScriptCache().put('r:'+token, String(row), TOKEN_CACHE_SEC); }catch(e){} }
+function auth_(token, full){
+  token = String(token||''); if(token.length<20) return null;
+  const sh = students_(), width = full ? sh.getLastColumn() : COL.exp+1, last = sh.getLastRow();
+  const ok = (row, v) => { if(v[COL.token]!==token) return null; if(v[COL.exp] && new Date(v[COL.exp]) < new Date()) return null; return {sheet:sh, row, values:v}; };
+  let hit = 0; try{ hit = Number(CacheService.getScriptCache().get('r:'+token)||0); }catch(e){}
+  if(hit>1 && hit<=last){ const a = ok(hit, sh.getRange(hit, 1, 1, width).getValues()[0]); if(a) return a; }   // cached row still belongs to this token
+  if(last<2) return null;
+  const v = sh.getRange(1, 1, last, COL.exp+1).getValues();       // slow path (first request, or rows moved after a delete): scan only the first columns
+  for(let i=1;i<v.length;i++) if(v[i][COL.token]===token){ cacheRow_(token, i+1); return ok(i+1, full ? sh.getRange(i+1, 1, 1, sh.getLastColumn()).getValues()[0] : v[i]); }
+  return null; }

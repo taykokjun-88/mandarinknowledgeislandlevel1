@@ -77,6 +77,15 @@ button{font:inherit;color:inherit;cursor:pointer}
 .tbtn{display:flex;align-items:center;gap:6px;border:0;background:transparent;border-radius:11px;padding:8px 11px;font-size:13px;font-weight:500}
 .tbtn:hover{background:var(--panel-2)}
 .tbtn svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.lb{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:6px}
+.lb li{display:grid;grid-template-columns:34px 1fr auto 46px;gap:8px;align-items:center;padding:7px 10px;border:1px solid var(--line);border-radius:12px;background:var(--panel-2,transparent)}
+.lb li.me{border-color:var(--red);box-shadow:0 0 0 1px var(--red) inset}
+.lb .rk{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:14px;background:var(--panel-2,#eee);color:var(--ink)}
+.lb .rk.r1{background:#f7c948;color:#4a3300}.lb .rk.r2{background:#d5dae0;color:#2f3640}.lb .rk.r3{background:#e0a878;color:#4a2a10}
+.lb .nm{font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lb .st{display:flex;align-items:center;gap:3px;font-weight:700;font-variant-numeric:tabular-nums}.lb .st img,.lb .st svg{width:16px;height:16px}
+.lb .pc{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums;font-size:13px}
+.lb-me{margin:8px 0 0;padding:8px 10px;border-radius:12px;background:var(--tile-wash,transparent);font-size:14px}
 .tbtn .tbi{width:24px;height:24px;flex:none;object-fit:contain}.tbtn .tbi.off{filter:grayscale(1);opacity:.7}
 .tbtn[aria-pressed="true"]{background:var(--gold-soft)}
 
@@ -902,7 +911,7 @@ const ISLANDS = [
    {"q": "“双” 有几画？", "qe": "How many strokes does 双 have?", "a": "4 画", "d": ["3 画", "5 画", "6 画"]},
    {"q": "“鞋” 有几画？", "qe": "How many strokes does 鞋 have?", "a": "15 画", "d": ["13 画", "14 画", "16 画"]} ] },
 
-{ no:"C9", name:"终点舞台", py:"Zhōngdiǎn Wǔtái", en:"Showcase Stage", module:"个人综合展示与结课评估", moduleEn:"Personal Showcase, Dining & Review",
+{ no:"C9", wip:true, name:"终点舞台", py:"Zhōngdiǎn Wǔtái", en:"Showcase Stage", module:"个人综合展示与结课评估", moduleEn:"Personal Showcase, Dining & Review",
   lesson:"综合拓展《全学期总复习与展示》",
   pos:[40,-26], grass:0x7fba5c, lm:"stage", mixed:true,
   spots:[
@@ -951,7 +960,7 @@ const SOON_UNUSED = [
 const KEY = "m1-knowledge-isles-v1";
 const freshState = () => ({stars:{}, teacher:false, nick:"", py:true, en:true, coins:0, quiz:{}, games:{}, build:{}, farm:{}, consent:{}, last:null});
 let state = (()=>{ try{ const s=JSON.parse(localStorage.getItem(KEY)); if(s && s.stars) return Object.assign(freshState(), s); }catch(e){} return freshState(); })();
-const save = ()=>{ state.updatedAt=Date.now(); try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} if(typeof scheduleSync==="function") scheduleSync(); };
+const save = urgent=>{ state.updatedAt=Date.now(); try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} if(typeof scheduleSync==="function") scheduleSync(urgent===true); };
 const starsOf = i => state.stars[i]||0;
 // progress rule: island i opens once the previous island has at least 1 star
 const progressOpen = i => i===0 || starsOf(i-1)>=1;
@@ -960,7 +969,7 @@ let ISLE_CFG=(()=>{ try{ return JSON.parse(localStorage.getItem("m1-isles-cfg"))
 function setIsleCfg(c){ ISLE_CFG=Array.isArray(c)?c:[]; try{ localStorage.setItem("m1-isles-cfg", JSON.stringify(ISLE_CFG)); }catch(e){} if(typeof refreshLabels==="function") refreshLabels(); if(typeof refreshMaint==="function") refreshMaint(); }
 const todayStr=()=>{ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; };
 // why a teacher has closed island i right now: {kind:"maint"} | {kind:"date", date} | null
-function isleBlock(i){ const c=ISLE_CFG[i]; if(!c) return null; if(c.mode==="closed") return {kind:"maint"}; if(c.date && todayStr()<c.date) return {kind:"date", date:c.date}; return null; }
+function isleBlock(i){ const c=ISLE_CFG[i]||{}; if(c.mode==="closed") return {kind:"maint"}; if(c.mode!=="open" && (ISLANDS[i]||{}).wip) return {kind:"maint"}; if(c.date && todayStr()<c.date) return {kind:"date", date:c.date}; return null; }   // wip = content not finished: shows the construction sign until the teacher sets "open"
 // mist covers islands not reached yet; an island under maintenance shows its construction sign instead
 const mistGoal = i => (isUnlocked(i) || (!state.teacher && (isleBlock(i)||{}).kind==="maint")) ? 0 : 1;
 const dateZh=d=>{ const [y,m,dd]=d.split("-").map(Number); return `${m}月${dd}日`; };
@@ -1848,7 +1857,7 @@ const FX=(()=>{ let layer=null, lastX=innerWidth/2, lastY=innerHeight/2;
 function islandItems(i){ const g=state.games[i]||{}; return [starsOf(i)>=1, !!g.sb, !!g.mm, !!g.wm, (g.sw||[]).length>=8]; }
 function islandPct(i){ const it=islandItems(i); return Math.round(it.filter(Boolean).length/it.length*100); }
 function setLast(mode){ if(cur<0) return; state.last={i:cur, mode}; save(); }
-function gameDone(id, extra){ const g=gst(cur), first=!g[id]; Object.assign(g, extra||{}); g[id]=g[id]||true; save(); earn(first?(GAMES2.some(x=>x.id===id)?20:15):2, `${GAMES.concat(GAMES2).find(x=>x.id===id).name}${first?"首次完成":"再玩一次"}`); return first; }
+function gameDone(id, extra){ const g=gst(cur), first=!g[id]; Object.assign(g, extra||{}); g[id]=g[id]||true; save(true); earn(first?(GAMES2.some(x=>x.id===id)?20:15):2, `${GAMES.concat(GAMES2).find(x=>x.id===id).name}${first?"首次完成":"再玩一次"}`); return first; }
 
 /* ============================== panel ============================== */
 const panel=$("#panel"), side=$("#side");
@@ -2106,7 +2115,7 @@ function renderResult(body){
   const prev=starsOf(cur), wasLocked=cur<8 && !progressOpen(cur+1);
   const ql=state.quiz[cur]||(state.quiz[cur]={best:0,n,att:0}); ql.att++; ql.n=n; ql.best=Math.max(ql.best,sc); ql.at=Date.now();
   if(st>prev) state.stars[cur]=st;
-  save();
+  save(true);
   if(st>prev) earn((st-prev)*10, `${ISLANDS[cur].name}闯关 +${st-prev} 颗星`);
   const newly = wasLocked && progressOpen(cur+1), nextBlk = cur<8 && !state.teacher ? isleBlock(cur+1) : null;
   refreshLabels();
@@ -3607,6 +3616,15 @@ const Music = (() => {
 
 /* ============================== 我的成绩 · list · settings ============================== */
 const G_ICON={sb:"积木 Builder",mm:"配对 Match",wm:"地鼠 Whack",sw:"笔顺 Strokes"};
+/* class leaderboard: top 10 by stars (then overall progress), nicknames only; refreshed by the backend about once a minute */
+async function loadBoard(){
+  const show=h=>{ const el=$("#lbBody"); if(el) setHTML(el,h); };
+  try{ const j=await api("board",{token:auth.token}); if(!j.ok) throw new Error(j.error||"board");
+    const row=x=>`<li class="${x.me?"me":""}"><span class="rk r${x.r<=3?x.r:0}">${x.r}</span><span class="nm" data-nopy>${esc(x.n)}${x.me?" · 你 you":""}</span><span class="st">${STAR(true)}${x.s}</span><span class="pc">${x.p}%</span></li>`;
+    const inTop=j.top.some(x=>x.me);
+    show(j.top.length?`<ol class="lb">${j.top.map(row).join("")}</ol>${!inTop&&j.me?`<p class="lb-me">你现在第 <b>${j.me.r}</b> 名（共 ${j.total} 人）· ${STAR(true)}${j.me.s} · ${j.me.p}%<span class=ui-en data-b>You are #${j.me.r} of ${j.total}.</span></p>`:""}<p class="sw-msg" style="text-align:left">按星星数排名，星星一样就比总进度。只显示昵称，大约每分钟更新一次。<span class=ui-en data-b>Ranked by stars, then overall progress. Nicknames only; updates about once a minute.</span></p>`
+      :`<p class="sw-msg" style="text-align:left">还没有人得到星星，快去闯关，当第一名吧！<span class=ui-en data-b>Nobody has a star yet — be the first!</span></p>`);
+  }catch(e){ show(`<p class="sw-msg" style="text-align:left">排行榜暂时打不开，稍后再试。<span class=ui-en data-b>The leaderboard is not available right now.</span></p>`); } }
 function openSide(kind){
   stopGame(); panel.hidden=true; cur=-1;
   if(kind==="me"){
@@ -3626,6 +3644,7 @@ function openSide(kind){
               <span class="gi">${["sb","mm","wm","sw"].map(k=>{ const ok=k==="sw"?(g.sw||[]).length>=8:!!g[k]; return `<span class="${ok?"ok":""}">${ok?"✓":""}${G_ICON[k]}${k==="sw"?` ${(g.sw||[]).length}/8`:""}</span>`; }).join("")}</span>
               <span class="bar"><i style="width:${pct}%"></i></span></span>
             <span class="pc">${pct}%</span></button>`; }).join("")}</div>
+        ${API&&auth?`<section class="spot"><h3 class="spot-h" style="margin:0">班级排行榜<span class=ui-en>Class leaderboard</span></h3><div id="lbBody"><p class="sw-msg" style="text-align:left">载入中…<span class=ui-en data-b>Loading…</span></p></div></section>`:""}
         ${API?`<section class="spot"><h3 class="spot-h" style="margin:0">我的账号<span class=ui-en>My account</span></h3>
           ${auth?`<p class="sw-msg" style="text-align:left">班级 ${esc(auth.cls)} · 学号 ${esc(auth.sid)} · 进度自动存到云端。<span class=ui-en data-b>Class ${esc(auth.cls)} · Student ID ${esc(auth.sid)} · progress saves to the cloud.</span></p><div class="row"><button class="btn ghost" type="button" id="syncBtn">立刻同步<span class=ui-en>Sync now</span></button><button class="btn ghost" type="button" id="outBtn">登出<span class=ui-en>Log out</span></button></div><p class="sw-msg" style="text-align:left">在共用的 iPad 上玩完，请记得登出。<span class=ui-en data-b>Log out when you finish on a shared iPad.</span></p>`
           :`<p class="sw-msg" style="text-align:left">现在是教师模式，进度只存在这台设备。<span class=ui-en data-b>Teacher mode: progress is saved on this device only.</span></p><div class="row"><button class="btn" type="button" id="inBtn">退出教师模式，学生登入<span class=ui-en>Leave teacher mode — student log-in</span></button></div>`}</section>`:""}
@@ -3633,6 +3652,7 @@ function openSide(kind){
           <div class="row"><input id="nick2" maxlength="16" value="${esc(state.nick||"")}" aria-label="昵称"><button class="btn ghost" type="button" id="nkSave">保存<span class=ui-en>Save</span></button></div></section>
       </div>`);
     side.querySelectorAll(".prow").forEach(b=>b.onclick=()=>openIsland(+b.dataset.i));
+    if(API&&auth) loadBoard();
     const rs=$("#resume"); if(rs) rs.onclick=()=>openIsland(state.last.i, state.last.mode);
     const ob=$("#outBtn"); if(ob) ob.onclick=()=>logout(); const sb=$("#syncBtn"); if(sb) sb.onclick=async()=>{ await syncNow(); toast(syncState==="ok"?"已同步":"同步失败，稍后再试", syncState==="ok"?"Synced":"Sync failed — will retry"); }; const ib=$("#inBtn"); if(ib) ib.onclick=()=>{ side.hidden=true; updateOffsetGoal(); adoptState(null); refreshRoute(); welcome(true); };
     $("#nkSave").onclick=()=>{ const v=$("#nick2").value.trim(); if(!v) return; state.nick=v.slice(0,16); save(); openSide("me"); toast("昵称已保存","Nickname saved"); };
@@ -3695,17 +3715,33 @@ const authMsg=(code, extra)=>{ const m=AUTH_MSG[code]||AUTH_MSG.network; return 
 function progressSummary(){ const miss=Object.values(state.miss||{}).sort((a,b)=>b.m-a.m).slice(0,12).map(e=>[e.i,e.l,e.m]); const islands=ISLANDS.map((d,i)=>{ const g=state.games[i]||{}, ql=state.quiz[i]||{}; return {s:starsOf(i), best:ql.best??null, n:ql.n||null, att:ql.att||0, games:["sb","mm","wm"].filter(k=>g[k]).length+((g.sw||[]).length>=8?1:0)+["tone","read","gest"].filter(k=>g[k]).length, pct:islandPct(i), locked:!isUnlocked(i)}; });
   return {miss, stars:Object.values(state.stars).reduce((a,b)=>a+b,0), coins:state.coins, done:ISLANDS.filter((_,i)=>islandPct(i)===100).length, pct:Math.round(ISLANDS.reduce((a,_,i)=>a+islandPct(i),0)/ISLANDS.length), islands}; }
 
-let syncTimer=null, syncing=false, syncState="off";
+let syncTimer=null, syncAt=0, syncing=false, syncState="off", syncFails=0, syncOkAt=0;
 function setSync(s){ syncState=s; const el=$("#syncDot"); if(!el) return; el.dataset.s=s; el.title={ok:"已同步到云端 Saved to the cloud", wait:"等待同步… Saving soon…", busy:"同步中… Saving…", err:"同步失败，稍后会再试 Couldn't save — will retry", off:"教师模式（只存在这台设备）Teacher mode: saved on this device only"}[s]||""; }
-function scheduleSync(){ if(!API||!auth) return; setSync("wait"); clearTimeout(syncTimer); syncTimer=setTimeout(syncNow, 2500); }
-async function syncNow(keepalive){ if(!API||!auth||syncing) return; syncing=true; setSync("busy");
+/* Cloud saving is deliberately gentle: a whole class plays at once and the backend is one Google Sheet.
+   - ordinary changes are batched: one save 30–45 s after the first change (the timer is never restarted, so continuous play still saves about once a minute);
+   - finishing a quiz or a game saves sooner (3–8 s, randomised so a class doesn't hit the server in the same second);
+   - a failed save retries with growing, randomised pauses (15 s, 30 s, 60 s … up to 2 min); offline waits for the network to return;
+   - leaving the page saves straight away. */
+const SYNC_SCALE=Number(new URLSearchParams(location.search).get("syncscale"))||1;   // only for testing (?syncscale=0.02 makes every wait 50x shorter)
+function scheduleSync(urgent){ if(!API||!auth) return; if(syncState!=="busy") setSync("wait");
+  const delay=(urgent?3000+Math.random()*5000:30000+Math.random()*15000)*SYNC_SCALE, at=Date.now()+delay;
+  if(syncTimer && syncAt<=at) return; clearTimeout(syncTimer); syncAt=at; syncTimer=setTimeout(syncNow, delay); }
+function syncRetry(){ setSync("err"); syncFails++; const d=Math.min(120000, 15000*Math.pow(2,syncFails-1))*(.75+Math.random()*.5)*SYNC_SCALE; clearTimeout(syncTimer); syncAt=Date.now()+d; syncTimer=setTimeout(syncNow, d); }
+async function syncNow(keepalive){ clearTimeout(syncTimer); syncTimer=null; syncAt=0; if(!API||!auth||syncing) return;
+  if(navigator.onLine===false){ setSync("err"); return; }   // the "online" event below resumes
+  syncing=true; setSync("busy"); const sentAt=state.updatedAt||0;
   const body=JSON.stringify({action:"save", token:auth.token, state:cloudState(), summary:progressSummary()});
   try{ const r=await fetch(API,{method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body, keepalive:!!keepalive}); const j=await r.json();
-    if(j.ok){ state.syncedAt=j.updated; setSync("ok"); } else if(j.error==="auth"){ setSync("err"); auth=null; saveAuth(); welcome(true); } else setSync("err"); }
-  catch(e){ setSync("err"); clearTimeout(syncTimer); syncTimer=setTimeout(syncNow, 20000); }
+    if(j.ok){ state.syncedAt=j.updated; syncOkAt=sentAt; syncFails=0; setSync("ok"); if((state.updatedAt||0)>sentAt) scheduleSync(); }
+    else if(j.error==="auth"){ setSync("err"); auth=null; saveAuth(); welcome(true); }
+    else if(j.error==="too_big") setSync("err");
+    else syncRetry(); }
+  catch(e){ syncRetry(); }
   syncing=false; }
+window.addEventListener("online",()=>{ if(auth && (state.updatedAt||0)>syncOkAt) scheduleSync(true); });
 const cloudState=()=>{ const c=Object.assign({}, state); delete c.teacher; return c; };
-document.addEventListener("visibilitychange",()=>{ if(document.hidden && auth && syncState==="wait"){ clearTimeout(syncTimer); syncNow(true); } });
+const flushSync=()=>{ if(auth && (syncState==="wait"||syncState==="err") && (state.updatedAt||0)>syncOkAt) syncNow(true); };
+document.addEventListener("visibilitychange",()=>{ if(document.hidden) flushSync(); }); window.addEventListener("pagehide", flushSync);
 
 // replace the local state with a saved one and refresh everything on screen
 function adoptState(s){ const dev={gfx:state.gfx, music:state.music, vol:state.vol, look:state.look}; state=Object.assign(freshState(), s||{}, {teacher:false}); Object.keys(dev).forEach(k=>{ if(dev[k]!==undefined) state[k]=dev[k]; else delete state[k]; }); try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} applyPy(); applyEn(); applyMusicBtn(); updateCoins(); refreshLabels(); if(scene) ISLANDS.forEach((_,i)=>{ render3DBuild(i); render3DFarm(i); }); }
@@ -3714,7 +3750,7 @@ function afterLogin(j, isNew){
   const local=state, sameOwner=local.owner===`${j.cls}/${j.sid}`, server=j.state;
   if(server && (!sameOwner || !(local.updatedAt>server.updatedAt))) adoptState(server);          // the cloud copy wins unless this device has newer work by the same student
   else if(!server && local.owner && !sameOwner) adoptState(null);                                   // another student's progress on a shared device — start fresh
-  state.owner=`${j.cls}/${j.sid}`; state.nick=j.nick; save(); setSync("ok"); scheduleSync();
+  state.owner=`${j.cls}/${j.sid}`; state.nick=j.nick; save(); setSync("ok"); scheduleSync(true);
   $("#welcome").hidden=true;
   setTimeout(dailyReward,1400);
   toast(isNew?`欢迎你，${j.nick}！你的进度会自动存到云端。`:`欢迎回来，${j.nick}！`, isNew?`Welcome, ${j.nick}! Your progress now saves to the cloud.`:`Welcome back, ${j.nick}!`); }
@@ -3722,7 +3758,7 @@ const remember=(c,s)=>{ try{ localStorage.setItem("m1-isles-last", JSON.stringif
 const remembered=()=>{ try{ return JSON.parse(localStorage.getItem("m1-isles-last"))||{}; }catch(e){ return {}; } };
 // pick up the teacher's island settings while the game stays open (every 5 minutes, and when the tab comes back)
 async function pullIsleCfg(){ if(!API||!auth||document.hidden) return; try{ const j=await api("cfg",{token:auth.token}); if(j.ok && j.islands && JSON.stringify(j.islands)!==JSON.stringify(ISLE_CFG)) setIsleCfg(j.islands); }catch(e){} }
-setInterval(pullIsleCfg, 5*60*1000); document.addEventListener("visibilitychange",()=>{ if(!document.hidden) pullIsleCfg(); });
+setTimeout(()=>setInterval(pullIsleCfg, 5*60*1000), Math.random()*60000); document.addEventListener("visibilitychange",()=>{ if(!document.hidden) pullIsleCfg(); });
 async function logout(){ if(auth){ try{ await syncNow(); }catch(e){} try{ api("logout",{token:auth.token}); }catch(e){} } auth=null; saveAuth(); setIsleCfg([]); adoptState(null); setSync("off"); side.hidden=true; updateOffsetGoal(); welcome(true); }
 
 function teacherIn(){ if(state.owner!=="teacher") adoptState(null); state.teacher=true; state.owner="teacher"; state.nick="老师"; save(); refreshLabels(); refreshRoute(); $("#welcome").hidden=true; setSync("off");
