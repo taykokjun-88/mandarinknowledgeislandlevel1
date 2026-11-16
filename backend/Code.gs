@@ -54,12 +54,12 @@ function purgeFromMenu(){
 }
 
 /* ---------------- web API ---------------- */
-function doGet(){ return json({ok:true, service:'mandarin1-isles', version:3, time:new Date().toISOString()}); }
+function doGet(){ return json({ok:true, service:'mandarin1-isles', version:4, time:new Date().toISOString()}); }
 function doPost(e){
   let req; try{ req = JSON.parse(e.postData.contents || '{}'); }catch(err){ return json({ok:false, error:'bad_json'}); }
   // saving, loading, the island settings and the leaderboard only touch the student's own row (or read), so they do not queue behind the global lock:
   // with 60+ students playing at once, a single lock for everything makes requests time out. Sign-up, login, log-out and teacher actions keep the lock.
-  if(req.action==='save' || req.action==='load' || req.action==='cfg' || req.action==='board'){
+  if(req.action==='save' || req.action==='load' || req.action==='cfg' || req.action==='board' || req.action==='feedback'){
     try{ return json(route_(req)); }
     catch(err){ return json({ok:false, error:'server', detail:String(err && err.message || err)}); }
   }
@@ -77,6 +77,7 @@ function route_(r){
     case 'save':     return save_(r);
     case 'logout':   return logout_(r);
     case 'board':    return board_(r);
+    case 'feedback': return feedback_(r);
     case 'cfg':      { const a = auth_(r.token); if(!a) return {ok:false, error:'auth'}; return {ok:true, islands:islandsOf_(a.values[COL.cls])}; }
     case 'tLogin':   return teacher_(r, ()=>({ok:true}));
     case 'tClasses': return teacher_(r, ()=>({ok:true, classes:classes_()}));
@@ -86,6 +87,8 @@ function route_(r){
     case 'tPurge':   return teacher_(r, ()=>purge_(r.cls));
     case 'tSetIslands': return teacher_(r, ()=>setIslands_(r.code, r.islands));
     case 'tRoster':  return teacher_(r, ()=>roster_(r.cls));
+    case 'tFeedback': return teacher_(r, ()=>feedbackList_(r.cls, !!r.all));
+    case 'tFeedbackDone': return teacher_(r, ()=>feedbackDone_(r.id, r.done!==false));
     case 'tResetPin': return teacher_(r, ()=>resetPin_(r.cls, r.sid, r.pin));
     case 'tDelete':  return teacher_(r, ()=>deleteStudent_(r.cls, r.sid));
     default: return {ok:false, error:'unknown_action'};
@@ -124,6 +127,44 @@ function login_(r){
   cacheRow_(token, f.row);
   return {ok:true, token, cls:v[COL.cls], sid:String(v[COL.sid]), nick:v[COL.nick], state:parseState_(v[COL.state]), updated:time_(v[COL.updated]), islands:islandsOf_(v[COL.cls])};
 }
+/* ---------------- student feedback: wrong answers, typos, bugs ---------------- */
+const SH_FEEDBACK = '反馈 Feedback';
+const FB_HEADERS = ['id','时间 Time','班级 Class','学号 Student ID','昵称 Nickname','类型 Type','位置 Where','题目 Question','显示的答案 Shown answer','学生留言 Comment','设备 Device','状态 Status','处理时间 Done at'];
+const FB_MAX_PER_DAY = 15;
+function feedbackSheet_(){ const ss = SpreadsheetApp.getActive(); let sh = ss.getSheetByName(SH_FEEDBACK);
+  if(!sh){ sh = ss.insertSheet(SH_FEEDBACK); sh.appendRow(FB_HEADERS); sh.setFrozenRows(1); sh.getRange('D:D').setNumberFormat('@'); sh.hideColumns(1); }
+  return sh; }
+// text from students goes into a sheet: control characters out, and a leading = + - @ is neutralised so it can never be read as a formula
+function cleanText_(v, n){ let t = String(v==null ? '' : v).replace(/[\u0000-\u001f\u007f]/g, ' ').trim().slice(0, n); if(/^[=+\-@]/.test(t)) t = "'" + t; return t; }
+function feedback_(r){
+  const a = auth_(r.token); if(!a) return {ok:false, error:'auth'};
+  const cls = a.values[COL.cls], sid = normSid_(a.values[COL.sid]), nick = a.values[COL.nick];
+  const cache = CacheService.getScriptCache(), ck = 'fb:'+cls+':'+sid+':'+Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyyMMdd');
+  const n = Number(cache.get(ck)||0); if(n >= FB_MAX_PER_DAY) return {ok:false, error:'too_many'};
+  const msg = cleanText_(r.msg, 500), q = cleanText_(r.q, 300); if(!msg && !q) return {ok:false, error:'empty'};
+  const type = ['answer','typo','bug','idea'].indexOf(r.type) >= 0 ? r.type : 'idea';
+  const row = [Utilities.getUuid(), new Date(), cls, sid, cleanText_(nick, 40), type, cleanText_(r.where, 60), q, cleanText_(r.ans, 200), msg, cleanText_(r.dev, 160), 'new', ''];
+  const lock = LockService.getScriptLock(); try{ lock.waitLock(8000); }catch(e){ return {ok:false, error:'busy'}; }
+  try{ const sh = feedbackSheet_(); sh.appendRow(row); sh.getRange(sh.getLastRow(), 4).setNumberFormat('@').setValue(sid); } finally { lock.releaseLock(); }
+  try{ cache.put(ck, String(n+1), 86400); }catch(e){}
+  return {ok:true};
+}
+function feedbackList_(cls, all){
+  const sh = feedbackSheet_(), n = sh.getLastRow(); if(n < 2) return {ok:true, items:[], open:0};
+  const from = Math.max(2, n-499), v = sh.getRange(from, 1, n-from+1, FB_HEADERS.length).getValues(), want = cls ? normCode_(cls) : '';
+  const items = []; let open = 0;
+  v.forEach(x=>{ if(want && x[2]!==want) return; const done = x[11]==='done'; if(!done) open++; if(!all && done) return;
+    items.push({id:x[0], t:x[1] instanceof Date ? x[1].toISOString() : String(x[1]), cls:x[2], sid:String(x[3]), nick:x[4], type:x[5], where:x[6], q:x[7], ans:x[8], msg:x[9], dev:x[10], done}); });
+  items.reverse();
+  return {ok:true, items, open};
+}
+function feedbackDone_(id, done){
+  const sh = feedbackSheet_(), n = sh.getLastRow(); if(n < 2) return {ok:false, error:'not_found'};
+  const ids = sh.getRange(2, 1, n-1, 1).getValues();
+  for(let i=0;i<ids.length;i++) if(ids[i][0]===id){ sh.getRange(i+2, 12, 1, 2).setValues([[done ? 'done' : 'new', done ? new Date() : '']]); return {ok:true}; }
+  return {ok:false, error:'not_found'};
+}
+
 /* ---------------- class leaderboard (nicknames only) ---------------- */
 function board_(r){
   const a = auth_(r.token); if(!a) return {ok:false, error:'auth'};

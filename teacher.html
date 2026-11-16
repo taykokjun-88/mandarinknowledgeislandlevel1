@@ -92,6 +92,12 @@ td.isl[data-s="0"]{background:var(--s0)}td.isl[data-s="1"]{background:var(--s1)}
       <p class="note">全班同学答错过的题目，按答错人数排序。学生答对后会从自己的错题本移出，所以这里反映的是最近一次的情况。<br>Questions the class has answered wrongly, ranked by the number of students who got them wrong. Each student's list is their current mistakes book.</p>
       <div class="tablewrap"><table id="missTbl"><thead><tr><th>Chapter</th><th>题目 Question</th><th>答错人数 Students</th><th>答错次数 Misses</th></tr></thead><tbody></tbody></table></div>
     </section>
+    <section class="card" id="fbCard">
+      <div class="row" style="justify-content:space-between"><h2 style="margin:0">学生反馈 <small>Student feedback</small> <b id="fbOpen" style="margin-left:6px;padding:2px 9px;border-radius:99px;background:var(--red);color:#fff;font-size:13px" hidden></b></h2><label class="note" style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="fbAll"><span>同时显示已处理 Show done</span></label></div>
+      <p class="note">学生在游戏里按「反馈」送来的：答案不对的题、错字、bug 和建议。同一道题被多位同学反馈时会显示 ×人数。处理好后按「已处理」。<br>Reports sent by students from the game: wrong answers, typos, bugs and ideas. A question reported by several students shows ×count. Press “Done” when handled.</p>
+      <div class="tablewrap"><table id="fbTbl"><thead><tr><th>时间 Time</th><th>学生 Student</th><th>类型 Type</th><th>位置与题目 Where &amp; question</th><th>留言 Comment</th><th></th></tr></thead><tbody></tbody></table></div>
+      <p class="note" id="fbEmpty" hidden>现在没有待处理的反馈。<br>No open feedback.</p>
+    </section>
     <section class="card">
       <div class="row" style="justify-content:space-between"><h2 style="margin:0">学生进度 <small>Roster</small></h2><label class="note" style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="idleOnly"><span id="idleLbl">只看 7 天没上线 Not seen for 7 days</span></label><input id="search" placeholder="搜索学号或昵称 Search ID or nickname" style="width:220px"></div>
       <div class="legend" style="margin:8px 0"><span>每个 Chapter 的星星 Stars per Chapter:</span><span><i style="background:var(--s0)"></i>0</span><span><i style="background:var(--s1)"></i>1</span><span><i style="background:var(--s2)"></i>2</span><span><i style="background:var(--s3)"></i>3</span><span>🔒 未解锁 locked</span></div>
@@ -132,7 +138,17 @@ async function loadRoster(){ const code=$("#cls").value, c=classes.find(x=>x.cod
   $("#ids").value=(c&&c.ids||[]).join(", "); $("#idsMsg").textContent="";
   const j=await api("tRoster",{cls:code}); if(!j.ok) return alertBox(errText(j.error)); roster=j.students; listIds=j.ids||[]; render(); }
 
-function render(){ tiles(); chart(); missTable(); table(); idsInfo(); islTable(); }
+function render(){ tiles(); chart(); missTable(); table(); idsInfo(); islTable(); loadFeedback(); }
+const FB_LABEL={answer:"答案不对 Wrong answer",typo:"错字 / 翻译 Typo",bug:"游戏出错 Bug",idea:"建议 / 其他 Idea"};
+let fbShowAll=false;
+async function loadFeedback(){ const code=$("#cls").value; if(!code) return; const j=await api("tFeedback",{cls:code,all:fbShowAll}); if(!j.ok) return;
+  const key=x=>x.q?(x.where+"|"+x.q):""; const cnt={}; j.items.forEach(x=>{ const k=key(x); if(k) cnt[k]=(cnt[k]||0)+1; });
+  const o=$("#fbOpen"); o.hidden=!j.open; o.textContent=j.open+" 待处理 open";
+  $("#fbEmpty").hidden=j.items.length>0; $("#fbTbl").hidden=!j.items.length;
+  $("#fbTbl tbody").innerHTML=j.items.map(x=>{ const k=key(x), n=k?cnt[k]:0, t=new Date(x.t); const when=isNaN(t)?"":t.toLocaleString("zh-CN",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"});
+    return `<tr class="${x.done?"fbdone":""}"><td>${esc(when)}</td><td>${esc(x.nick||"")}<br><small>${esc(x.sid)}</small></td><td>${esc(FB_LABEL[x.type]||x.type)}</td><td><b>${esc(x.where||"")}</b>${n>1?` <span style="color:var(--red);font-weight:700">×${n}</span>`:""}${x.q?`<br>${esc(x.q)}`:""}${x.ans?`<br><small>游戏显示的答案 Shown answer: <b>${esc(x.ans)}</b></small>`:""}</td><td>${esc(x.msg||"")}${x.dev?`<br><small style="color:var(--muted)">${esc(x.dev)}</small>`:""}</td><td><button class="btn ghost sm fbDone" type="button" data-id="${esc(x.id)}" data-done="${x.done?"0":"1"}">${x.done?"重新打开 Reopen":"已处理 Done"}</button></td></tr>`; }).join("");
+  $("#fbTbl").querySelectorAll(".fbDone").forEach(b=>b.onclick=async()=>{ b.disabled=true; await api("tFeedbackDone",{id:b.dataset.id,done:b.dataset.done==="1"}); loadFeedback(); }); }
+$("#fbAll").onchange=e=>{ fbShowAll=e.target.checked; loadFeedback(); };
 // questions most often answered wrongly across the class (each student's summary carries their top current mistakes)
 function missTable(){ const agg={}; roster.forEach(s=>((s.summary&&s.summary.miss)||[]).forEach(([i,l,m])=>{ const k=i+"|"+l, a=agg[k]||(agg[k]={i,l,students:0,misses:0}); a.students++; a.misses+=m; }));
   const rows=Object.values(agg).sort((a,b)=>b.students-a.students||b.misses-a.misses).slice(0,15); $("#missCard").hidden=!rows.length;

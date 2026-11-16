@@ -444,6 +444,17 @@ textarea{resize:vertical;font-size:12px;font-family:ui-monospace,Menlo,monospace
 /* --- wide drawers (iPad portrait): more, smaller game cards instead of two huge ones --- */
 @media (min-width:600px){ .gcards{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))} .gcard .cov{aspect-ratio:16/10} }
 @media (max-width:340px){ .seal{display:none} }
+/* --- feedback --- */
+.fb-row{margin-top:14px;text-align:right}.fb-link{background:none;border:0;color:var(--muted);font-size:13px;text-decoration:underline;cursor:pointer;padding:4px 2px;display:inline-flex;align-items:center;gap:5px}.fb-link:hover{color:var(--red)}
+.flag{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px;margin-right:4px}
+.set-fb{margin:6px 0 2px}
+.fbm{position:fixed;inset:0;z-index:9500;background:rgba(30,20,10,.55);display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto}.fbm[hidden]{display:none}
+.fbc{position:relative;width:100%;max-width:460px;background:var(--panel,#fffaf2);color:var(--ink);border-radius:18px;padding:18px 18px 16px;box-shadow:0 18px 50px rgba(0,0,0,.35);display:grid;gap:12px;max-height:calc(100dvh - 32px);overflow:auto}
+.fbc h3{margin:0;font-size:20px;padding-right:44px}
+.fbc .d-close{position:absolute;top:10px;right:10px}
+.fb-q{background:var(--panel-2,#f5ebd9);border-radius:12px;padding:10px 12px}.fb-q p{margin:4px 0 0;word-break:break-word}.fb-ans{font-size:14px}
+.fb-types{display:flex;flex-wrap:wrap;gap:8px}.fbt{border:1.5px solid var(--line);background:transparent;border-radius:99px;padding:7px 12px;font-size:14px;cursor:pointer;color:var(--ink)}.fbt.on{background:var(--red);border-color:var(--red);color:#fff}
+.fbc textarea{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;font:inherit;background:var(--field,#fff);color:var(--ink);resize:vertical;min-height:84px}
 </style>
 </head>
 <body>
@@ -2076,7 +2087,7 @@ function renderQuiz(body){
     main=`<div class="match"><div class="mcol">${q.left.map(z=>`<button class="mt ${q.got.includes(z)?"got":""} ${q.pick&&q.pick.side==="L"&&q.pick.v===z?"sel":""}" type="button" data-l="${esc(z)}" ${q.got.includes(z)?"disabled":""}>${esc(z)}</button>`).join("")}</div>
       <div class="mcol">${q.right.map(e=>{ const z=q.pairs.find(p=>p[1]===e)[0]; return `<button class="mt en ${q.got.includes(z)?"got":""} ${q.pick&&q.pick.side==="R"&&q.pick.v===e?"sel":""}" type="button" data-r="${esc(e)}" ${q.got.includes(z)?"disabled":""}>${esc(e)}</button>`; }).join("")}</div></div>
       <p class="sw-msg">配错 ${q.miss} 次（最多 1 次才算答对）<span class=ui-en data-b>${q.miss} wrong matches (1 or fewer counts as correct)</span></p>`; }
-  setHTML(body, head+main+`<div id="qAfter"></div>`);
+  setHTML(body, head+main+`<div id="qAfter"></div><div class="fb-row"><button class="fb-link" type="button" data-fb="quiz">${FLAG_SVG}这道题有问题？告诉老师<span class=ui-en>Report this question</span></button></div>`);
   if(q.au) $("#qPlay").onclick=()=>speak(q.au);
   if(q.t==="mc"||q.t==="tf") body.querySelectorAll(".opt").forEach(b=>b.addEventListener("click",()=>answer(+b.dataset.j, body)));
   if(q.t==="order" && !done){
@@ -3630,6 +3641,47 @@ const Music = (() => {
 
 /* ============================== 我的成绩 · list · settings ============================== */
 const G_ICON={sb:"积木 Builder",mm:"配对 Match",wm:"地鼠 Whack",sw:"笔顺 Strokes"};
+/* ---------- feedback: a student reports a wrong answer, a typo or a bug; the teacher reads it in the dashboard ---------- */
+const GAME_BUILD="2026-11-16";
+const FLAG_SVG='<svg class="flag" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 21V4M6 5h11l-2.5 3.5L17 12H6"/></svg>';
+const FB_TYPES=[["answer","答案不对","Wrong answer"],["typo","错字或翻译错","Typo / wrong translation"],["bug","游戏出错","Game bug"],["idea","其他建议","Other"]];
+let fbLast=0;
+function fbQuizCtx(){ const q=quiz&&quiz.qs&&quiz.qs[quiz.k]; if(!q) return null;
+  const src=(typeof qSrc==="function")?qSrc(q):quiz.i, isl=ISLANDS[src]||ISLANDS[cur]||{no:""};
+  let ans="", text=String(q.q||"");
+  if(q.t==="mc"||q.t==="tf") ans=String(q.a); else if(q.t==="order"){ ans=q.toks.join("")+(q.end||""); text+=" "+q.toks.join(" / "); } else if(q.t==="match") ans=q.pairs.map(x=>x[0]+" = "+x[1]).join("; ");
+  if(q.au) text+=" (listening: "+q.au+")"; if(q.t==="mc"&&q.opts) text+=" ["+q.opts.join(" | ")+"]";
+  return {where:isl.no+" · 闯关 quiz"+(quiz&&quiz.review?" (review)":""), q:text, ans}; }
+function fbWhere(){ const t={explore:"探索 explore",quiz:"闯关 quiz",games:"游戏 games",build:"建设 build"}[tab]||tab; return cur>=0?`${ISLANDS[cur].no} · ${t}${game?" · "+game:""}`:"主页 home"; }
+function openFeedback(ctx){
+  let m=$("#fbModal"); if(!m){ m=document.createElement("div"); m.id="fbModal"; m.className="fbm"; m.hidden=true; document.body.appendChild(m); m.addEventListener("click",e=>{ if(e.target===m) closeFeedback(); }); }
+  ctx=ctx||{where:fbWhere()}; let type=ctx.q?"answer":"bug";
+  const paint=()=>{ setHTML(m,`<div class="fbc" role="dialog" aria-modal="true" aria-label="反馈 Feedback">
+    <button class="d-close" type="button" id="fbX" aria-label="关闭 Close">${X_SVG}</button>
+    <h3>反馈<span class=ui-en>Feedback</span></h3>
+    ${ctx.q?`<div class="fb-q"><b>这道题 This question</b><p data-nopy>${esc(ctx.q.slice(0,200))}</p>${ctx.ans?`<p class="fb-ans">游戏里的答案 Answer in the game: <b data-nopy>${esc(ctx.ans.slice(0,120))}</b></p>`:""}</div>`:`<p class="sw-msg" style="text-align:left;margin:0">位置 Where: <b>${esc(ctx.where||"")}</b></p>`}
+    <div class="fb-types" role="radiogroup">${FB_TYPES.map(([v,z,e])=>`<button type="button" class="fbt${v===type?" on":""}" role="radio" aria-checked="${v===type}" data-t="${v}">${z}<span class=ui-en>${e}</span></button>`).join("")}</div>
+    <textarea id="fbMsg" maxlength="300" rows="3" placeholder="说说哪里有问题（可以不写）  Tell us what is wrong (optional)" data-nopy></textarea>
+    <div class="row"><button class="btn" type="button" id="fbSend">送出<span class=ui-en>Send</span></button><button class="btn ghost" type="button" id="fbCancel">取消<span class=ui-en>Cancel</span></button></div>
+    <p class="sw-msg" id="fbNote" style="text-align:left;margin:0"></p></div>`);
+    const msg=m.querySelector("#fbMsg"); if(m._msg) msg.value=m._msg; msg.oninput=()=>{ m._msg=msg.value; };
+    m.querySelectorAll(".fbt").forEach(b=>b.onclick=()=>{ type=b.dataset.t; m.querySelectorAll(".fbt").forEach(x=>{ x.classList.toggle("on",x===b); x.setAttribute("aria-checked",x===b); }); });
+    $("#fbX").onclick=$("#fbCancel").onclick=closeFeedback;
+    $("#fbSend").onclick=async()=>{ const note=$("#fbNote"), btn=$("#fbSend");
+      if(!API||!auth){ note.textContent=state.teacher?"教师模式不能反馈，请用学生账号登入。 Teacher mode cannot send feedback.":"请先用学号登入，才能反馈。 Please log in first."; return; }
+      if(Date.now()-fbLast<8000){ note.textContent="请等几秒再送出。 Please wait a few seconds."; return; }
+      btn.disabled=true; note.textContent="送出中… Sending…";
+      try{ const j=await api("feedback",{token:auth.token,type,where:ctx.where||fbWhere(),q:ctx.q||"",ans:ctx.ans||"",msg:(m._msg||"").trim(),dev:`${GAME_BUILD} ${innerWidth}x${innerHeight} ${navigator.userAgent.replace(/^Mozilla\/5\.0 /,"").slice(0,100)}`});
+        if(j.ok){ fbLast=Date.now(); m._msg=""; closeFeedback(); toast("谢谢你！老师会看到你的反馈。","Thank you! Your teacher will see it."); return; }
+        note.textContent=j.error==="too_many"?"今天送出的反馈太多了，明天再来吧。 Too many reports today — try again tomorrow.":j.error==="empty"?"请写一句话，或选择类型再送出。 Please write something.":j.error==="auth"?"登入已过期，请重新登入。 Please log in again.":"没有送出，请稍后再试。 Could not send — try again later.";
+      }catch(e){ note.textContent="没有送出，请检查网络。 Could not send — check your connection."; }
+      btn.disabled=false; };
+    setTimeout(()=>msg.focus(),50); };
+  paint(); m.hidden=false; document.body.classList.add("fb-open"); }
+function closeFeedback(){ const m=$("#fbModal"); if(m) m.hidden=true; document.body.classList.remove("fb-open"); }
+document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&$("#fbModal")&&!$("#fbModal").hidden) closeFeedback(); });
+document.addEventListener("click",e=>{ const b=e.target.closest&&e.target.closest("[data-fb]"); if(!b) return; e.preventDefault(); openFeedback(b.dataset.fb==="quiz"?fbQuizCtx():null); });
+
 /* class leaderboard: top 10 by stars (then overall progress), nicknames only; refreshed by the backend about once a minute */
 async function loadBoard(){
   const show=h=>{ const el=$("#lbBody"); if(el) setHTML(el,h); };
@@ -3662,6 +3714,7 @@ function openSide(kind){
         ${API?`<section class="spot"><h3 class="spot-h" style="margin:0">我的账号<span class=ui-en>My account</span></h3>
           ${auth?`<p class="sw-msg" style="text-align:left">班级 ${esc(auth.cls)} · 学号 ${esc(auth.sid)} · 进度自动存到云端。<span class=ui-en data-b>Class ${esc(auth.cls)} · Student ID ${esc(auth.sid)} · progress saves to the cloud.</span></p><div class="row"><button class="btn ghost" type="button" id="syncBtn">立刻同步<span class=ui-en>Sync now</span></button><button class="btn ghost" type="button" id="outBtn">登出<span class=ui-en>Log out</span></button></div><p class="sw-msg" style="text-align:left">在共用的 iPad 上玩完，请记得登出。<span class=ui-en data-b>Log out when you finish on a shared iPad.</span></p>`
           :`<p class="sw-msg" style="text-align:left">现在是教师模式，进度只存在这台设备。<span class=ui-en data-b>Teacher mode: progress is saved on this device only.</span></p><div class="row"><button class="btn" type="button" id="inBtn">退出教师模式，学生登入<span class=ui-en>Leave teacher mode — student log-in</span></button></div>`}</section>`:""}
+        ${API?`<section class="spot"><h3 class="spot-h" style="margin:0">发现问题？<span class=ui-en>Found a problem?</span></h3><p class="sw-msg" style="text-align:left">答案不对、有错字、游戏出错……都可以告诉老师。<span class=ui-en data-b>Wrong answer, typo, bug… tell your teacher.</span></p><div class="row"><button class="btn ghost" type="button" data-fb="gen">${FLAG_SVG}反馈<span class=ui-en>Feedback</span></button></div></section>`:""}
         <section class="spot"><h3 class="spot-h" style="margin:0">我的昵称 <span class="en">Nickname</span></h3>
           <div class="row"><input id="nick2" maxlength="16" value="${esc(state.nick||"")}" aria-label="昵称"><button class="btn ghost" type="button" id="nkSave">保存<span class=ui-en>Save</span></button></div></section>
       </div>`);
@@ -3680,6 +3733,7 @@ function openSide(kind){
         <button class="switch" type="button" role="switch" id="swP" aria-checked="${state.py}"><span><b>显示拼音<span class=ui-en>Show pinyin</span></b><small>关掉可以练习无拼音阅读。<span class=ui-en data-b>Turn off to practise reading without pinyin.</span></small></span><span class="tr"></span></button>
         <button class="switch" type="button" role="switch" id="swE" aria-checked="${state.en}"><span><b>显示英文<span class=ui-en>Show English</span></b><small>按钮和说明旁边的英文。<span class=ui-en data-b>English next to buttons and instructions.</span></small></span><span class="tr"></span></button>
         <button class="switch" type="button" role="switch" id="swT" aria-checked="${state.teacher}"><span><b>教师模式：解锁全部岛屿<span class=ui-en>Teacher mode: unlock all</span></b><small>上课演示用。不会获得椰子币，建设免费。<span class=ui-en data-b>For class demos. No coins are earned; building is free.</span></small></span><span class="tr"></span></button>
+        ${API?`<div class="set-fb"><button class="btn ghost" type="button" data-fb="gen">${FLAG_SVG}游戏出错或题目有问题？反馈<span class=ui-en>Report a bug or a wrong question</span></button></div>`:""}
         ${installSection()}
         <div class="lookset"><b>画面<span class=ui-en>Scene</span></b><small>默认白天；“跟随系统”会在手机或电脑切到深色模式时变成夜晚。<span class=ui-en data-b>Day by default. “Auto” turns to night when your device is in dark mode.</span></small>
           <div class="seg" role="radiogroup" aria-label="画面 Scene">${[["day","白天","Day","ic-sun"],["night","夜晚","Night","ic-moon"],["auto","跟随系统","Auto",""]].map(([v,zh,en,ic])=>`<button type="button" class="segb" role="radio" data-look="${v}" aria-selected="${(state.look||"day")===v}" aria-checked="${(state.look||"day")===v}">${ic?ICON(ic)+" ":""}${zh}<span class=ui-en>${en}</span></button>`).join("")}</div></div>
