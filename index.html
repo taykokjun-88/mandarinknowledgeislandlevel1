@@ -430,6 +430,20 @@ textarea{resize:vertical;font-size:12px;font-family:ui-monospace,Menlo,monospace
   .lbl .now,.lbl-stars{display:none}
 }
 @media (prefers-reduced-motion:reduce){.result .stars .star.on{animation:none}}
+
+/* --- narrow phones (iPhone SE, 320–400 px): all 8 toolbar buttons stay on one row --- */
+@media (max-width:400px){ .tools{padding:4px;justify-content:space-between;flex-wrap:nowrap} .tbtn{padding:7px 4px} .tbtn .tbi{width:22px;height:22px} .brand{padding:8px 10px} }
+/* --- phones turned sideways: the drawer takes about half the width, so the title bar keeps only the logo and the counters (no one-character-per-line title) --- */
+@media (orientation:landscape) and (max-height:520px){
+  body.drawer-open .brand h1, body.drawer-open .brand p{display:none}
+  body.drawer-open .brand{padding:6px 10px;gap:8px}
+  body.drawer-open .seal{width:30px;height:30px;font-size:17px}
+  body.drawer-open .topbar{gap:6px}
+  body.drawer-open .tbtn{padding:6px}
+}
+/* --- wide drawers (iPad portrait): more, smaller game cards instead of two huge ones --- */
+@media (min-width:600px){ .gcards{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))} .gcard .cov{aspect-ratio:16/10} }
+@media (max-width:340px){ .seal{display:none} }
 </style>
 </head>
 <body>
