@@ -528,6 +528,27 @@ window.dispatchEvent(new Event("three-ready"));
 <script src="lib/pinyin-pro.js"></script>
 <script src="lib/hanzi-writer.min.js"></script>
 <script>
+/* Automatic error reports: a JavaScript error, a file that fails to load, a rejected promise, or the 3D picture being lost is sent to the teacher's sheet
+   with the device details (once per kind of error per visit, at most 8 per visit). No answers or personal text are sent. */
+(function(){
+  const API=(window.ISLES_API||"").trim(); if(!API) return;
+  const seen={}; let sent=0;
+  const dev=()=>{ const n=navigator; let b=""; try{ b=GAME_BUILD; }catch(e){} return `${b} ${innerWidth}x${innerHeight}@${(devicePixelRatio||1).toFixed(1)} c${n.hardwareConcurrency||"?"} m${n.deviceMemory||"?"} ${n.userAgent.replace(/^Mozilla\/5\.0 /,"").slice(0,90)}`; };
+  window.__sendLog=function(kind,msg,detail,force){ try{
+    const sig=kind+"|"+msg; if(!force){ if(seen[sig]) return; seen[sig]=1; if(++sent>8) return; }
+    let tok=""; try{ tok=(auth&&auth.token)||""; }catch(e){} let where=""; try{ where=fbWhere(); }catch(e){}
+    fetch(API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action:"errlog",token:tok,kind,msg:String(msg).slice(0,200),where,detail:String(detail||"").slice(0,600),dev:dev()}),keepalive:true}).catch(()=>{});
+  }catch(e){} };
+  const noise=/ResizeObserver|chrome-extension|moz-extension|safari-(web-)?extension|^Script error\.?$/;
+  window.addEventListener("error",e=>{
+    const t=e.target;
+    if(t && t!==window && (t.src||t.href)){ const u=String(t.src||t.href).replace(location.origin,""); if(/favicon/.test(u)) return; window.__sendLog("resource","failed to load "+u.slice(0,150),t.tagName); return; }
+    const m=String(e.message||""); if(noise.test(m+" "+(e.filename||""))) return;
+    window.__sendLog("error",m,String(e.filename||"").split("/").pop()+":"+e.lineno+":"+e.colno+"\n"+((e.error&&e.error.stack)||"").split("\n").slice(0,5).join("\n")); },true);
+  window.addEventListener("unhandledrejection",e=>{ const r=e.reason, m=String((r&&r.message)||r||""); if(!m || /AbortError|NotAllowedError|The operation was aborted/.test(m+((r&&r.name)||""))||noise.test(m)) return; window.__sendLog("promise",m,String((r&&r.stack)||"").split("\n").slice(0,5).join("\n")); });
+})();
+</script>
+<script>
 "use strict";
 /* ============================================================
    CONTENT — the archipelago = the Mandarin 1 Module; 9 islands = its 9 Chapters
@@ -1657,8 +1678,11 @@ function initScene(){
   SN=new THREE.SimplexNoise({ random: rng(42) });
   renderer=new THREE.WebGLRenderer({canvas, antialias:!hi, powerPreference:"high-performance"});
   perfInit(); renderer.info.autoReset=false;
+  canvas.addEventListener("webglcontextlost",e=>{ e.preventDefault(); if(window.__sendLog) window.__sendLog("webgl","WebGL context lost",perfInfo(),true);
+    perfStep=3; perfLite=true; savePerf();   // the graphics were overloaded: start in lite mode next time
+    try{ const last=Number(sessionStorage.getItem("m1-ctx")||0); if(Date.now()-last>120000){ sessionStorage.setItem("m1-ctx",String(Date.now())); toast("画面暂时出了问题，正在重新载入…","The picture had a problem — reloading…"); setTimeout(()=>location.reload(),1200); } }catch(err){} });
   renderer.outputColorSpace=THREE.SRGBColorSpace; renderer.toneMapping=THREE.ACESFilmicToneMapping;
-  renderer.shadowMap.enabled=true; renderer.shadowMap.type=hi?THREE.PCFSoftShadowMap:THREE.PCFShadowMap; renderer.shadowMap.autoUpdate=false;   // shadows are redrawn only when the scenery changes (see refreshShadows)
+  renderer.shadowMap.enabled=perfStep<2; renderer.shadowMap.type=hi?THREE.PCFSoftShadowMap:THREE.PCFShadowMap; renderer.shadowMap.autoUpdate=false;   // shadows are redrawn only when the scenery changes (see refreshShadows)
   scene=new THREE.Scene();
   camera=new THREE.PerspectiveCamera(40,1,.5,4000);
   controls=new THREE.OrbitControls(camera, canvas);
@@ -1677,7 +1701,7 @@ function initScene(){
   [[-12,30,6,.16,NY.lantern,C.gold],[20,-2,5,-.2,C.gold,NY.shutter],[-28,-12,5,.18,NY.shutter,NY.lantern],[30,52,9,.1,NY.lantern,NY.shutter]].forEach(([cx,cz,R,sp,a,b])=>{ const bt=perahu(a,b); bt.scale.setScalar(1.1); scene.add(bt);
     seaBoats.push(t=>{ const ang=t*sp; bt.position.set(cx+Math.cos(ang)*R,.25+Math.sin(t*1.5+cx)*.15,cz+Math.sin(ang)*R); bt.rotation.y=-ang+(sp>0?Math.PI:0); bt.rotation.z=Math.sin(t*1.2+cz)*.06; }); });
   const crr=rng(7); for(let k=0;k<11;k++){ const c=spriteOf(`cloud-${k%7}`, (k%7>4?22:42)+crr()*26); c.position.set((crr()-.5)*420,55+crr()*35,(crr()-.5)*320-60); scene.add(c); seaBoats.push(t=>{ c.position.x+=.012; if(c.position.x>230) c.position.x=-230; }); }
-  if(hi){
+  if(hi && perfStep<1){
     const rt=new THREE.WebGLRenderTarget(1,1,{type:THREE.HalfFloatType, samples:4});
     composer=new THREE.EffectComposer(renderer, rt);
     composer.addPass(new THREE.RenderPass(scene,camera));
@@ -1702,18 +1726,35 @@ function initScene(){
 // if this device still can't keep up, lower the resolution, then switch off shadows
 // automatic resolution: watch for dropped frames and lower (or raise again) the render resolution so the frame rate stays steady.
 // Only if the lowest resolution still can't keep up are the post effects, then shadows, switched off.
-let prMax=1, prCur=1, perfWin=0, perfBad=0, perfN=0, perfGood=0, perfStep=0, lastRender=0;
-function perfInit(){ prMax=Math.min(window.devicePixelRatio||1, HIGH()?2:1.5); prCur=Math.min(prMax, HIGH()?1.5:prMax); renderer.setPixelRatio(prCur); }
-function setPr(v){ v=Math.round(v*4)/4; if(v===prCur) return; prCur=v; renderer.setPixelRatio(v); resize(); }
+let prMax=1, prCur=1, perfWin=0, perfBad=0, perfN=0, perfGood=0, perfStep=0, lastRender=0, perfLite=false, perfLiteN=0;
+/* Quality tiers (perfStep): 0 full · 1 no post effects · 2 no shadows either · 3 lite (also 30 fps and lowest resolution).
+   The tier a device ends up on is remembered for 14 days, so the next visit starts there instead of stuttering for a few seconds again. */
+const PERF_KEY="m1-perf";
+function loadPerf(){ try{ const o=JSON.parse(localStorage.getItem(PERF_KEY)); if(o && Date.now()-o.t<14*864e5 && o.hi===HIGH()) return o; }catch(e){} return null; }
+function savePerf(){ try{ localStorage.setItem(PERF_KEY, JSON.stringify({tier:perfStep, pr:prCur, t:Date.now(), hi:HIGH()})); }catch(e){} }
+const perfInfo=()=>`tier ${perfStep} · res x${prCur}/${prMax} · effects ${composer?"on":"off"} · shadows ${renderer&&renderer.shadowMap.enabled?"on":"off"}${perfLite?" · lite":""}`;
+const perfS={arr:[],done:false};
+function perfPush(fps,bad){ if(perfS.done) return; perfS.arr.push([fps,bad]); if(perfS.arr.length>=12) sendPerf(); }
+function sendPerf(){ if(perfS.done || perfS.arr.length<3) return; perfS.done=true;
+  try{ const day=todayStr(); if(localStorage.getItem("m1-perf-day")===day) return; localStorage.setItem("m1-perf-day",day); }catch(e){}
+  const f=perfS.arr.map(x=>x[0]).sort((a,b)=>a-b), smooth=100*(1-perfS.arr.reduce((a,x)=>a+x[1],0)/perfS.arr.length);
+  let gpu=""; try{ const gl=renderer.getContext(), ex=gl.getExtension("WEBGL_debug_renderer_info"); if(ex) gpu=gl.getParameter(ex.UNMASKED_RENDERER_WEBGL); }catch(e){}
+  if(window.__sendLog) window.__sendLog("perf",`smooth ${smooth.toFixed(0)}% · fps median ${f[Math.floor(f.length/2)].toFixed(0)} · lowest ${f[0].toFixed(0)}`,`${perfInfo()} · gpu ${gpu}`,true); }
+window.addEventListener("pagehide",()=>{ if(!perfS.done) sendPerf(); });
+function perfInit(){ prMax=Math.min(window.devicePixelRatio||1, HIGH()?2:1.5); prCur=Math.min(prMax, HIGH()?1.5:prMax);
+  const sv=loadPerf(); if(sv){ perfStep=sv.tier||0; perfLite=perfStep>=3; prCur=Math.min(prMax, sv.pr||prCur); if(perfLite){ prMax=Math.min(prMax,1); prCur=Math.min(prCur,1); } }
+  renderer.setPixelRatio(prCur); }
+function setPr(v){ v=Math.round(v*4)/4; if(v===prCur) return; prCur=v; renderer.setPixelRatio(v); resize(); savePerf(); }
 function perfWatch(now, wantGap){ const gap=now-lastRender; lastRender=now;
   if(document.body.classList.contains("drawer-open") || gap>250){ perfWin=0; perfBad=0; perfN=0; return; }   // ignore panels and tab switches
   perfWin+=gap; perfN++; if(gap>wantGap*1.45) perfBad++;
   if(perfWin<2000) return;
-  const bad=perfBad/perfN; perfWin=0; perfBad=0; perfN=0;
+  const fpsNow=perfN/(perfWin/1000), bad=perfBad/perfN; perfWin=0; perfBad=0; perfN=0; perfPush(fpsNow,bad);
   if(bad>.12){ perfGood=0;
     if(prCur>1) return setPr(Math.max(1, prCur-.25));
-    if(perfStep===0){ perfStep=1; if(composer && bad>.25){ composer=null; return; } return; }
-    if(perfStep===1 && bad>.25){ perfStep=2; renderer.shadowMap.enabled=false; scene.traverse(o=>{ if(o.material && !Array.isArray(o.material)) o.material.needsUpdate=true; }); }
+    if(perfStep===0){ perfStep=1; if(composer && bad>.25) composer=null; savePerf(); return; }
+    if(perfStep===1 && bad>.25){ perfStep=2; renderer.shadowMap.enabled=false; scene.traverse(o=>{ if(o.material && !Array.isArray(o.material)) o.material.needsUpdate=true; }); savePerf(); if(window.__sendLog) window.__sendLog("quality","quality lowered: shadows off",perfInfo()); return; }
+    if(perfStep===2 && bad>.25 && ++perfLiteN>=3){ perfStep=3; perfLite=true; prMax=Math.min(prMax,1); setPr(1); savePerf(); if(window.__sendLog) window.__sendLog("quality","quality lowered: lite mode (30 fps)",perfInfo()); }
     return; }
   if(bad<.02 && ++perfGood>=4 && prCur<prMax){ perfGood=0; setPr(Math.min(prMax, prCur+.25)); } }
 function zoomBy(f){ if(!camera) return; const t=controls.target.clone(), dir=camera.position.clone().sub(t); const L=Math.min(controls.maxDistance, Math.max(controls.minDistance, dir.length()*f)); go(t.clone().add(dir.setLength(L)), t, 320); }
@@ -1752,7 +1793,7 @@ function loop(now){
   loop.n=(loop.n||0)+1;
   { const ar=document.getElementById("arStage"); if(ar && !ar.hidden) return; }   // full-screen camera game: stop drawing the 3D scene behind it (two GPU jobs at once can crash laptop graphics drivers)
   if(media && (media.stream) && loop.n%4){ placeLabels(); return; }
-  const still=!fly && !HIGH() && (document.body.classList.contains("drawer-open") || now-lastTouch>1500);   // phones/tablets only
+  const still=!fly && (perfLite || (!HIGH() && (document.body.classList.contains("drawer-open") || now-lastTouch>1500)));   // phones/tablets (or any device in lite mode): 30 fps
   if(still && loop.n%2) return;   // view is still or a panel is open: 30 fps is plenty
   perfWatch(now, still?2000/60:1000/60); const draws=renderer.info.render.calls; renderer.info.reset();
   if(fpsEl){ fpsEl.n=(fpsEl.n||0)+1; fpsEl.w=(fpsEl.w||0)+dt; fpsEl.mx=Math.max(fpsEl.mx||0,dt); if(fpsEl.w>=1){ fpsEl.textContent=`${Math.round(fpsEl.n/fpsEl.w)} fps · worst ${Math.round(fpsEl.mx*1000)} ms · screen ${Math.round(1000/hzMs)} Hz · res ×${prCur} · ${composer?"effects on":"effects off"}${renderer.shadowMap.enabled?"":" · no shadows"} · ${draws} draws`; fpsEl.n=0; fpsEl.w=0; fpsEl.mx=0; } }
@@ -3756,7 +3797,7 @@ function openSide(kind){
     side.querySelectorAll("[data-look]").forEach(b=>b.onclick=()=>{ state.look=b.dataset.look; save(); applyLook(); side.querySelectorAll("[data-look]").forEach(x=>{ x.setAttribute("aria-selected", x===b); x.setAttribute("aria-checked", x===b); }); });
     $("#swMu").onclick=e=>{ const on=state.music===false; Music.setOn(on); applyMusicBtn(); e.currentTarget.setAttribute("aria-checked",on); };
     $("#volR").oninput=e=>Music.setVol(+e.target.value);
-    $("#swG").onclick=()=>{ state.gfx=HIGH()?"low":"high"; save(); location.reload(); };
+    $("#swG").onclick=()=>{ state.gfx=HIGH()?"low":"high"; save(); try{ localStorage.removeItem(PERF_KEY); }catch(e){} location.reload(); };
     $("#swM").onclick=e=>{ setAnim(!animOn); e.currentTarget.setAttribute("aria-checked",animOn); };
     let armed=false; $("#rst").onclick=e=>{ if(!armed){ armed=true; setHTML(e.currentTarget,"再点一次确认重置<span class=ui-en>Tap again to reset</span>"); e.currentTarget.style.borderColor="var(--bad)"; e.currentTarget.style.color="var(--bad)"; return; }
       const nick=state.nick; state=freshState(); state.nick=nick; save(); applyPy(); applyEn(); updateCoins(); refreshLabels(); ISLANDS.forEach((_,i)=>{ render3DBuild(i); render3DFarm(i); }); openSide("settings"); toast("进度已重置","Progress reset"); };

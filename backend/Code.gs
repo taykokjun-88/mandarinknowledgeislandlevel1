@@ -54,12 +54,12 @@ function purgeFromMenu(){
 }
 
 /* ---------------- web API ---------------- */
-function doGet(){ return json({ok:true, service:'mandarin1-isles', version:4, time:new Date().toISOString()}); }
+function doGet(){ return json({ok:true, service:'mandarin1-isles', version:5, time:new Date().toISOString()}); }
 function doPost(e){
   let req; try{ req = JSON.parse(e.postData.contents || '{}'); }catch(err){ return json({ok:false, error:'bad_json'}); }
   // saving, loading, the island settings and the leaderboard only touch the student's own row (or read), so they do not queue behind the global lock:
   // with 60+ students playing at once, a single lock for everything makes requests time out. Sign-up, login, log-out and teacher actions keep the lock.
-  if(req.action==='save' || req.action==='load' || req.action==='cfg' || req.action==='board' || req.action==='feedback'){
+  if(req.action==='save' || req.action==='load' || req.action==='cfg' || req.action==='board' || req.action==='feedback' || req.action==='errlog'){
     try{ return json(route_(req)); }
     catch(err){ return json({ok:false, error:'server', detail:String(err && err.message || err)}); }
   }
@@ -78,6 +78,7 @@ function route_(r){
     case 'logout':   return logout_(r);
     case 'board':    return board_(r);
     case 'feedback': return feedback_(r);
+    case 'errlog':   return errlog_(r);
     case 'cfg':      { const a = auth_(r.token); if(!a) return {ok:false, error:'auth'}; return {ok:true, islands:islandsOf_(a.values[COL.cls])}; }
     case 'tLogin':   return teacher_(r, ()=>({ok:true}));
     case 'tClasses': return teacher_(r, ()=>({ok:true, classes:classes_()}));
@@ -87,6 +88,7 @@ function route_(r){
     case 'tPurge':   return teacher_(r, ()=>purge_(r.cls));
     case 'tSetIslands': return teacher_(r, ()=>setIslands_(r.code, r.islands));
     case 'tRoster':  return teacher_(r, ()=>roster_(r.cls));
+    case 'tLogs':    return teacher_(r, ()=>logsList_());
     case 'tFeedback': return teacher_(r, ()=>feedbackList_(r.cls, !!r.all));
     case 'tFeedbackDone': return teacher_(r, ()=>feedbackDone_(r.id, r.done!==false));
     case 'tResetPin': return teacher_(r, ()=>resetPin_(r.cls, r.sid, r.pin));
@@ -127,6 +129,35 @@ function login_(r){
   cacheRow_(token, f.row);
   return {ok:true, token, cls:v[COL.cls], sid:String(v[COL.sid]), nick:v[COL.nick], state:parseState_(v[COL.state]), updated:time_(v[COL.updated]), islands:islandsOf_(v[COL.cls])};
 }
+/* ---------------- automatic error and performance logs (sent by the game itself) ---------------- */
+const SH_LOGS = '日志 Logs';
+const LOG_HEADERS = ['时间 Time','类型 Kind','班级 Class','学号 Student ID','信息 Message','位置 Where','详情 Detail','设备 Device'];
+const LOG_PER_USER_DAY = 30, LOG_ANON_DAY = 150, LOG_KEEP_ROWS = 3000;
+function logsSheet_(){ const ss = SpreadsheetApp.getActive(); let sh = ss.getSheetByName(SH_LOGS);
+  if(!sh){ sh = ss.insertSheet(SH_LOGS); sh.appendRow(LOG_HEADERS); sh.setFrozenRows(1); sh.getRange('D:D').setNumberFormat('@'); }
+  return sh; }
+function errlog_(r){
+  const a = r.token ? auth_(r.token) : null, cls = a ? a.values[COL.cls] : '', sid = a ? normSid_(a.values[COL.sid]) : '';
+  const kind = ['error','promise','resource','webgl','quality','perf'].indexOf(r.kind) >= 0 ? r.kind : 'error';
+  const cache = CacheService.getScriptCache(), day = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyyMMdd');
+  const ck = 'lg:' + (a ? cls + ':' + sid : 'anon') + ':' + day, cap = a ? LOG_PER_USER_DAY : LOG_ANON_DAY, n = Number(cache.get(ck)||0);
+  if(n >= cap) return {ok:false, error:'too_many'};
+  const msg = cleanText_(r.msg, 200); if(!msg) return {ok:false, error:'empty'};
+  // the same message from the same student is stored only once an hour (perf reports once a day)
+  const sig = 'ls:' + Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, kind + '|' + (sid||'anon') + '|' + msg)).slice(0, 40);
+  if(cache.get(sig)) return {ok:true, dup:true};
+  const lock = LockService.getScriptLock(); try{ lock.waitLock(5000); }catch(e){ return {ok:false, error:'busy'}; }
+  try{ const sh = logsSheet_(); sh.appendRow([new Date(), kind, cls, sid, msg, cleanText_(r.where, 60), cleanText_(r.detail, 600), cleanText_(r.dev, 200)]);
+    const rows = sh.getLastRow(); if(rows > LOG_KEEP_ROWS + 200) sh.deleteRows(2, rows - LOG_KEEP_ROWS); } finally { lock.releaseLock(); }
+  try{ cache.put(ck, String(n+1), 86400); cache.put(sig, '1', kind==='perf' ? 21600 : 3600); }catch(e){}
+  return {ok:true};
+}
+function logsList_(){
+  const sh = logsSheet_(), n = sh.getLastRow(); if(n < 2) return {ok:true, items:[]};
+  const from = Math.max(2, n-599), v = sh.getRange(from, 1, n-from+1, LOG_HEADERS.length).getValues();
+  return {ok:true, items:v.reverse().map(x=>({t:x[0] instanceof Date ? x[0].toISOString() : String(x[0]), kind:x[1], cls:x[2], sid:String(x[3]), msg:x[4], where:x[5], detail:x[6], dev:x[7]}))};
+}
+
 /* ---------------- student feedback: wrong answers, typos, bugs ---------------- */
 const SH_FEEDBACK = '反馈 Feedback';
 const FB_HEADERS = ['id','时间 Time','班级 Class','学号 Student ID','昵称 Nickname','类型 Type','位置 Where','题目 Question','显示的答案 Shown answer','学生留言 Comment','设备 Device','状态 Status','处理时间 Done at'];

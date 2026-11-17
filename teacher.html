@@ -104,6 +104,16 @@ td.isl[data-s="0"]{background:var(--s0)}td.isl[data-s="1"]{background:var(--s1)}
       <div class="tablewrap"><table id="tbl"><thead></thead><tbody></tbody></table></div>
       <p class="note" id="empty" hidden>这个班还没有学生注册。把班级代码告诉学生，让他们在游戏里选「第一次来：注册」。<br>No students yet. Give students the class code and ask them to choose “New here: sign up”.</p>
     </section>
+    <section class="card" id="logCard">
+      <div class="row" style="justify-content:space-between"><h2 style="margin:0">错误与性能 <small>Errors &amp; performance (sent automatically by the game)</small></h2><button class="btn ghost sm" id="logRefresh" type="button">刷新 Refresh</button></div>
+      <p class="note">游戏出现程序错误、文件加载失败、画面中断时会自动记录，并附上设备信息；每个学生每次打开游戏只送出少数几条。性能数据每台设备每天一次。<br>The game logs script errors, failed files and lost graphics automatically, with device details. Performance is sent once a day per device.</p>
+      <h3 style="margin:10px 0 4px">错误 Errors <small id="errCount"></small></h3>
+      <div class="tablewrap"><table id="errTbl"><thead><tr><th>次数 Count</th><th>类型 Kind</th><th>信息 Message</th><th>位置 Where</th><th>学生数 Students</th><th>设备 Devices</th><th>最近 Last</th></tr></thead><tbody></tbody></table></div>
+      <p class="note" id="errEmpty" hidden>没有错误记录。 No errors logged.</p>
+      <h3 style="margin:14px 0 4px">各类设备的流畅度 Smoothness by device</h3>
+      <div class="tablewrap"><table id="perfTbl"><thead><tr><th>设备 Device</th><th>报告数 Reports</th><th>流畅度中位 Smooth median</th><th>帧率中位 FPS median</th><th>已自动降画质 Lowered</th></tr></thead><tbody></tbody></table></div>
+      <p class="note" id="perfEmpty" hidden>还没有性能数据。学生玩一会儿后会自动送来。 No performance data yet.</p>
+    </section>
   </div>
 </main>
 <script src="config.js"></script>
@@ -138,7 +148,20 @@ async function loadRoster(){ const code=$("#cls").value, c=classes.find(x=>x.cod
   $("#ids").value=(c&&c.ids||[]).join(", "); $("#idsMsg").textContent="";
   const j=await api("tRoster",{cls:code}); if(!j.ok) return alertBox(errText(j.error)); roster=j.students; listIds=j.ids||[]; render(); }
 
-function render(){ tiles(); chart(); missTable(); table(); idsInfo(); islTable(); loadFeedback(); }
+function render(){ tiles(); chart(); missTable(); table(); idsInfo(); islTable(); loadFeedback(); loadLogs(); }
+const devLabel=d=>{ const u=d||""; const os=/iPhone/.test(u)?"iPhone":/iPad/.test(u)?"iPad":/Android/.test(u)?"Android":/Windows/.test(u)?"Windows":/Macintosh|Mac OS X/.test(u)?"Mac":/Linux/.test(u)?"Linux":"其他 other"; const br=/Edg\//.test(u)?"Edge":/CriOS|Chrome\//.test(u)?"Chrome":/Firefox|FxiOS/.test(u)?"Firefox":/Safari\//.test(u)?"Safari":"?"; return os+" · "+br; };
+const median=a=>{ const b=a.filter(x=>isFinite(x)).sort((x,y)=>x-y); return b.length?b[Math.floor(b.length/2)]:null; };
+const KIND_LABEL={error:"程序错误 Script error",promise:"程序错误 Promise",resource:"文件加载失败 File failed",webgl:"画面中断 Graphics lost",quality:"自动降画质 Quality lowered",perf:"性能 Performance"};
+async function loadLogs(){ const j=await api("tLogs"); if(!j.ok) return; const items=j.items||[];
+  const errs=items.filter(x=>x.kind!=="perf"&&x.kind!=="quality"), g={};
+  errs.forEach(x=>{ const k=x.kind+"|"+x.msg; const e=g[k]||(g[k]={kind:x.kind,msg:x.msg,where:{},students:new Set(),devs:{},n:0,last:x.t,detail:x.detail}); e.n++; e.where[x.where||"-"]=1; if(x.sid) e.students.add(x.sid); e.devs[devLabel(x.dev)]=(e.devs[devLabel(x.dev)]||0)+1; if(x.t>e.last) e.last=x.t; });
+  const rows=Object.values(g).sort((a,b)=>b.n-a.n); $("#errEmpty").hidden=rows.length>0; $("#errTbl").hidden=!rows.length; $("#errCount").textContent=rows.length?`（${rows.length} 种 kinds，${errs.length} 条 entries）`:"";
+  $("#errTbl tbody").innerHTML=rows.slice(0,40).map(e=>{ const t=new Date(e.last), when=isNaN(t)?"":t.toLocaleString("zh-CN",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"});
+    return `<tr><td><b>${e.n}</b></td><td>${esc(KIND_LABEL[e.kind]||e.kind)}</td><td>${esc(e.msg)}${e.detail?`<br><small style="color:var(--muted);white-space:pre-wrap">${esc(String(e.detail).slice(0,260))}</small>`:""}</td><td>${esc(Object.keys(e.where).slice(0,3).join("; "))}</td><td>${e.students.size||"–"}</td><td>${esc(Object.entries(e.devs).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k,v])=>`${k} ×${v}`).join("; "))}</td><td>${esc(when)}</td></tr>`; }).join("");
+  const pg={}; items.forEach(x=>{ const k=devLabel(x.dev), o=pg[k]||(pg[k]={n:0,smooth:[],fps:[],low:0,q:0}); if(x.kind==="quality") o.q++; if(x.kind!=="perf") return; o.n++; const m=/smooth (\d+)%/.exec(x.msg), f=/median (\d+)/.exec(x.msg), t=/tier (\d)/.exec(x.detail||""); if(m) o.smooth.push(+m[1]); if(f) o.fps.push(+f[1]); if(t&&+t[1]>=1) o.low++; });
+  const prow=Object.entries(pg).filter(([k,o])=>o.n||o.q).sort((a,b)=>b[1].n-a[1].n); $("#perfEmpty").hidden=prow.length>0; $("#perfTbl").hidden=!prow.length;
+  $("#perfTbl tbody").innerHTML=prow.map(([k,o])=>{ const sm=median(o.smooth), fp=median(o.fps); return `<tr><td><b>${esc(k)}</b></td><td>${o.n}</td><td style="color:${sm!=null&&sm<80?"var(--red)":"inherit"};font-weight:${sm!=null&&sm<80?700:400}">${sm==null?"–":sm+"%"}</td><td>${fp==null?"–":fp}</td><td>${o.low}${o.n?` / ${o.n}`:""}${o.q?`（降档事件 ${o.q}）`:""}</td></tr>`; }).join(""); }
+$("#logRefresh").onclick=loadLogs;
 const FB_LABEL={answer:"答案不对 Wrong answer",typo:"错字 / 翻译 Typo",bug:"游戏出错 Bug",idea:"建议 / 其他 Idea"};
 let fbShowAll=false;
 async function loadFeedback(){ const code=$("#cls").value; if(!code) return; const j=await api("tFeedback",{cls:code,all:fbShowAll}); if(!j.ok) return;
