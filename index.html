@@ -455,6 +455,7 @@ textarea{resize:vertical;font-size:12px;font-family:ui-monospace,Menlo,monospace
 .fb-q{background:var(--panel-2,#f5ebd9);border-radius:12px;padding:10px 12px}.fb-q p{margin:4px 0 0;word-break:break-word}.fb-ans{font-size:14px}
 .fb-types{display:flex;flex-wrap:wrap;gap:8px}.fbt{border:1.5px solid var(--line);background:transparent;border-radius:99px;padding:7px 12px;font-size:14px;cursor:pointer;color:var(--ink)}.fbt.on{background:var(--red);border-color:var(--red);color:#fff}
 .fbc textarea{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;font:inherit;background:var(--field,#fff);color:var(--ink);resize:vertical;min-height:84px}
+.voyage .topbar,.voyage .zoomer,.voyage #hint{opacity:.25;pointer-events:none;transition:opacity .3s}
 </style>
 </head>
 <body>
@@ -1017,7 +1018,7 @@ const todayStr=()=>{ const d=new Date(); return `${d.getFullYear()}-${String(d.g
 // why a teacher has closed island i right now: {kind:"maint"} | {kind:"date", date} | null
 function isleBlock(i){ const c=ISLE_CFG[i]||{}; if(c.mode==="closed") return {kind:"maint"}; if(c.mode!=="open" && (ISLANDS[i]||{}).wip) return {kind:"maint"}; if(c.date && todayStr()<c.date) return {kind:"date", date:c.date}; return null; }   // wip = content not finished: shows the construction sign until the teacher sets "open"
 // mist covers islands not reached yet; an island under maintenance shows its construction sign instead
-const mistGoal = i => (isUnlocked(i) || (!state.teacher && (isleBlock(i)||{}).kind==="maint")) ? 0 : 1;
+const mistGoal = i => (voyage && voyage.to===i && voyage.t<voyage.T*.5) ? 1 : ((isUnlocked(i) || (!state.teacher && (isleBlock(i)||{}).kind==="maint")) ? 0 : 1);
 const dateZh=d=>{ const [y,m,dd]=d.split("-").map(Number); return `${m}月${dd}日`; };
 const isUnlocked = i => state.teacher || (!isleBlock(i) && ((ISLE_CFG[i]||{}).mode==="open" || progressOpen(i)));
 
@@ -1074,7 +1075,10 @@ function speak(text){
 let HAS3D = false;
 function webglOK(){ try{ const c=document.createElement("canvas"); return !!(c.getContext("webgl2")||c.getContext("webgl")); }catch(e){ return false; } }
 let skyRT=null, skyCam=null, renderer, scene, camera, controls, ocean, sun, hemi, sky, composer, bloomPass, tiltH, tiltV, gradePass, pmrem, SN;
-const CENTER = {x:-6, z:-2};
+// world scale: islands are 30% bigger and the sea between them is wider. Decorations and sea animals keep their size, so a built island feels less crowded.
+const ISL_K=1.3, POS_K=1.7;
+ISLANDS.forEach(d=>{ d.pos=[d.pos[0]*POS_K, d.pos[1]*POS_K]; d.r=(d.r||10.5)*ISL_K; });
+const CENTER = {x:-6*POS_K, z:-2*POS_K};
 const isles = [];            // per island: {group, clouds, cloudK, anim:[], r, shape}
 let routeDots = [];
 const seaBoats = [];
@@ -1307,7 +1311,7 @@ function terrainH(sh, x, z){
   return .12+(-4.6-.12)*smooth(1.0,1.42,t);
 }
 function buildTerrain(sh, tint){
-  const S=sh.r*2.9, N=HIGH()?110:60, g=new THREE.PlaneGeometry(S,S,N,N); g.rotateX(-Math.PI/2);
+  const S=sh.r*2.9, N=HIGH()?130:75, g=new THREE.PlaneGeometry(S,S,N,N); g.rotateX(-Math.PI/2);
   const p=g.attributes.position, col=new Float32Array(p.count*3), c=new THREE.Color();
   const G1=new THREE.Color(tint).offsetHSL(0,.06,-.03), G2=new THREE.Color(0x3fb53a), SAND=new THREE.Color(0xf7dd9c), WET=new THREE.Color(0xd8b878), DEEP=new THREE.Color(0x6fb9a4);
   for(let i=0;i<p.count;i++){ const x=p.getX(i), z=p.getZ(i), h=terrainH(sh,x,z); p.setY(i,h);
@@ -1367,7 +1371,7 @@ function wanderTarget(k){ const o=k.o; for(let n=0;n<30;n++){ const a=Math.rando
 function addLife(){ addWalkers(); const L=new THREE.TextureLoader(), rr=rng(77);
   Promise.all(["seagull","butterflies"].map(n=>L.loadAsync(`assets/sprites/${n}.webp`))).then(([gBase,bBase])=>{
     const mk=(base, w)=>{ const t=base.clone(); t.colorSpace=THREE.SRGBColorSpace; t.needsUpdate=true; const m=new THREE.SpriteMaterial({map:t, transparent:true, alphaTest:.4, depthWrite:false, fog:true, toneMapped:false}); m.color.setRGB(...nightTint()); nightMats.push(m); const sp=new THREE.Sprite(m); sp.scale.set(w,w,1); scene.add(sp); return sp; };
-    for(let k=0;k<7;k++){ const sp=mk(gBase, 3.4); sp.material.map.repeat.set(.5,.5); life.gulls.push({s:sp, cx:CENTER.x+(rr()-.5)*120, cz:CENTER.z+(rr()-.5)*90, R:22+rr()*40, y:15+rr()*12, sp:(.12+rr()*.12)*(k%2?1:-1), ph:rr()*6.28, glide:rr()*10}); }
+    for(let k=0;k<7;k++){ const sp=mk(gBase, 3.4); sp.material.map.repeat.set(.5,.5); life.gulls.push({s:sp, cx:CENTER.x+(rr()-.5)*120*POS_K, cz:CENTER.z+(rr()-.5)*90*POS_K, R:(22+rr()*40)*1.3, y:15+rr()*12, sp:(.12+rr()*.12)*(k%2?1:-1), ph:rr()*6.28, glide:rr()*10}); }
     isles.forEach(o=>{ for(let k=0;k<1;k++){ const sp=mk(bBase, .7); sp.material.map.repeat.set(1/3,1/3); const a=rr()*6.28, d=o.r*(.35+rr()*.3); life.flies.push({s:sp, o, cx:Math.cos(a)*d, cz:Math.sin(a)*d, kind:Math.floor(rr()*3), ph:rr()*6.28, R:1.2+rr()*1.6}); } });
   }).catch(e=>console.warn("life sprites", e)); }
 let _cr, _cu, _v, _kv, lastKidT=0;   // created once THREE has loaded
@@ -1474,15 +1478,15 @@ function buildIsland(d, i){
   // rocks along the shore
   for(let k=0;k<7;k++){ const a=rr()*6.28, e=islandEdge(sh,a)*(.93+rr()*.1), x=Math.cos(a)*e, z=Math.sin(a)*e; const rk=mesh(new THREE.DodecahedronGeometry(.45+rr()*.6,1),0x9c968c,x,terrainH(sh,x,z)+.1,z); rk.scale.y=.6; rk.rotation.y=rr()*3; g.add(rk); }
   // trees on the outer ring (skip the front so the landmark stays visible)
-  for(let k=0;k<6;k++){ const a=rr()*Math.PI*2; if(Math.abs(Math.sin(a)-1)<.45) continue; const R=sh.r*(.68+rr()*.08), x=Math.cos(a)*R, z=Math.sin(a)*R, h=terrainH(sh,x,z);
+  for(let k=0;k<8;k++){ const a=rr()*Math.PI*2; if(Math.abs(Math.sin(a)-1)<.45) continue; const R=sh.r*(.68+rr()*.08), x=Math.cos(a)*R, z=Math.sin(a)*R, h=terrainH(sh,x,z);
     const t=new THREE.Group(); t.position.y=h; g.add(t); const kind=k%3; if(kind===2) frangipani(t,x,z); else if(kind===1) banana(t,x,z,.85); else palm(t, x, z, .8+rr()*.35, rr); }
   // grass tufts + flowers
   const hi=HIGH();
   const plots=SLOT_ANG.map(a=>[Math.cos(a)*r*.72, Math.sin(a)*r*.72]);   // keep the build plots clear
   const offRoad = d.lm==="bus" ? (x,z)=>Math.abs(Math.hypot(x,z)-r*ROAD_R)<ROAD_W+.9 : null;
-  scatterCards(g, sh, "grass", hi?170:90, .42, .9, [.45,.9], rr, plots, offRoad);
-  scatterCards(g, sh, "flowers", hi?32:18, .4, .88, [.5,.8], rr, plots, offRoad);
-  const A=[]; const lm=LM[d.lm](A,r,sh); lm.position.y=2.2; g.add(lm);
+  scatterCards(g, sh, "grass", hi?240:130, .42, .9, [.45,.9], rr, plots, offRoad);
+  scatterCards(g, sh, "flowers", hi?46:26, .4, .88, [.5,.8], rr, plots, offRoad);
+  const A=[]; const lm=LM[d.lm](A,r,sh); lm.position.y=2.2; lm.scale.setScalar(1.15); g.add(lm);
   // soft clouds over locked islands
   // magic mist over locked islands: hand-painted sprites that drift apart and fade when the island unlocks
   const clouds=new THREE.Group();
@@ -1600,7 +1604,7 @@ function applyTheme(){ if(!scene) return; const dark=themeDark();
   sun.position.copy(sunDir).multiplyScalar(160); sun.color.set(dark?0xff9a5c:0xfff0d6); sun.intensity=dark?1.3:2.6;
   hemi.color.set(dark?0x8fa3d9:0xdff1ff); hemi.groundColor.set(dark?0x3a2f3a:0x7f9a6a); hemi.intensity=dark?.35:.55;
   renderer.toneMappingExposure=dark?.55:.78;
-  const fogC=dark?0x2b3550:0xcfe6ef; scene.fog=new THREE.Fog(fogC, 260, 950);
+  const fogC=dark?0x2b3550:0xcfe6ef; scene.fog=new THREE.Fog(fogC, 480, 1500);
   const wu=ocean.material.uniforms; wu.uSun.value.copy(sunDir); wu.uSunCol.value.set(dark?0xffa060:0xfff2d8);
   wu.uDeep.value.set(dark?0x0b2a45:0x0565a8); wu.uMid.value.set(dark?0x14466a:0x0aa2cf); wu.uShallow.value.set(dark?0x2a8f95:0x2fe6d2); wu.uSky.value.set(dark?0x8a6f86:0xbfe4f2);
   // environment lighting from the sky
@@ -1686,11 +1690,11 @@ function initScene(){
   scene=new THREE.Scene();
   camera=new THREE.PerspectiveCamera(40,1,.5,4000);
   controls=new THREE.OrbitControls(camera, canvas);
-  controls.enableDamping=true; controls.dampingFactor=.08; controls.maxPolarAngle=1.3; controls.minDistance=14; controls.maxDistance=420; controls.screenSpacePanning=false;
+  controls.enableDamping=true; controls.dampingFactor=.08; controls.maxPolarAngle=1.3; controls.minDistance=18; controls.maxDistance=760; controls.screenSpacePanning=false;
   pv=new THREE.Vector3();
   hemi=new THREE.HemisphereLight(0xdff1ff,0x7f9a6a,1); scene.add(hemi);
   sun=new THREE.DirectionalLight(0xfff0d6,2.9); sun.castShadow=true; sun.shadow.mapSize.set(hi?2048:1536, hi?2048:1536);
-  Object.assign(sun.shadow.camera,{left:-95,right:95,top:95,bottom:-95,near:10,far:420}); sun.shadow.bias=-.0004; sun.shadow.normalBias=.03; sun.shadow.radius=3;
+  Object.assign(sun.shadow.camera,{left:-150,right:150,top:115,bottom:-115,near:10,far:560}); sun.shadow.bias=-.0004; sun.shadow.normalBias=.03; sun.shadow.radius=3;
   sun.target.position.set(CENTER.x,0,CENTER.z); scene.add(sun); scene.add(sun.target);
   sky=new THREE.Sky(); sky.scale.setScalar(3000); scene.add(sky);
   pmrem=new THREE.PMREMGenerator(renderer);
@@ -1698,7 +1702,7 @@ function initScene(){
   { const fl=new THREE.Mesh(new THREE.PlaneGeometry(2000,2000), new THREE.MeshStandardMaterial({color:0x6fb9a4, roughness:1})); fl.rotation.x=-Math.PI/2; fl.position.y=-3.0; fl.receiveShadow=true; scene.add(fl); }
   ISLANDS.forEach(buildIsland); buildRoute(); refreshRoute();
   // perahu traffic + high drifting clouds
-  [[-12,30,6,.16,NY.lantern,C.gold],[20,-2,5,-.2,C.gold,NY.shutter],[-28,-12,5,.18,NY.shutter,NY.lantern],[30,52,9,.1,NY.lantern,NY.shutter]].forEach(([cx,cz,R,sp,a,b])=>{ const bt=perahu(a,b); bt.scale.setScalar(1.1); scene.add(bt);
+  [[-12,30,6,.16,NY.lantern,C.gold],[20,-2,5,-.2,C.gold,NY.shutter],[-28,-12,5,.18,NY.shutter,NY.lantern],[30,52,9,.1,NY.lantern,NY.shutter]].map(([cx,cz,R,...o])=>[cx*POS_K,cz*POS_K,R*1.4,...o]).forEach(([cx,cz,R,sp,a,b])=>{ const bt=perahu(a,b); bt.scale.setScalar(1.35); scene.add(bt);
     seaBoats.push(t=>{ const ang=t*sp; bt.position.set(cx+Math.cos(ang)*R,.25+Math.sin(t*1.5+cx)*.15,cz+Math.sin(ang)*R); bt.rotation.y=-ang+(sp>0?Math.PI:0); bt.rotation.z=Math.sin(t*1.2+cz)*.06; }); });
   const crr=rng(7); for(let k=0;k<11;k++){ const c=spriteOf(`cloud-${k%7}`, (k%7>4?22:42)+crr()*26); c.position.set((crr()-.5)*420,55+crr()*35,(crr()-.5)*320-60); scene.add(c); seaBoats.push(t=>{ c.position.x+=.012; if(c.position.x>230) c.position.x=-230; }); }
   if(hi && perfStep<1){
@@ -1762,14 +1766,48 @@ function aspect(){ return innerWidth/Math.max(1,innerHeight); }
 function setOverview(instant){
   const a=aspect(), fov=camera.fov*Math.PI/180, hf=2*Math.atan(Math.tan(fov/2)*a);
   let dir, half;
-  if(a<1){ dir=new THREE.Vector3(1,1.15,.25).normalize(); half=60; } else { dir=new THREE.Vector3(0,.78,1).normalize(); half=90; }
-  const dist=Math.min(400, Math.max(half/Math.tan(hf/2), (a<1?66:44)/Math.tan(fov/2)));
+  if(a<1){ dir=new THREE.Vector3(1,1.15,.25).normalize(); half=60*POS_K; } else { dir=new THREE.Vector3(0,.78,1).normalize(); half=90*POS_K; }
+  const dist=Math.min(760, Math.max(half/Math.tan(hf/2), (a<1?66:44)*POS_K/Math.tan(fov/2)));
   const tgt=new THREE.Vector3(CENTER.x,0,CENTER.z), pos=tgt.clone().add(dir.multiplyScalar(dist));
   go(pos,tgt,instant?0:1100);
 }
-function focusIsland(i){ const d=ISLANDS[i], a=aspect(); const tgt=new THREE.Vector3(d.pos[0],3.5,d.pos[1]); const f=a<.8?1.5:1.05; const pos=tgt.clone().add(new THREE.Vector3(12*f,18*f,30*f)); go(pos,tgt,1100); }
+function focusIsland(i){ const d=ISLANDS[i], a=aspect(); const tgt=new THREE.Vector3(d.pos[0],6.5,d.pos[1]); const f=(a<.8?1.5:1.05)*ISL_K*1.15; const pos=tgt.clone().add(new THREE.Vector3(12*f,18*f,30*f)); go(pos,tgt,1100); }
 function go(pos,tgt,dur){ if(!dur){ camera.position.copy(pos); controls.target.copy(tgt); controls.update(); return; } fly={p0:camera.position.clone(),t0:controls.target.clone(),p1:pos,t1:tgt,s:performance.now(),dur}; controls.enabled=false; }
 const ease = k => k<.5 ? 4*k*k*k : 1-Math.pow(-2*k+2,3)/2;
+
+/* ---------- the voyage: after a quiz opens the next island, a boat sails there (tap to skip) ---------- */
+let voyage=null, pendingVoyage=null, WAKE_GEO=null;
+const V_FACE=0;   // which way the boat model points (tuned by looking at a frame)
+function startVoyage(from,to,done){
+  if(!scene || !isles[from] || !isles[to] || voyage){ if(done) done(); return; }
+  if(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches){ if(done) done(); return; }
+  pendingVoyage=null; closePanel(); side.hidden=true; updateOffsetGoal();
+  const A=ISLANDS[from], B=ISLANDS[to], dx=B.pos[0]-A.pos[0], dz=B.pos[1]-A.pos[1], L=Math.hypot(dx,dz), ux=dx/L, uz=dz/L;
+  const p0=new THREE.Vector3(A.pos[0]+ux*A.r*1.12,.3,A.pos[1]+uz*A.r*1.12), p1=new THREE.Vector3(B.pos[0]-ux*B.r*1.12,.3,B.pos[1]-uz*B.r*1.12);
+  const arc=Math.min(9,L*.1), mid=p0.clone().lerp(p1,.5).add(new THREE.Vector3(-uz*arc,0,ux*arc));
+  const boat=perahu(NY.lantern,C.gold); boat.scale.setScalar(1.7); boat.position.copy(p0); scene.add(boat);
+  const o=isles[to]; o.cloudK=1; o.clouds.visible=true; o.fxShown=false;   // the new island is still in mist; it clears when the boat arrives
+  voyage={from,to,done,curve:new THREE.QuadraticBezierCurve3(p0,mid,p1),boat,t:0,T:Math.max(4.2,Math.min(7,L*.085)),wake:[],wakeT:0};
+  voyage.onTap=()=>{ if(voyage) voyage.t=Math.max(voyage.t,voyage.T); };
+  document.addEventListener("pointerdown",voyage.onTap,true);
+  document.body.classList.add("voyage"); controls.enabled=false; fly=null;
+  toast(`出发！前往 ${B.no}「${B.name}」`,`Setting sail for ${B.no} ${B.en}! Tap to skip.`);
+  if(typeof sfx==="function") sfx("ok"); if(FX.splashAt) FX.splashAt(p0.clone());
+}
+function updateVoyage(dt){ const v=voyage; if(!v) return;
+  v.t+=dt; const k=Math.min(1,v.t/v.T), e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+  const P=v.curve.getPoint(e), Tn=v.curve.getTangent(e); P.y=.28+Math.sin(v.t*2.2)*.07;
+  v.boat.position.copy(P); v.boat.rotation.set(Math.sin(v.t*1.3)*.03, Math.atan2(Tn.x,Tn.z)+V_FACE, Math.sin(v.t*1.7)*.05);
+  v.wakeT-=dt; if(v.wakeT<=0 && k<.985){ v.wakeT=.09; if(!WAKE_GEO) WAKE_GEO=new THREE.CircleGeometry(1,20);
+    const m=new THREE.Mesh(WAKE_GEO,new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.5,depthWrite:false})); m.rotation.x=-Math.PI/2; m.position.set(P.x-Tn.x*2.4,.2,P.z-Tn.z*2.4); m.renderOrder=3; scene.add(m); v.wake.push({m,a:0}); }
+  for(let i=v.wake.length-1;i>=0;i--){ const w=v.wake[i]; w.a+=dt; const u=w.a/1.2; if(u>=1){ scene.remove(w.m); w.m.material.dispose(); v.wake.splice(i,1); continue; } w.m.scale.setScalar(.6+u*2.8); w.m.material.opacity=.5*(1-u); }
+  const side=new THREE.Vector3(-Tn.z,0,Tn.x), z=aspect()<1?1.5:1, want=P.clone().addScaledVector(side,22*z).add(new THREE.Vector3(0,16*z,0)).addScaledVector(Tn,-4*z), look=P.clone().addScaledVector(Tn,2); look.y=1.2;   // portrait phones: pull back so the boat stays in frame
+  const f=1-Math.exp(-dt*(v.t<1.2?2.2:3.2)); camera.position.lerp(want,f); controls.target.lerp(look,Math.min(1,f*1.4));
+  if(v.t>=v.T+.8) endVoyage(); }
+function endVoyage(){ const v=voyage; if(!v) return; voyage=null; document.removeEventListener("pointerdown",v.onTap,true);
+  v.wake.forEach(w=>{ scene.remove(w.m); w.m.material.dispose(); }); scene.remove(v.boat); document.body.classList.remove("voyage"); controls.enabled=true;
+  if(typeof sfx==="function") sfx("win"); const B=ISLANDS[v.to]; toast(`到达 ${B.no}「${B.name}」！`,`Arrived at ${B.no} ${B.en}!`);
+  if(v.done) v.done(); else focusIsland(v.to); }
 
 function resize(){ if(!renderer) return; const w=innerWidth, h=innerHeight; renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix();
   /* the glow is soft anyway: compute it at half resolution */
@@ -1789,6 +1827,7 @@ function loop(now){
   const dt=Math.min(.05,(now-lastNow)/1000); lastNow=now; if(animOn) simT+=dt;
   if(fly){ const k=Math.min(1,(now-fly.s)/fly.dur), e=ease(k); camera.position.lerpVectors(fly.p0,fly.p1,e); controls.target.lerpVectors(fly.t0,fly.t1,e); if(k>=1){ fly=null; controls.enabled=true; } }
   viewOff.x+=(viewOffGoal.x-viewOff.x)*Math.min(1,dt*7); viewOff.y+=(viewOffGoal.y-viewOff.y)*Math.min(1,dt*7); applyOffset();
+  if(voyage) updateVoyage(dt);
   controls.update();
   loop.n=(loop.n||0)+1;
   { const ar=document.getElementById("arStage"); if(ar && !ar.hidden) return; }   // full-screen camera game: stop drawing the 3D scene behind it (two GPU jobs at once can crash laptop graphics drivers)
@@ -1834,7 +1873,7 @@ function refreshLabels(){ ISLANDS.forEach((d,i)=>{ const un=isUnlocked(i), b=lbl
   $("#starCount").textContent=Object.values(state.stars).reduce((a,b)=>a+b,0);
   if(scene){ refreshRoute(); refreshMaint(); } }
 let pv = null;
-function placeLabels(){ const w=innerWidth,h=innerHeight; ISLANDS.forEach((d,i)=>{ const b=lbls[i]; pv.set(d.pos[0], isUnlocked(i)?17:19, d.pos[1]).project(camera);
+function placeLabels(){ const w=innerWidth,h=innerHeight; ISLANDS.forEach((d,i)=>{ const b=lbls[i]; pv.set(d.pos[0], isUnlocked(i)?20:22, d.pos[1]).project(camera);
   const hide=i===cur||pv.z>1||pv.x<-1.2||pv.x>1.2||pv.y<-1.2||pv.y>1.2; if(b._h!==hide){ b._h=hide; b.style.display=hide?"none":""; } if(hide) return;
   const t=`translate3d(${Math.round((pv.x*.5+.5)*w)}px,${Math.round((-pv.y*.5+.5)*h)}px,0) translate(-50%,-100%)`; if(b._t!==t){ b._t=t; b.style.transform=t; } }); }
 
@@ -1938,11 +1977,12 @@ function openIsland(i, mode){
   const blk=state.teacher?null:isleBlock(i);
   if(blk){ toast(blk.kind==="maint"?`「${ISLANDS[i].name}」维修升级中，请稍后再来。`:`「${ISLANDS[i].name}」将于 ${dateZh(blk.date)} 开放。`, blk.kind==="maint"?"This island is under maintenance — come back later.":`This island opens on ${blk.date}.`); if(scene) focusIsland(i); return; }
   if(!isUnlocked(i)){ toast(`先在 ${ISLANDS[i-1].no}「${ISLANDS[i-1].name}」闯关拿到至少 1 颗星，才能登上这座岛。`, `Get at least 1 star on ${ISLANDS[i-1].no} first to land here.`); if(scene) focusIsland(i); return; }
-  stopGame(); side.hidden=true; cur=i; tab=mode||"explore"; quiz=null; game=null; gs=null;
+  pendingVoyage=null; stopGame(); side.hidden=true; cur=i; tab=mode||"explore"; quiz=null; game=null; gs=null;
   renderPanel(); panel.hidden=false; $("#pBody").scrollTop=0; panel.scrollTop=0; setLast(tab); Music.play(ISLANDS[i].no);
   updateOffsetGoal(); if(scene) focusIsland(i);
 }
-function closePanel(){ Music.play("ocean"); stopGame(); panel.hidden=true; cur=-1; quiz=null; game=null; if(hasTTS) speechSynthesis.cancel(); updateOffsetGoal(); }
+function closePanel(){ Music.play("ocean"); stopGame(); panel.hidden=true; cur=-1; quiz=null; game=null; if(hasTTS) speechSynthesis.cancel(); updateOffsetGoal();
+  if(pendingVoyage && !voyage){ const v=pendingVoyage; pendingVoyage=null; setTimeout(()=>startVoyage(v.from,v.to,()=>focusIsland(v.to)),250); } }
 function gamesDone(i){ const g=state.games[i]||{}; return ["sb","mm","wm"].filter(k=>g[k]).length + ((g.sw||[]).length>=8?1:0); }
 
 function renderPanel(){
@@ -2203,7 +2243,8 @@ function renderResult(body){
       ${cur<8&&isUnlocked(cur+1)?`<button class="btn" type="button" id="rNext">前往 ${ISLANDS[cur+1].name}<span class=ui-en>Next island</span></button>`:`<button class="btn" type="button" id="rExp">去玩游戏<span class=ui-en>Play games</span></button>`}
     </div></div>`);
   $("#rAgain").onclick=()=>{ quiz=buildQuiz(cur); quiz.k=0; renderQuiz(body); speakIfListen(); };
-  const nx=$("#rNext"); if(nx) nx.onclick=()=>openIsland(cur+1);
+  if(newly) pendingVoyage={from:cur,to:cur+1};
+  const nx=$("#rNext"); if(nx) nx.onclick=()=>{ const to=cur+1; if(newly) startVoyage(cur,to,()=>openIsland(to)); else openIsland(to); };
   const ex=$("#rExp"); if(ex) ex.onclick=()=>{ tab="games"; renderPanel(); };
 }
 
