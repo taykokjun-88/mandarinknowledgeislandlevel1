@@ -1028,12 +1028,14 @@ if(hasTTS){ pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
 let warnedVoice=false;
 /* 0.7 overall; short words with a first tone are read slower so the high level tone is held a little longer */
 const SPEECH_RATE=0.7;
+const SINGLE_CHAR_STRETCH=1.5;   // a single character is read 50% longer (rate ÷ 1.5) so the tone can be heard clearly
 function speechRate(text){
   const hz=Array.from(text).filter(c=>/[㐀-鿿]/.test(c));
-  if(!hz.length || hz.length>3 || typeof pyOf!=="function" || typeof HAS_PY==="undefined" || !HAS_PY) return SPEECH_RATE;
+  if(!hz.length || hz.length>3 || typeof pyOf!=="function" || typeof HAS_PY==="undefined" || !HAS_PY) return hz.length===1 ? SPEECH_RATE/SINGLE_CHAR_STRETCH : SPEECH_RATE;
   const first=pyOf(hz.join("")).filter(p=>/[āēīōūǖ]/.test(p)).length;
+  if(hz.length===1) return (first ? 0.56 : SPEECH_RATE)/SINGLE_CHAR_STRETCH;
   if(!first) return SPEECH_RATE;
-  return hz.length===1 ? 0.56 : first===hz.length ? 0.58 : 0.62;
+  return first===hz.length ? 0.58 : 0.62;
 }
 function speak(text){
   if(!hasTTS){ toast("这个浏览器不支持朗读，请看拼音。"); return; }
