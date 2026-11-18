@@ -1060,16 +1060,34 @@ function speechRate(text){
   if(!first) return SPEECH_RATE;
   return first===hz.length ? 0.58 : 0.62;
 }
+let ttsFails=0, ttsTok=0;
 function speak(text){
   if(!hasTTS){ toast("这个浏览器不支持朗读，请看拼音。"); return; }
-  try{
-    speechSynthesis.cancel();
-    const u=new SpeechSynthesisUtterance(text.replace(/——/g,"，"));
-    u.lang="zh-CN"; u.rate=speechRate(text); if(zhVoice) u.voice=zhVoice;
-    if(typeof Music!=="undefined"){ Music.duck(true); u.onend=u.onerror=()=>Music.duck(false); }
-    speechSynthesis.speak(u);
-    if(!zhVoice && speechSynthesis.getVoices().length && !warnedVoice){ warnedVoice=true; toast("这台设备可能没有中文语音包，发音仅供参考。"); }
-  }catch(e){}
+  const tok=++ttsTok, clean=text.replace(/——/g,"，");
+  const run=(attempt)=>{
+    if(tok!==ttsTok) return;
+    let started=false;
+    try{
+      const u=new SpeechSynthesisUtterance(clean);
+      u.lang="zh-CN"; u.rate=speechRate(text); if(zhVoice && attempt===0) u.voice=zhVoice;
+      u.onstart=()=>{ started=true; };
+      if(typeof Music!=="undefined"){ Music.duck(true); u.onend=u.onerror=()=>Music.duck(false); }
+      try{ speechSynthesis.resume(); }catch(e){}
+      speechSynthesis.speak(u);
+      if(!zhVoice && speechSynthesis.getVoices().length && !warnedVoice){ warnedVoice=true; toast("这台设备可能没有中文语音包，发音仅供参考。"); }
+    }catch(e){}
+    // some phones (iOS Safari/Chrome) silently drop an utterance: if nothing started, retry once, then explain
+    setTimeout(()=>{
+      if(started || tok!==ttsTok) return;
+      if(attempt===0){ try{ speechSynthesis.cancel(); }catch(e){} setTimeout(()=>run(1),150); return; }
+      ttsFails++;
+      const q=(typeof quiz!=="undefined"&&quiz&&quiz.qs&&quiz.qs[quiz.k])||null, py=q&&q.au===text&&q.apy?`（拼音：${q.apy}）`:"";
+      toast("听不到声音？请检查音量和静音键，或先看拼音。"+py, "No sound? Check the volume and silent switch, or read the pinyin.");
+      if(typeof Music!=="undefined") Music.duck(false);
+      if(window.__sendLog && ttsFails<=2) window.__sendLog("error","speech did not start (no sound)",`voice ${zhVoice?zhVoice.name+"/"+zhVoice.lang:"none"} · voices ${speechSynthesis.getVoices().length}`);
+    }, attempt===0?1600:2200);
+  };
+  try{ const busy=speechSynthesis.speaking||speechSynthesis.pending; speechSynthesis.cancel(); if(busy) setTimeout(()=>run(0),120); else run(0); }catch(e){ run(0); }
 }
 
 /* ============================== 3D scene (three.js r160, modern stylized renderer) ============================== */
