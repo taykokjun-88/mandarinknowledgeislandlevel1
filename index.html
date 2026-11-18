@@ -1009,8 +1009,9 @@ const freshState = () => ({stars:{}, teacher:false, nick:"", py:true, en:true, c
 let state = (()=>{ try{ const s=JSON.parse(localStorage.getItem(KEY)); if(s && s.stars) return Object.assign(freshState(), s); }catch(e){} return freshState(); })();
 const save = urgent=>{ state.updatedAt=Date.now(); try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} if(typeof scheduleSync==="function") scheduleSync(urgent===true); };
 const starsOf = i => state.stars[i]||0;
-// progress rule: island i opens once the previous island has at least 1 star
-const progressOpen = i => i===0 || starsOf(i-1)>=1;
+// progress rule: island i opens once the previous island has at least 1 star AND one of its 4 basic games is finished
+// (a student who already has stars on island i keeps it open)
+const progressOpen = i => i===0 || starsOf(i)>0 || (starsOf(i-1)>=1 && gamesDone(i-1)>=1);
 // teacher's per-class island settings (from the backend): [{mode:"auto"|"open"|"closed", date:"YYYY-MM-DD"}] — kept per device
 let ISLE_CFG=(()=>{ try{ return JSON.parse(localStorage.getItem("m1-isles-cfg"))||[]; }catch(e){ return []; } })();
 function setIsleCfg(c){ ISLE_CFG=Array.isArray(c)?c:[]; try{ localStorage.setItem("m1-isles-cfg", JSON.stringify(ISLE_CFG)); }catch(e){} if(typeof refreshLabels==="function") refreshLabels(); if(typeof refreshMaint==="function") refreshMaint(); }
@@ -1964,7 +1965,8 @@ const FX=(()=>{ let layer=null, lastX=innerWidth/2, lastY=innerHeight/2;
 function islandItems(i){ const g=state.games[i]||{}; return [starsOf(i)>=1, !!g.sb, !!g.mm, !!g.wm, (g.sw||[]).length>=8]; }
 function islandPct(i){ const it=islandItems(i); return Math.round(it.filter(Boolean).length/it.length*100); }
 function setLast(mode){ if(cur<0) return; state.last={i:cur, mode}; save(); }
-function gameDone(id, extra){ const g=gst(cur), first=!g[id]; Object.assign(g, extra||{}); g[id]=g[id]||true; save(true); earn(first?(GAMES2.some(x=>x.id===id)?20:15):2, `${GAMES.concat(GAMES2).find(x=>x.id===id).name}${first?"首次完成":"再玩一次"}`); return first; }
+function unlockCheck(wasLocked){ if(!wasLocked || cur>=8 || !progressOpen(cur+1)) return; refreshLabels(); if(!pendingVoyage) pendingVoyage={from:cur,to:cur+1}; setTimeout(()=>toast(`云雾散开了！新岛屿已解锁：${ISLANDS[cur+1].name}`,"The clouds have cleared — new island unlocked!"),1400); }
+function gameDone(id, extra){ const wasLocked=cur<8 && !progressOpen(cur+1); const g=gst(cur), first=!g[id]; Object.assign(g, extra||{}); g[id]=g[id]||true; save(true); unlockCheck(wasLocked); earn(first?(GAMES2.some(x=>x.id===id)?20:15):2, `${GAMES.concat(GAMES2).find(x=>x.id===id).name}${first?"首次完成":"再玩一次"}`); return first; }
 
 /* ============================== panel ============================== */
 const panel=$("#panel"), side=$("#side");
@@ -2237,6 +2239,7 @@ function renderResult(body){
     <p style="margin:0">${msg}</p>
     ${st>prev&&prev>0?`<p style="margin:0;color:var(--muted)">刷新最佳成绩：${prev} → ${st} 颗星<span class=ui-en data-b>New best: ${prev} → ${st} stars</span></p>`:""}
     ${newly?`<p class="unlock" style="margin:0">${ICON("ic-unlock")} 云雾散开了！新岛屿已解锁：${ISLANDS[cur+1].no}「${ISLANDS[cur+1].name}」<span class=ui-en data-b>The clouds have cleared — new island unlocked!</span></p>${nextBlk?`<p class="sw-msg" style="margin:0">不过「${ISLANDS[cur+1].name}」${nextBlk.kind==="maint"?"正在维修升级中":"将于 "+dateZh(nextBlk.date)+" 开放"}，到时就能登岛。<span class=ui-en data-b>${nextBlk.kind==="maint"?"It is under maintenance for now.":"It opens on "+nextBlk.date+"."}</span></p>`:""}${newRewards(cur+1)}`:""}
+    ${cur<8&&st>=1&&!progressOpen(cur+1)?`<p class="sw-msg" style="margin:0">测验通过了！再完成本岛的任意一个游戏，就能解锁下一座岛。<span class=ui-en data-b>Quiz passed! Finish any one game on this island to unlock the next island.</span></p>`:""}
     ${cur===8&&st>0?`<p class="unlock" style="margin:0">恭喜你走完整个学期的知识群岛！<span class=ui-en data-b>Congratulations — you've sailed the whole semester!</span></p>`:""}
     <div class="row" style="justify-content:center;margin-top:8px">
       <button class="btn ghost" type="button" id="rAgain">再挑战一次<span class=ui-en>Try again</span></button>
@@ -2384,10 +2387,10 @@ function swRender(body){
   const startQuiz=()=>writer.quiz({ leniency:1.4,
     onMistake:()=>{ const m=$("#swMsg"); if(m) setHTML(m,"这一笔不对，再试试。<span class=ui-en data-b>Not that stroke — try again.</span>"); },
     onCorrectStroke:s=>{ const m=$("#swMsg"); if(m) setHTML(m,`很好！还剩 ${s.strokesRemaining} 笔。<span class=ui-en data-b>Good! ${s.strokesRemaining} strokes left.</span>`); },
-    onComplete:({totalMistakes})=>{ speak(c); const first=!done.has(c);
+    onComplete:({totalMistakes})=>{ speak(c); const first=!done.has(c), wl0=cur<8 && !progressOpen(cur+1);
       if(first){ g.sw=[...(g.sw||[]), c]; save(); earn(2,`学会写「${c}」`); }
       const all=(g.sw||[]).length>=8;
-      if(all && !g.swDone){ g.swDone=true; save(); earn(15,"笔顺描红首次完成"); }
+      if(all && !g.swDone){ g.swDone=true; save(); earn(15,"笔顺描红首次完成"); unlockCheck(wl0); }
       setHTML($("#swMsg"), `<b style="color:var(--ok)">写对了！<span class=ui-en>Correct!</span></b>${totalMistakes?`写错 ${totalMistakes} 笔。<span class=ui-en>${totalMistakes} mistakes</span>`:"一笔都没错！<span class=ui-en>No mistakes!</span>"}${all?" 8 个字全部学会了！<span class=ui-en>All 8 learnt!</span>":""}`);
       refreshTabs();
       setTimeout(()=>{ if(game!=="sw") return; const nx=chars.findIndex((x,k)=>k>gs.k && !(g.sw||[]).includes(x)); const nx2=nx>=0?nx:chars.findIndex(x=>!(g.sw||[]).includes(x)); if(nx2>=0){ gs.k=nx2; swRender(body); } else swRender(body); }, 1500); } });
