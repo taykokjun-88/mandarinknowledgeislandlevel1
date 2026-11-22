@@ -1839,7 +1839,7 @@ function endVoyage(){ const v=voyage; if(!v) return; voyage=null; document.remov
   if(typeof sfx==="function") sfx("win"); const B=ISLANDS[v.to]; toast(`到达 ${B.no}「${B.name}」！`,`Arrived at ${B.no} ${B.en}!`);
   if(v.done) v.done(); else focusIsland(v.to); }
 
-function resize(){ if(!renderer) return; const w=innerWidth, h=innerHeight; renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix();
+function resize(){ if(!renderer) return; { const ar=document.getElementById("arStage"); if(ar && !ar.hidden) return; } const w=innerWidth, h=innerHeight; renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix();
   /* the glow is soft anyway: compute it at half resolution */
   if(composer){ composer.setPixelRatio(renderer.getPixelRatio()); composer.setSize(w,h); if(bloomPass) bloomPass.setSize(Math.max(64,Math.round(w*renderer.getPixelRatio()/2)), Math.max(64,Math.round(h*renderer.getPixelRatio()/2))); const pr=renderer.getPixelRatio(); tiltH.uniforms.uDir.value.set(1/(w*pr),0); tiltV.uniforms.uDir.value.set(0,1/(h*pr)); }
   applyOffset(); }
@@ -2712,6 +2712,7 @@ function gestStart(body){ withConsent("cam", body, async()=>{
 function arOpen(body){
   let st=$("#arStage"); if(!st){ st=document.createElement("div"); st.id="arStage"; document.getElementById("app").appendChild(st); }
   st.hidden=false;
+  try{ renderer.setSize(1,1,false); }catch(e){}   // free the big 3D drawing buffer while the camera game runs
   st.innerHTML=`<video id="arv" playsinline muted autoplay></video><canvas id="arc"></canvas>
     <div class="ar-top"><button class="ar-x" type="button" id="arClose" aria-label="关闭 Close">✕</button><div class="ar-q" id="arQ"></div><div class="ar-score" id="arScore"></div></div>
     <div class="ar-hint" id="arHint">把手举到镜头前，移到答案泡泡上，<b>捏一下</b>或<b>握拳</b>就能抓住它（停在泡泡上一秒也可以）。每题之后先把手移开、张开。<span class=ui-en data-b>Raise your hand, move it onto a bubble, then pinch or make a fist to grab it (or hold still for a second). After each answer, move your hand away and open it.</span></div>
@@ -2769,7 +2770,7 @@ function arFinish(body){ const pass=gs.score>=Math.ceil(gs.qs.length*.6); if(pas
   const sc=gs.score, n=gs.qs.length; arClose();
   setHTML(body, `${BACK}<div class="result"><div class="big">${sc} / ${n}</div><p style="margin:0">${pass?"抓得好！全部泡泡都被你抓光了。<span class=ui-en data-b>Great grabbing!</span>":`再试一次，抓对 ${Math.ceil(n*.6)} 个就完成。<span class=ui-en data-b>Try again — ${Math.ceil(n*.6)} correct to finish.</span>`}</p><button class="btn" type="button" id="again">再玩一次<span class=ui-en>Play again</span></button></div>`);
   bindBack(body); $("#again").onclick=()=>gestStart(body); refreshTabs(); }
-function arClose(){ stopMedia(); const st=$("#arStage"); if(st){ st.hidden=true; st.innerHTML=""; } }
+function arClose(){ stopMedia(); const st=$("#arStage"); if(st){ st.hidden=true; st.innerHTML=""; } resize(); }
 
 /* ============================== 建设南洋岛 Build your Nanyang island ============================== */
 // 50 Nanyang decorations in 6 categories. tier = the island (0 = C1 … 8 = C9) that unlocks it; water:true items float near the shore.
