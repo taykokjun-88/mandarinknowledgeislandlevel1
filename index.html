@@ -1111,7 +1111,7 @@ const HIGH = () => state.gfx ? state.gfx==="high" : !matchMedia("(max-width:720p
 const matCache = {};
 function M(color, opts){ const k=color+(opts?JSON.stringify(opts):""); if(!matCache[k]) matCache[k]=new THREE.MeshStandardMaterial(Object.assign({color, roughness:.72, metalness:0}, opts||{})); return matCache[k]; }
 function mesh(geo, color, x=0,y=0,z=0, opts){ const m=new THREE.Mesh(geo, typeof color==="number"?M(color,opts):color); m.position.set(x,y,z); m.castShadow=true; m.receiveShadow=true; return m; }
-const rbox = (w,h,d) => { const r=Math.min(.12, Math.min(w,h,d)*.22); return r>.012 ? new THREE.RoundedBoxGeometry(w,h,d,2,r) : new THREE.BoxGeometry(w,h,d); };
+const rbox = (w,h,d) => { const r=Math.min(.12, Math.min(w,h,d)*.22); return r>.012 ? new THREE.RoundedBoxGeometry(w,h,d,geoK()<1?1:2,r) : new THREE.BoxGeometry(w,h,d); };
 const box = (w,h,d,c,x,y,z,o)=>mesh(rbox(w,h,d),c,x,y,z,o);
 const cyl = (rt,rb,h,seg,c,x,y,z,o)=>mesh(new THREE.CylinderGeometry(rt,rb,h,seg<=4?seg:Math.max(seg,14)),c,x,y,z,seg<=4?Object.assign({flatShading:true},o||{}):o);
 const cone= (r,h,seg,c,x,y,z,o)=>mesh(new THREE.ConeGeometry(r,h,seg<=6?seg:Math.max(seg,18)),c,x,y,z,seg<=6?Object.assign({flatShading:true},o||{}):o);
@@ -1328,8 +1328,20 @@ function terrainH(sh, x, z){
   if(t<1.0) return 1.05+(.12-1.05)*smooth(.88,1.0,t);
   return .12+(-4.6-.12)*smooth(1.0,1.42,t);
 }
+/* fewer triangles on phones: round things (domes, drums, rings) get fewer facets, and the ground / sea grids are coarser.
+   Scale: 1 on a strong computer, .7 on a phone, .5 in lite mode (a phone that already struggled or lost its graphics once) */
+const geoK = () => perfLite ? .5 : HIGH() ? 1 : .7;
+function geoLOD(){ const K=geoK(); if(K>=1 || geoLOD.done) return; geoLOD.done=true;
+  const wrap=(name,fix)=>{ const O=THREE[name]; if(!O) return; THREE[name]=class extends O{ constructor(...a){ super(...fix(a)); } }; };
+  const sc=(v,d,min)=>Math.max(min,Math.round((v==null?d:v)*K));
+  wrap("SphereGeometry", a=>{ a[1]=sc(a[1],32,8); a[2]=sc(a[2],16,6); return a; });
+  wrap("CylinderGeometry", a=>{ a[3]=sc(a[3],32,6); return a; });
+  wrap("ConeGeometry", a=>{ a[2]=sc(a[2],32,6); return a; });
+  wrap("TorusGeometry", a=>{ a[2]=sc(a[2],12,6); a[3]=sc(a[3],48,12); return a; });
+  wrap("CircleGeometry", a=>{ a[1]=sc(a[1],32,8); return a; });
+  wrap("IcosahedronGeometry", a=>{ if((a[1]||0)>=2) a[1]=a[1]-1; return a; }); }
 function buildTerrain(sh, tint){
-  const S=sh.r*2.9, N=HIGH()?130:75, g=new THREE.PlaneGeometry(S,S,N,N); g.rotateX(-Math.PI/2);
+  const S=sh.r*2.9, N=HIGH()?110:perfLite?44:60, g=new THREE.PlaneGeometry(S,S,N,N); g.rotateX(-Math.PI/2);
   const p=g.attributes.position, col=new Float32Array(p.count*3), c=new THREE.Color();
   const G1=new THREE.Color(tint).offsetHSL(0,.06,-.03), G2=new THREE.Color(0x3fb53a), SAND=new THREE.Color(0xf7dd9c), WET=new THREE.Color(0xd8b878), DEEP=new THREE.Color(0x6fb9a4);
   for(let i=0;i<p.count;i++){ const x=p.getX(i), z=p.getZ(i), h=terrainH(sh,x,z); p.setY(i,h);
@@ -1530,7 +1542,7 @@ function refreshRoute(){ routeDots.forEach(({m,seg})=>{ const on=starsOf(seg)>=1
 
 /* ---------- stylized water: waves, depth tint near islands, shore foam, sun glints ---------- */
 function makeWater(){
-  const seg=HIGH()?220:120, geo=new THREE.PlaneGeometry(2000,2000,seg,seg); geo.rotateX(-Math.PI/2);
+  const seg=HIGH()?180:perfLite?70:90, geo=new THREE.PlaneGeometry(2000,2000,seg,seg); geo.rotateX(-Math.PI/2);
   const isl=ISLANDS.map(d=>new THREE.Vector3(d.pos[0], d.pos[1], (d.r||10.5)*1.08));
   const mat=new THREE.ShaderMaterial({ fog:true, lights:false, transparent:true, depthWrite:false,
     uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib.fog, {
@@ -1699,7 +1711,7 @@ function initScene(){
   const canvas=$("#scene"), hi=HIGH();
   SN=new THREE.SimplexNoise({ random: rng(42) });
   renderer=new THREE.WebGLRenderer({canvas, antialias:!hi, powerPreference:"high-performance"});
-  perfInit(); renderer.info.autoReset=false;
+  perfInit(); geoLOD(); renderer.info.autoReset=false;
   canvas.addEventListener("webglcontextlost",e=>{ e.preventDefault(); if(window.__sendLog) window.__sendLog("webgl","WebGL context lost",perfInfo()+` · game ${typeof game!=="undefined"&&game||"-"} · handTracking ${typeof handsP!=="undefined"&&handsP?"loaded":"no"} · calls ${renderer.info.render.calls} · tris ${renderer.info.render.triangles}`,true);
     perfStep=3; perfLite=true; savePerf();   // the graphics were overloaded: start in lite mode next time
     try{ const last=Number(sessionStorage.getItem("m1-ctx")||0); if(Date.now()-last>120000){ sessionStorage.setItem("m1-ctx",String(Date.now())); toast("画面暂时出了问题，正在重新载入…","The picture had a problem — reloading…"); setTimeout(()=>location.reload(),1200); } else toast("画面又出了问题，请刷新页面。","The picture failed again — please refresh the page."); }catch(err){} });
