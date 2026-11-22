@@ -1700,9 +1700,9 @@ function initScene(){
   SN=new THREE.SimplexNoise({ random: rng(42) });
   renderer=new THREE.WebGLRenderer({canvas, antialias:!hi, powerPreference:"high-performance"});
   perfInit(); renderer.info.autoReset=false;
-  canvas.addEventListener("webglcontextlost",e=>{ e.preventDefault(); if(window.__sendLog) window.__sendLog("webgl","WebGL context lost",perfInfo(),true);
+  canvas.addEventListener("webglcontextlost",e=>{ e.preventDefault(); if(window.__sendLog) window.__sendLog("webgl","WebGL context lost",perfInfo()+` · game ${typeof game!=="undefined"&&game||"-"} · handTracking ${typeof handsP!=="undefined"&&handsP?"loaded":"no"} · calls ${renderer.info.render.calls} · tris ${renderer.info.render.triangles}`,true);
     perfStep=3; perfLite=true; savePerf();   // the graphics were overloaded: start in lite mode next time
-    try{ const last=Number(sessionStorage.getItem("m1-ctx")||0); if(Date.now()-last>120000){ sessionStorage.setItem("m1-ctx",String(Date.now())); toast("画面暂时出了问题，正在重新载入…","The picture had a problem — reloading…"); setTimeout(()=>location.reload(),1200); } }catch(err){} });
+    try{ const last=Number(sessionStorage.getItem("m1-ctx")||0); if(Date.now()-last>120000){ sessionStorage.setItem("m1-ctx",String(Date.now())); toast("画面暂时出了问题，正在重新载入…","The picture had a problem — reloading…"); setTimeout(()=>location.reload(),1200); } else toast("画面又出了问题，请刷新页面。","The picture failed again — please refresh the page."); }catch(err){} });
   renderer.outputColorSpace=THREE.SRGBColorSpace; renderer.toneMapping=THREE.ACESFilmicToneMapping;
   renderer.shadowMap.enabled=perfStep<2; renderer.shadowMap.type=hi?THREE.PCFSoftShadowMap:THREE.PCFShadowMap; renderer.shadowMap.autoUpdate=false;   // shadows are redrawn only when the scenery changes (see refreshShadows)
   scene=new THREE.Scene();
@@ -2681,7 +2681,7 @@ function recordWeb(body, it){ const r=new SRec(); media.rec=r; r.lang="zh-CN"; r
 let handsP=null;
 function loadHands(){ if(handsP) return handsP; handsP=(async()=>{ const V=await import("./lib/mediapipe/vision_bundle.mjs"); const fs=await V.FilesetResolver.forVisionTasks("./lib/mediapipe/wasm");
   const opt=d=>({baseOptions:{modelAssetPath:"./lib/mediapipe/hand_landmarker.task", delegate:d}, runningMode:"VIDEO", numHands:2, minHandDetectionConfidence:.5, minTrackingConfidence:.5});
-  const cpuFirst=!(IS_IOS||/Android/i.test(navigator.userAgent)); try{ return await V.HandLandmarker.createFromOptions(fs,opt(cpuFirst?"CPU":"GPU")); }catch(e){ return await V.HandLandmarker.createFromOptions(fs,opt(cpuFirst?"GPU":"CPU")); } })(); handsP.catch(()=>{ handsP=null; }); return handsP; }
+  const cpuFirst=!IS_IOS;   /* Android: the GPU delegate opens a second WebGL context beside the island scene and can make Chrome drop the scene's context, so start on the CPU there */ try{ return await V.HandLandmarker.createFromOptions(fs,opt(cpuFirst?"CPU":"GPU")); }catch(e){ return await V.HandLandmarker.createFromOptions(fs,opt(cpuFirst?"GPU":"CPU")); } })(); handsP.catch(()=>{ handsP=null; }); return handsP; }
 // tiny sound effects
 let sfxAC=null;
 function sfx(kind){ try{ sfxAC=sfxAC||new (window.AudioContext||window.webkitAudioContext)(); if(sfxAC.state!=="running") sfxAC.resume(); const t=sfxAC.currentTime;
