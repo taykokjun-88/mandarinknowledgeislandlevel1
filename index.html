@@ -2288,7 +2288,7 @@ function renderGames(body){
     setHTML(body, `<p class="notice">每个游戏第一次完成 +15 椰子币，再玩一次 +2。椰子币可以在「建设」里建设你的南洋岛。<span class=ui-en data-b>First finish +15 coins, replays +2. Spend coins in Build.</span></p>
       <div class="gcards">${GAMES.map(x=>`<button class="gcard ${done(x.id)?"done":""}" type="button" data-g="${x.id}">${COVER({sb:"blocks",mm:"memory",wm:"whack",sw:"strokes"}[x.id])}<b>${x.name}</b><span class="en">${x.en}</span><span class="ds">${x.desc}<span class=ui-en data-b>${x.descEn}</span></span><span class="st">${done(x.id)?"✓ ":""}${status(x.id)}</span></button>`).join("")}</div>
       <h3 class="spot-h" style="margin:4px 0 0">声音与动作<span class=ui-en>Voice &amp; motion</span> <span class="en">需要麦克风或摄像头 · needs mic or camera · 首次完成 +20</span></h3>
-      <div class="gcards">${GAMES2.map(x=>{ const c=(state.consent||{})[x.need], dn=!!g[x.id]; return `<button class="gcard ${dn?"done":""} ${c===false?"skipped":""}" type="button" data-g="${x.id}">${COVER({tone:"surf",read:"read",gest:"grab"}[x.id])}<b>${x.need==="cam"?"📷":"🎤"} ${x.name}</b><span class="en">${x.en}</span><span class="ds">${x.desc}<span class=ui-en data-b>${x.descEn}</span></span><span class="st">${dn?"✓ 已完成 Done":c===false?"已跳过 Skipped":"未完成 Not done"}</span></button>`; }).join("")}</div>`);
+      <div class="gcards">${GAMES2.map(x=>{ const c=(state.consent||{})[x.need], dn=!!g[x.id]; return `<button class="gcard ${dn?"done":""} ${c===false?"skipped":""}" type="button" data-g="${x.id}">${COVER({tone:"surf",read:"read",gest:"grab"}[x.id])}<b>${x.need==="cam"?"📷":"🎤"} ${x.name}</b><span class="en">${x.en}</span><span class="ds">${x.desc}<span class=ui-en data-b>${x.descEn}</span></span>${x.beta?`<span class="ds" style="color:#b45309;font-weight:700">⚠ ${x.beta}<span class=ui-en data-b>${x.betaEn}</span></span>`:""}<span class="st">${dn?"✓ 已完成 Done":c===false?"已跳过 Skipped":"未完成 Not done"}</span></button>`; }).join("")}</div>`);
     body.querySelectorAll("[data-g]").forEach(b=>b.onclick=()=>{ game=b.dataset.g; setLast("games"); renderGames(body); });
     return;
   }
@@ -2430,7 +2430,7 @@ function swRender(body){
 const GAMES2=[
   {id:"tone", name:"声调冲浪", en:"Tone Surfing", desc:"用声音让小船冲浪，读出正确的声调", descEn:"Ride the waves with your voice — say the right tone", need:"mic"},
   {id:"read", name:"跟读过关", en:"Read Aloud", desc:"念对才能过关，每题 3 次机会", descEn:"Say it right to pass — 3 tries each", need:"asr"},
-  {id:"gest", name:"抓抓泡泡", en:"AR Bubble Grab", desc:"答案在镜头四角漂浮，用手抓住正确答案", descEn:"Answers float in the camera corners — grab the right one with your hand", need:"cam"}];
+  {id:"gest", name:"抓抓泡泡", en:"AR Bubble Grab", desc:"答案在镜头四角漂浮，用手抓住正确答案", descEn:"Answers float in the camera corners — grab the right one with your hand", need:"cam", beta:"试验功能（需要摄像头，电脑较旧不建议玩）", betaEn:"Experimental — needs a camera; not recommended on older computers"}];
 const CONSENT_TXT={
   mic:{t:"使用麦克风", te:"Use the microphone", zh:"这个游戏要用麦克风听你的声调。声音只在这台设备上分析，不会录音，也不会上传。", en:"This game uses your microphone to hear your tones. Sound is analysed on this device only — nothing is recorded or uploaded."},
   asr:{t:"使用麦克风和语音识别", te:"Use the microphone and speech recognition", zh:"这个游戏要用麦克风和浏览器的语音识别。Chrome 会把声音传到 Google、Safari 会传到 Apple 的服务器转成文字；本游戏不会保存任何声音。", en:"This game uses your microphone and the browser's speech recognition. Chrome sends the audio to Google and Safari to Apple to turn it into text. This game keeps no audio."},
