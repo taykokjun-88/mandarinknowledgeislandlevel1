@@ -1712,9 +1712,16 @@ function initScene(){
   SN=new THREE.SimplexNoise({ random: rng(42) });
   renderer=new THREE.WebGLRenderer({canvas, antialias:!hi, powerPreference:"high-performance"});
   perfInit(); geoLOD(); renderer.info.autoReset=false;
-  canvas.addEventListener("webglcontextlost",e=>{ e.preventDefault(); if(window.__sendLog) window.__sendLog("webgl","WebGL context lost",perfInfo()+` · game ${typeof game!=="undefined"&&game||"-"} · handTracking ${typeof handsP!=="undefined"&&handsP?"loaded":"no"} · calls ${renderer.info.render.calls} · tris ${renderer.info.render.triangles}`,true);
+  /* if the browser drops the scene's graphics context: log how the page was doing, then wait for the browser to give it back.
+     Only if it does not come back within 4 s is the page reloaded (at most once every 2 minutes). */
+  let ctxTimer=0;
+  const ctxInfo=()=>{ const m=(performance&&performance.memory)||null, mem=renderer.info.memory;
+    return ` · up ${Math.round(performance.now()/60000)} min · js heap ${m?Math.round(m.usedJSHeapSize/1048576)+"/"+Math.round(m.jsHeapSizeLimit/1048576)+" MB":"n/a"} · tex ${mem.textures} geo ${mem.geometries} · dpr ${devicePixelRatio} · canvas ${canvas.width}x${canvas.height} · game ${typeof game!=="undefined"&&game||"-"} · handTracking ${typeof handsP!=="undefined"&&handsP?"loaded":"no"} · calls ${renderer.info.render.calls} · tris ${renderer.info.render.triangles} · hidden ${document.hidden}`; };
+  canvas.addEventListener("webglcontextlost",e=>{ e.preventDefault(); if(window.__sendLog) window.__sendLog("webgl","WebGL context lost",perfInfo()+ctxInfo(),true);
     perfStep=3; perfLite=true; savePerf();   // the graphics were overloaded: start in lite mode next time
-    try{ const last=Number(sessionStorage.getItem("m1-ctx")||0); if(Date.now()-last>120000){ sessionStorage.setItem("m1-ctx",String(Date.now())); toast("画面暂时出了问题，正在重新载入…","The picture had a problem — reloading…"); setTimeout(()=>location.reload(),1200); } else toast("画面又出了问题，请刷新页面。","The picture failed again — please refresh the page."); }catch(err){} });
+    clearTimeout(ctxTimer); ctxTimer=setTimeout(()=>{
+      try{ const last=Number(sessionStorage.getItem("m1-ctx")||0); if(Date.now()-last>120000){ sessionStorage.setItem("m1-ctx",String(Date.now())); toast("画面暂时出了问题，正在重新载入…","The picture had a problem — reloading…"); setTimeout(()=>location.reload(),1200); } else toast("画面又出了问题，请刷新页面。","The picture failed again — please refresh the page."); }catch(err){} }, 4000); });
+  canvas.addEventListener("webglcontextrestored",()=>{ clearTimeout(ctxTimer); if(window.__sendLog) window.__sendLog("webgl","WebGL context restored without a reload",ctxInfo(),true); try{ resize(); applyTheme(); }catch(e){} });   /* applyTheme redraws the sky and environment lighting, which live in render targets that are lost with the context */
   renderer.outputColorSpace=THREE.SRGBColorSpace; renderer.toneMapping=THREE.ACESFilmicToneMapping;
   renderer.shadowMap.enabled=perfStep<2; renderer.shadowMap.type=hi?THREE.PCFSoftShadowMap:THREE.PCFShadowMap; renderer.shadowMap.autoUpdate=false;   // shadows are redrawn only when the scenery changes (see refreshShadows)
   scene=new THREE.Scene();
