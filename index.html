@@ -2520,7 +2520,8 @@ function toneStart(body){ withConsent("mic", body, async()=>{
   media.ac=new (window.AudioContext||window.webkitAudioContext)(); const src=media.ac.createMediaStreamSource(media.stream), an=media.ac.createAnalyser(); an.fftSize=2048; src.connect(an); gs.an=an;
   // pitch is measured per audio block (≈23 ms), independent of the screen frame rate
   const sp=media.ac.createScriptProcessor(1024,1,1), ring=new Float32Array(2048); src.connect(sp); sp.connect(media.ac.destination);
-  sp.onaudioprocess=e=>{ const inp=e.inputBuffer.getChannelData(0); ring.copyWithin(0,1024); ring.set(inp,1024); if(!gs||!gs.listening) return; const p=pitchOf(ring, media.ac.sampleRate); gs.frames=(gs.frames||0)+1; if(p>0){ gs.trace.push(p); gs.lastVoice=performance.now(); gs.voiced=(gs.voiced||0)+1; } };
+  sp.onaudioprocess=e=>{ if(!media.ac){ sp.onaudioprocess=null; return; }   /* the game was closed while a last audio block was still on its way */
+    const inp=e.inputBuffer.getChannelData(0); ring.copyWithin(0,1024); ring.set(inp,1024); if(!gs||!gs.listening) return; const p=pitchOf(ring, media.ac.sampleRate); gs.frames=(gs.frames||0)+1; if(p>0){ gs.trace.push(p); gs.lastVoice=performance.now(); gs.voiced=(gs.voiced||0)+1; } };
   toneRender(body); }); }
 const TONE_SHAPE={1:[[0,.2],[1,.2]], 2:[[0,.6],[1,.15]], 3:[[0,.45],[.5,.85],[1,.3]], 4:[[0,.1],[1,.85]]};
 function toneRender(body){
