@@ -15,7 +15,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Sans+SC:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Sans+SC:wght@400;500;700&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Sans+SC:wght@400;500;700&display=swap"></noscript>
 <style>
 /* Nanyang theme: shophouses, Kampong Ayer stilt houses, batik, Peranakan tiles.
    Layout: full-bleed 3D archipelago; floating glass top bar; right drawer (desktop) / bottom sheet (phone) for island study + challenge.
@@ -283,26 +284,70 @@ button.gcard:hover{border-color:var(--gold)}
   linear-gradient(-45deg,transparent calc(50% - .5px),var(--outline) 50%,transparent calc(50% + .5px)),var(--panel);touch-action:none}
 .sw-msg{margin:0;text-align:center;font-size:14px;color:var(--muted)}
 /* build */
-.coinbar{display:flex;align-items:center;gap:8px;font-size:15px}.coinbar b{font-size:22px;font-variant-numeric:tabular-nums}
-.slots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-.slot{border:2px dashed var(--line);background:transparent;border-radius:12px;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0}
-.slot.on{border-style:solid;border-color:var(--ok);background:var(--ok-soft)}
-.slot .ph{color:var(--muted);font-size:13px}.slot .en,.item .en{font-size:11.5px;color:var(--muted)}
-.shop{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
-.item{border:1.5px solid var(--line);background:var(--panel);border-radius:12px;padding:10px;display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left}
-.item:hover:not(:disabled){border-color:var(--gold)}.item:disabled{opacity:.45;cursor:not-allowed}
-.price{display:flex;align-items:center;gap:4px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:4px}
-/* build map + sea farm */
-.subtabs{display:flex;gap:6px}.subtab{flex:1;border:1.5px solid var(--line);background:var(--panel);border-radius:12px;padding:8px;font-weight:700}
+.coinbar{display:flex;align-items:center;gap:6px;font-size:14px;flex:none}.coinbar b{font-size:19px;font-variant-numeric:tabular-nums}
+.build-bar{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;flex:none}
+.subtabs{display:flex;gap:4px;flex:1;min-width:0}.subtab{flex:1;border:1.5px solid var(--line);background:var(--panel);border-radius:10px;padding:6px 6px;font-weight:700;font-size:13px;line-height:1.15;white-space:nowrap}
 .subtab[aria-selected="true"]{border-color:var(--gold);background:var(--gold-soft)}
-.subtab .ui-en{display:block;margin:0}
-.imap-wrap{position:sticky;top:-16px;z-index:3;background:var(--panel);padding:8px 0;display:flex;flex-direction:column;gap:6px;box-shadow:0 10px 12px -10px rgba(0,0,0,.25)}
-.imap{position:relative;width:min(100%,250px,27vh);aspect-ratio:1;margin:0 auto;border-radius:50%;background:radial-gradient(circle,#2fe0cf 0 58%,#1aa8c8 72%,transparent 73%)}
-.iland{position:absolute;inset:16%;border-radius:47% 53% 50% 50%/52% 48% 52% 48%;background:radial-gradient(circle at 45% 40%,#79cf5a 0 55%,#f4dca0 68%)}
-.icore{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:var(--f-display);font-size:18px;color:#24401c;opacity:.7;pointer-events:none;text-align:center}
-.plot{position:absolute;transform:translate(-50%,-50%);width:27%;min-width:62px;min-height:48px;white-space:nowrap;line-height:1.1;border-radius:14px;border:2px dashed rgba(255,255,255,.85);background:rgba(255,255,255,.28);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:4px;color:#24301f;font-size:13px;touch-action:none}
-.plot i{font-style:normal;font-weight:800;font-size:11px;background:#24301f;color:#fff;border-radius:999px;padding:0 6px}
-.plot.on{border-style:solid;border-color:var(--ok);background:rgba(255,255,255,.92)}
+.subtab .ui-en{display:block;margin:0;font-size:10px;font-weight:400}
+.peek-btn{flex:none;border:1.5px solid var(--line);background:var(--panel-2);border-radius:10px;padding:6px 10px;font-size:12.5px;font-weight:700;white-space:nowrap}
+.peek-btn:hover{border-color:var(--gold)}
+/* compact fixed split layout in build mode (both desktop and mobile) */
+.drawer.build-mode{display:flex!important;flex-direction:column!important;overflow:hidden!important}
+.drawer.build-mode .d-head{padding:10px 48px 8px 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.drawer.build-mode .d-head .d-sub,.drawer.build-mode .d-head .meta{display:none!important}
+.drawer.build-mode .d-head .d-title{font-size:24px;margin:0;padding:0;line-height:1.1}
+.drawer.build-mode .d-close{top:8px;right:10px;width:32px;height:32px}
+.drawer.build-mode .tabbar{position:static;padding:6px 12px;box-shadow:none}
+.drawer.build-mode .tab{padding:6px 8px;font-size:13px}
+.drawer.build-mode .d-body{flex:1;min-height:0;overflow:hidden!important;display:flex;flex-direction:column;gap:8px;padding:8px 14px 0!important}
+.drawer.build-mode #bView{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;overflow:hidden}
+/* peek mode: collapse drawer to admire/rotate the 3D island */
+.drawer.peek{height:auto!important;bottom:auto!important;top:12px!important}
+@media (max-width:720px), (max-width:1100px) and (orientation:portrait){
+  .drawer.peek{top:auto!important;bottom:0!important;padding-bottom:env(safe-area-inset-bottom,0px)}
+}
+.drawer.peek .tabbar,.drawer.peek #bView{display:none!important}
+.drawer.peek .d-body{flex:none;padding:8px 14px 10px!important}
+/* 6-plot grid: always pinned above the shop */
+.plot-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;flex:none;padding:6px;border-radius:14px;background:linear-gradient(160deg,rgba(47,125,107,.12),rgba(121,207,90,.14));border:1px solid var(--line)}
+.plot-grid.picking .pcard{border-color:var(--gold);animation:pulsePlot 1.2s ease-in-out infinite}
+@keyframes pulsePlot{0%,100%{box-shadow:0 0 0 0 rgba(168,122,18,.35)}50%{box-shadow:0 0 0 3px rgba(168,122,18,.55)}}
+.pcard{position:relative;border:1.5px dashed var(--line);background:rgba(255,255,255,.55);border-radius:11px;padding:5px 4px 4px;min-height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;text-align:center;color:var(--ink);touch-action:none;transition:transform .12s,border-color .12s,background .12s}
+:root[data-theme="dark"] .pcard{background:rgba(255,255,255,.06)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .pcard{background:rgba(255,255,255,.06)}}
+.pcard.on{border-style:solid;border-color:var(--ok);background:var(--panel)}
+.pcard.sel{border-style:solid;border-color:var(--gold);background:var(--gold-soft);box-shadow:0 0 0 2px var(--gold)}
+.pcard.over{border-style:solid;border-color:var(--gold);background:var(--gold-soft);transform:scale(1.05)}
+.pcard .pno{position:absolute;top:3px;left:4px;font-size:10px;font-weight:800;min-width:16px;height:16px;line-height:16px;border-radius:999px;background:var(--panel-2);color:var(--muted);text-align:center}
+.pcard.sel .pno{background:var(--gold);color:#fff}
+.pcard.on .pno{background:var(--ok);color:#fff}
+.pcard .prm{position:absolute;top:2px;right:2px;width:19px;height:19px;border-radius:50%;border:0;background:rgba(0,0,0,.08);color:var(--muted);font-size:12px;line-height:19px;text-align:center;padding:0;cursor:pointer}
+.pcard .prm:hover{background:var(--bad);color:#fff}
+.pcard .thumb{width:34px;height:34px;object-fit:contain;margin:0;pointer-events:none}
+.pcard b{font-size:11.5px;line-height:1.15;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pcard .ph{font-size:11.5px;color:var(--muted);line-height:1.15}.pcard .ph .ui-en{display:block;font-size:9.5px}
+.selbar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px;border-radius:10px;background:var(--panel-2);font-size:12.5px;color:var(--ink);flex:none;min-height:32px}
+.selbar .stxt{min-width:0;line-height:1.3}.selbar .stxt .ui-en{display:block;font-size:10.5px;color:var(--muted)}
+.selbar .btn{padding:4px 10px;font-size:12px;border-radius:8px;flex:none}
+/* horizontal single-row category pills */
+.cats{display:flex;gap:5px;overflow-x:auto;flex:none;padding:2px 0;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.cats::-webkit-scrollbar{display:none}
+.cat{flex:none;font:inherit;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;padding:5px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;line-height:1.1;white-space:nowrap;touch-action:manipulation}
+.cat b{font-size:12.5px;font-weight:600;display:inline-flex;align-items:center;gap:3px}.cat .ui-en{display:none}.cat small{font-size:10.5px;color:var(--muted);font-weight:500}
+.cat[aria-pressed="true"]{background:var(--red);border-color:var(--red);color:var(--red-ink)}.cat[aria-pressed="true"] small{color:var(--red-ink);opacity:.85}
+/* independently scrollable shop area */
+.shop-scroll{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:2px 2px calc(24px + env(safe-area-inset-bottom,0px))}
+.shop{display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:7px}
+.item{border:1.5px solid var(--line);background:var(--panel);border-radius:12px;padding:8px;display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;cursor:grab;user-select:none;-webkit-user-select:none;transition:border-color .12s,transform .1s}
+.item:hover:not(:disabled):not(.off){border-color:var(--gold);transform:translateY(-1px)}.item:disabled{opacity:.45;cursor:not-allowed}
+.item b{font-size:13px;line-height:1.2}.item .en{font-size:11px;color:var(--muted);line-height:1.15}
+.price{display:flex;align-items:center;gap:3px;font-weight:700;font-size:12.5px;font-variant-numeric:tabular-nums;margin-top:2px}
+.item.lockd{opacity:.5;filter:grayscale(.7)}.item .thumb{display:block;width:100%;height:54px;object-fit:contain;margin:0 0 2px;pointer-events:none}.lockp{font-size:10.5px;color:var(--muted)}.lockp .ui-en{display:block}
+.item.sel{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold);background:var(--gold-soft)}
+.item.off{opacity:.45}
+.dragging{opacity:.35}
+.drag-ghost{position:fixed;z-index:50;pointer-events:none;opacity:.92;transform:rotate(-3deg) scale(1.05);box-shadow:var(--shadow)}
+.item .py{font-size:12px;color:var(--red)}
 .worlds{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .world{border:1px solid var(--line);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;background:var(--panel)}
 .world .wn{font-size:12px;color:var(--muted)}.world b{font-size:17px}.world b .ui-en{display:block;font-size:12px;font-weight:400;color:var(--muted)}.world .wc{font-size:12px;color:var(--muted)}
@@ -314,24 +359,10 @@ button.gcard:hover{border-color:var(--gold)}
 #dailyCard p{margin:0}#dailyCard .cn{font-weight:800;color:var(--red);font-size:20px}
 #dailyCard .dd{display:flex;gap:6px}#dailyCard .dd i{width:28px;height:28px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-style:normal;font-size:12px;color:var(--muted)}
 #dailyCard .dd i.on{background:var(--gold);border-color:var(--gold);color:#4a3200}#dailyCard .dd i.now{background:var(--red);border-color:var(--red);color:var(--red-ink);transform:scale(1.15)}
-.cats{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:5px}
-.cat{font:inherit;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:10px;padding:4px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;line-height:1.15;min-height:40px;justify-content:center;touch-action:manipulation}
-.cat b{font-size:13px;font-weight:600}.cat .ui-en{font-size:10px;color:var(--muted)}.cat small{font-size:10px;color:var(--muted)}
-.cat[aria-pressed="true"]{background:var(--red);border-color:var(--red);color:var(--red-ink)}.cat[aria-pressed="true"] .ui-en,.cat[aria-pressed="true"] small{color:var(--red-ink);opacity:.85}
-.item.lockd{opacity:.55;filter:grayscale(.7)}.item .thumb{display:block;width:100%;height:64px;object-fit:contain;margin:-2px 0 4px;pointer-events:none}.lockp{font-size:11.5px;color:var(--muted)}.lockp .ui-en{display:block}
-.plot.sel,.item.sel{box-shadow:0 0 0 3px var(--gold)}
-.plot.over{border-color:var(--gold);background:var(--gold-soft);transform:translate(-50%,-50%) scale(1.08)}
-.plot .ph{font-size:12px;opacity:.85}.plot .ph .ui-en{display:block;font-size:10px}.plot b{font-size:12px;white-space:nowrap}
-.imap-wrap.nostick{position:static;box-shadow:none}
-.item.off{opacity:.45}
-.item{cursor:grab;user-select:none;-webkit-user-select:none}
-.dragging{opacity:.35}
-.drag-ghost{position:fixed;z-index:50;pointer-events:none;opacity:.92;transform:rotate(-3deg) scale(1.05);box-shadow:var(--shadow)}
-.item .py{font-size:12px;color:var(--red)}
-.mysea{display:flex;flex-wrap:wrap;gap:6px}
-.seachip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:3px 4px 3px 10px;background:var(--panel)}
-.seachip .say{border:0;background:transparent;font-size:17px;padding:0}.seachip .en{font-size:12px;color:var(--muted)}
-.seachip .rmc{border:0;width:24px;height:24px;border-radius:50%;background:var(--panel-2);font-weight:800}
+.mysea{display:flex;flex-wrap:wrap;gap:5px;flex:none;max-height:76px;overflow-y:auto}
+.seachip{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);border-radius:999px;padding:2px 4px 2px 9px;background:var(--panel);font-size:13px}
+.seachip .say{border:0;background:transparent;font-size:15px;padding:0}.seachip .en{font-size:11px;color:var(--muted)}
+.seachip .rmc{border:0;width:22px;height:22px;border-radius:50%;background:var(--panel-2);font-weight:800}
 .tf{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .opt.big{justify-content:center;font-size:20px;padding:18px}
 .match{display:grid;grid-template-columns:1fr 1fr;gap:10px}.mcol{display:flex;flex-direction:column;gap:8px}
@@ -527,7 +558,6 @@ window.dispatchEvent(new Event("three-ready"));
 </script>
 <script src="config.js"></script>
 <script src="lib/pinyin-pro.js"></script>
-<script src="lib/hanzi-writer.min.js"></script>
 <script>
 /* Automatic error reports: a JavaScript error, a file that fails to load, a rejected promise, or the 3D picture being lost is sent to the teacher's sheet
    with the device details (once per kind of error per visit, at most 8 per visit). No answers or personal text are sent. */
@@ -549,459 +579,9 @@ window.dispatchEvent(new Event("three-ready"));
   window.addEventListener("unhandledrejection",e=>{ const r=e.reason, m=String((r&&r.message)||r||""); if(!m || /AbortError|NotAllowedError|The operation was aborted/.test(m+((r&&r.name)||""))||noise.test(m)) return; window.__sendLog("promise",m,String((r&&r.stack)||"").split("\n").slice(0,5).join("\n")); });
 })();
 </script>
+<script src="data/content.js"></script>
 <script>
 "use strict";
-/* ============================================================
-   CONTENT — the archipelago = the Mandarin 1 Module; 9 islands = its 9 Chapters
-   v: [汉字, pinyin, English]   p: [中文, pinyin, English]
-   tips: {r:"rule"} or {w:"wrong", ok:"right", why:"reason"}
-   quiz: {q, a, d:[distractors], x:explanation, au:text-to-speak, apy:pinyin}
-   ============================================================ */
-const ISLANDS = [
-{ no:"C1", name:"拼音灯塔", py:"Pīnyīn Dēngtǎ", en:"Pinyin Lighthouse", module:"语音基石与汉字基础", moduleEn:"Pinyin, Tones & Script Mechanics",
-  lesson:"Unit 1 Lesson 1《汉语拼音与基本笔画》",
-  pos:[-60,30], grass:0x86c25e, lm:"lighthouse",
-  spots:[
-   { h:"四个声调", en:"The four tones + neutral tone",
-     v:[["妈","mā","mum · 1st tone, high & level"],["麻","má","hemp · 2nd tone, rising"],["马","mǎ","horse · 3rd tone, dipping"],["骂","mà","to scold · 4th tone, falling"],["吗","ma","question particle · neutral tone"]],
-     tips:[{r:"标调顺序：有 a 标 a；没有 a，找 o 或 e；i 和 u 在一起，标在后面那个：guì、liù。"}] },
-   { h:"拼读与变调", en:"Spelling rules & tone sandhi",
-     p:[["你好","nǐ hǎo → ní hǎo","Two 3rd tones: the first becomes 2nd tone"],["不是","bù + shì → bú shì","不 before a 4th tone becomes 2nd tone"],["去、女、绿","qù · nǚ · lǜ","j, q, x + ü drop the two dots: ju, qu, xu"]],
-     tips:[{r:"j、q、x 后面的 u 其实是 ü：ju = jü，qu = qü，xu = xü。"},{r:"n、l 后面要保留两点：nǚ（女）、lǜ（绿）。"}] },
-   { h:"基本笔画与笔顺", en:"Basic strokes & stroke order",
-     v:[["横","héng","horizontal ㇐"],["竖","shù","vertical ㇑"],["撇","piě","left-falling ㇒"],["捺","nà","right-falling ㇏"],["点","diǎn","dot ㇔"],["提","tí","rising ㇀"],["折","zhé","turning ㇕"],["钩","gōu","hook ㇚"]],
-     tips:[{r:"先横后竖：十　·　先撇后捺：人　·　从上到下：三　·　从左到右：你"},{r:"全包围的字“先进人，后关门”：国 —— 先写里面的“玉”，最后一横封口。"},{"r":"先中间后两边：小（先写中间的竖钩，再写左右两点）· 水（先竖钩，再横撇、撇、捺）。"},{"r":"例字笔画数：大 3 画 · 主 5 画 · 汉 5 画 · 回 6 画 · 水 4 画。"}] },
-   {"h": "声母 21 个", "en": "Initials", "v": [["爸", "bà", "father · initial b (unaspirated)"], ["破", "pò", "broken · initial p (aspirated)"], ["米", "mǐ", "rice · initial m"], ["发", "fā", "to send · initial f"], ["大", "dà", "big · initial d (unaspirated)"], ["他", "tā", "he · initial t (aspirated)"], ["你", "nǐ", "you · initial n"], ["来", "lái", "to come · initial l"], ["个", "gè", "measure word · initial g (unaspirated)"], ["看", "kàn", "to look · initial k (aspirated)"], ["好", "hǎo", "good · initial h"], ["家", "jiā", "home · initial j (unaspirated)"], ["去", "qù", "to go · initial q (aspirated)"], ["谢", "xiè", "to thank · initial x"], ["住", "zhù", "to live · initial zh (unaspirated, tongue curled)"], ["吃", "chī", "to eat · initial ch (aspirated, tongue curled)"], ["是", "shì", "to be · initial sh (tongue curled)"], ["人", "rén", "person · initial r"], ["在", "zài", "at; in · initial z (unaspirated, tongue flat)"], ["才", "cái", "only then · initial c (aspirated, tongue flat)"], ["四", "sì", "four · initial s (tongue flat)"], ["一", "yī", "one · initial y"], ["我", "wǒ", "I; me · initial w"]], "tips": [{"r": "声母 21 个：b p m f · d t n l · g k h · j q x · zh ch sh r · z c s（y、w 是半元音，用在 i、u 开头的音节里）。"}, {"r": "纸巾测试：嘴前放一张纸，读 p t k q ch c（送气音）时纸会被吹动；读 b d g j zh z（不送气音）时纸几乎不动。"}, {"r": "翘舌音 zh ch sh r：舌尖向上卷；平舌音 z c s：舌尖平放在上齿后面。"}]},
-   {"h": "韵母", "en": "Finals", "v": [["白", "bái", "white · final ai"], ["黑", "hēi", "black · final ei"], ["老", "lǎo", "old · final ao"], ["六", "liù", "six · final iu"], ["贵", "guì", "expensive · final ui"], ["写", "xiě", "to write · final ie"], ["学", "xué", "to study · final üe"], ["下", "xià", "down; below · final ia"], ["三", "sān", "three · final an"], ["本", "běn", "book (measure word) · final en"], ["您", "nín", "you (polite) · final in"], ["顺", "shùn", "smooth · final un"], ["方", "fāng", "square; direction · final ang"], ["能", "néng", "can · final eng"], ["中", "zhōng", "middle · final ong"], ["儿", "ér", "son; -er suffix · final er"]], "tips": [{"r": "一个音节 = 声母 + 韵母 + 声调。例如 mā：m 是声母，a 是韵母，ˉ 是第一声。"}, {"r": "单韵母 6 个：a o e i u ü　·　复韵母：ai ei ui ao ou iu ie üe er。"}, {"r": "前鼻韵母（-n）：an en in un ün　·　后鼻韵母（-ng）：ang eng ing ong。"}, {"r": "结合韵母：ia ian iang iao iong ua uai uan uang uo üan。"}]} ],
-  quiz:[
-   {q:"“mǎ” 是第几声？", a:"第三声 3rd tone", d:["第一声 1st tone","第二声 2nd tone","第四声 4th tone"]},
-   {q:"“hao” 的声调符号应标在哪个字母上？", a:"a", d:["h","o"], x:"有 a 标 a：hǎo。"},
-   {q:"“qu”（去）里的 u 实际读作？", np:1, a:"ü", d:["u","i","o"], x:"j、q、x 后的 u 都读 ü，只是省略了两点。"},
-   {q:"“你好” 实际读作？", a:"ní hǎo", d:["nǐ háo","nì hǎo","nī hǎo"], x:"两个三声相连，前一个变二声。", np:1},
-   {q:"“不是” 里的 “不” 读？", a:"bú", d:["bù","bǔ","bū"], x:"“不”在四声前变二声：bú shì。", np:1},
-   {q:"“人” 的笔顺是？", a:"撇、捺", d:["捺、撇","竖、横","横、撇"], x:"先撇后捺。"},
-   {q:"笔画 “丿” 叫什么？", a:"撇 piě", d:["捺 nà","提 tí","点 diǎn"]},
-   {q:"听一听，你听到的是哪一个？", au:"马", apy:"mǎ", a:"mǎ（马）", d:["mā（妈）","má（麻）","mà（骂）"]},
-   {q:"写 “国” 字，最后一笔是？", a:"最下面封口的横", d:["第一笔的竖","里面的点","右边的横折"], x:"先进人，后关门。"},
-   {"q": "“mā” 是第几声？", "qe": "Which tone is this?", "a": "第一声 1st tone", "d": ["第二声 2nd tone", "第三声 3rd tone", "第四声 4th tone"]},
-   {"q": "“má” 是第几声？", "qe": "Which tone is this?", "a": "第二声 2nd tone", "d": ["第一声 1st tone", "第三声 3rd tone", "第四声 4th tone"]},
-   {"q": "“mà” 是第几声？", "qe": "Which tone is this?", "a": "第四声 4th tone", "d": ["第一声 1st tone", "第二声 2nd tone", "第三声 3rd tone"]},
-   {"q": "“ma”（吗）是第几声？", "qe": "Which tone is “ma” (the question particle)?", "a": "轻声 neutral tone", "d": ["第一声 1st tone", "第二声 2nd tone", "第四声 4th tone"], "x": "“吗”读得又轻又短，是轻声。", "xe": "“吗” is read light and short: the neutral tone."},
-   {"q": "「妈」的拼音是？", "qe": "Which is the correct pinyin?", "a": "mā", "d": ["má", "mǎ", "mà"], "np": 1},
-   {"q": "「马」的拼音是？", "qe": "Which is the correct pinyin?", "a": "mǎ", "d": ["mā", "má", "mà"], "np": 1},
-   {"q": "「骂」的拼音是？", "qe": "Which is the correct pinyin?", "a": "mà", "d": ["mā", "má", "mǎ"], "np": 1},
-   {"q": "「麻」的拼音是？", "qe": "Which is the correct pinyin?", "a": "má", "d": ["mā", "mǎ", "mà"], "np": 1},
-   {"q": "哪一个字是第二声？", "qe": "Which character is read in the 2nd tone?", "a": "麻", "d": ["妈", "马", "骂"], "x": "麻 má 是第二声（上扬）。", "xe": "麻 má is the 2nd tone (rising)."},
-   {"q": "哪一个字的意思是 “horse”？", "qe": "Which character means “horse”?", "a": "马", "d": ["妈", "麻", "骂"]},
-   {"q": "哪一个字的意思是 “to scold”？", "qe": "Which character means “to scold”?", "a": "骂", "d": ["妈", "麻", "马"]},
-   {"q": "哪一个字的意思是 “mum”？", "qe": "Which character means “mum”?", "a": "妈", "d": ["麻", "马", "骂"]},
-   {"q": "听一听，你听到的是哪一个？", "qe": "Listen. Which one did you hear?", "a": "mā（妈）", "d": ["má（麻）", "mǎ（马）", "mà（骂）"], "au": "妈", "apy": "mā"},
-   {"q": "听一听，你听到的是哪一个？", "qe": "Listen. Which one did you hear?", "a": "má（麻）", "d": ["mā（妈）", "mǎ（马）", "mà（骂）"], "au": "麻", "apy": "má"},
-   {"q": "听一听，你听到的是哪一个？", "qe": "Listen. Which one did you hear?", "a": "mǎ（马）", "d": ["mā（妈）", "má（麻）", "mà（骂）"], "au": "马", "apy": "mǎ"},
-   {"q": "听一听，你听到的是哪一个？", "qe": "Listen. Which one did you hear?", "a": "mà（骂）", "d": ["mā（妈）", "má（麻）", "mǎ（马）"], "au": "骂", "apy": "mà"},
-   {"q": "“gui”（贵）的声调符号应标在哪个字母上？", "qe": "On which letter does the tone mark of “gui” go?", "a": "i", "d": ["u", "g", "不用标 no mark"], "x": "i 和 u 在一起，标在后面那个：guì。", "xe": "When i and u are together, mark the second one: guì.", "np": 1},
-   {"q": "“liu”（六）的声调符号应标在哪个字母上？", "qe": "On which letter does the tone mark of “liu” go?", "a": "u", "d": ["i", "l", "不用标 no mark"], "x": "i 和 u 在一起，标在后面那个：liù。", "xe": "When i and u are together, mark the second one: liù.", "np": 1},
-   {"q": "“mei”（没）的声调符号应标在哪个字母上？", "qe": "On which letter does the tone mark of “mei” go?", "a": "e", "d": ["m", "i", "不用标 no mark"], "x": "没有 a，找 o 或 e：méi。", "xe": "No a? Look for o or e: méi.", "np": 1},
-   {"q": "“xie”（谢）的声调符号应标在哪个字母上？", "qe": "On which letter does the tone mark of “xie” go?", "a": "e", "d": ["x", "i", "不用标 no mark"], "x": "没有 a，找 o 或 e：xiè。", "xe": "No a? Look for o or e: xiè.", "np": 1},
-   {"q": "“duo”（多）的声调符号应标在哪个字母上？", "qe": "On which letter does the tone mark of “duo” go?", "a": "o", "d": ["d", "u", "不用标 no mark"], "x": "没有 a，找 o 或 e：duō。", "xe": "No a? Look for o or e: duō.", "np": 1},
-   {"q": "“hao”（好）的声调符号应标在哪个字母上？", "qe": "On which letter does the tone mark of “hao” go?", "a": "a", "d": ["h", "o", "不用标 no mark"], "x": "有 a 标 a：hǎo。", "xe": "If there is an a, mark the a: hǎo.", "np": 1},
-   {"q": "「绿」的拼音是？", "qe": "Which is the correct pinyin?", "a": "lǜ", "d": ["lù", "lǚ", "lǘ"], "x": "l 后面的 ü 要保留两点：lǜ。", "xe": "After l, ü keeps its two dots: lǜ.", "np": 1},
-   {"q": "「去」的拼音是？", "qe": "Which is the correct pinyin?", "a": "qù", "d": ["qǜ", "qǔ", "qū"], "x": "j、q、x 后面的 ü 省略两点，写成 u：qù。", "xe": "After j, q, x, ü drops its dots and is written u: qù.", "np": 1},
-   {"q": "「女」的拼音是？", "qe": "Which is the correct pinyin?", "a": "nǚ", "d": ["nǔ", "nù", "nǘ"], "x": "n 后面的 ü 要保留两点：nǚ。", "xe": "After n, ü keeps its two dots: nǚ.", "np": 1},
-   {"q": "“qü” 按规则应该写成？", "qe": "How should “qü” be written, by the rule?", "a": "qu", "d": ["qü", "qiu", "kü"], "x": "j、q、x 后面的 ü 省略两点。", "xe": "After j, q, x, ü drops its two dots.", "np": 1},
-   {"q": "两个第三声连在一起，前一个会变成第几声？", "qe": "When two 3rd tones come together, the first one changes to which tone?", "a": "第二声 2nd tone", "d": ["第一声 1st tone", "第三声 3rd tone", "第四声 4th tone"], "x": "例如：你好 nǐ hǎo → ní hǎo。", "xe": "For example: 你好 nǐ hǎo → ní hǎo."},
-   {"q": "“不” 在第四声前面读？", "qe": "How is “不” read before a 4th tone?", "a": "bú（第二声）", "d": ["bù（第四声）", "bǔ（第三声）", "bū（第一声）"], "x": "例如：不是 bú shì。", "xe": "For example: 不是 bú shì.", "np": 1},
-   {"q": "“不好” 里的 “不” 读？", "qe": "How is “不” read in “不好”?", "a": "bù", "d": ["bú", "bǔ", "bū"], "x": "“好”是第三声，“不”不变调，仍读 bù。", "xe": "好 is 3rd tone, so 不 does not change: bù.", "np": 1},
-   {"q": "“不对” 里的 “不” 读？", "qe": "How is “不” read in “不对”?", "a": "bú", "d": ["bù", "bǔ", "bū"], "x": "“对”是第四声，“不”变成第二声：bú duì。", "xe": "对 is 4th tone, so 不 becomes 2nd tone: bú duì.", "np": 1},
-   {"q": "“不去” 实际读作？", "qe": "How is “不去” actually read?", "a": "bú qù", "d": ["bù qù", "bǔ qù", "bú qǔ"], "x": "“去”是第四声，“不”变第二声。", "xe": "去 is 4th tone, so 不 becomes 2nd tone.", "np": 1},
-   {"q": "笔画 “一” 叫什么？", "qe": "What is the stroke “一” called?", "a": "横 héng", "d": ["竖 shù", "撇 piě", "捺 nà"]},
-   {"q": "笔画 “丨” 叫什么？", "qe": "What is the stroke “丨” called?", "a": "竖 shù", "d": ["横 héng", "撇 piě", "捺 nà"]},
-   {"q": "笔画 “丶” 叫什么？", "qe": "What is the stroke “丶” called?", "a": "点 diǎn", "d": ["横 héng", "竖 shù", "撇 piě"]},
-   {"q": "笔画 “㇏” 叫什么？", "qe": "What is the stroke “㇏” called?", "a": "捺 nà", "d": ["横 héng", "竖 shù", "撇 piě"]},
-   {"q": "笔画 “㇀” 叫什么？", "qe": "What is the stroke “㇀” called?", "a": "提 tí", "d": ["横 héng", "竖 shù", "撇 piě"]},
-   {"q": "笔画 “㇕” 叫什么？", "qe": "What is the stroke “㇕” called?", "a": "折 zhé", "d": ["横 héng", "竖 shù", "撇 piě"]},
-   {"q": "笔画 “㇚” 叫什么？", "qe": "What is the stroke “㇚” called?", "a": "钩 gōu", "d": ["横 héng", "竖 shù", "撇 piě"]},
-   {"q": "“héng” 是哪一个笔画？", "qe": "Which stroke is “héng”?", "a": "㇐", "d": ["㇑", "㇒", "㇏"], "np": 1},
-   {"q": "“piě” 是哪一个笔画？", "qe": "Which stroke is “piě”?", "a": "㇒", "d": ["㇐", "㇑", "㇔"], "np": 1},
-   {"q": "“十” 的笔顺是？", "qe": "What is the stroke order of 十?", "a": "先横后竖", "d": ["先竖后横", "先撇后捺", "先点后横"], "x": "先横后竖：十。", "xe": "Horizontal before vertical: 十."},
-   {"q": "“三” 要怎么写？", "qe": "How is 三 written?", "a": "从上到下", "d": ["从下到上", "从右到左", "从里到外"], "x": "从上到下：三。", "xe": "Top to bottom: 三."},
-   {"q": "写 “你” 字，应该先写哪一边？", "qe": "Writing 你, which side comes first?", "a": "左边（亻）", "d": ["右边（尔）", "随便先写哪边", "最下面"], "x": "从左到右：你。", "xe": "Left to right: 你."},
-   {"q": "“国” 里面的 “玉” 什么时候写？", "qe": "When do you write the 玉 inside 国?", "a": "外框写好以后，封口以前", "d": ["最先写", "最后写，在封口以后", "可以不写"], "x": "先进人，后关门：先写里面，最后一横封口。", "xe": "Enter first, then shut the door: write the inside, then seal with the last stroke."},
-   {"q": "“人” 有几画？", "qe": "How many strokes does 人 have?", "a": "2 画", "d": ["1 画", "3 画", "4 画"]},
-   {"q": "“十” 有几画？", "qe": "How many strokes does 十 have?", "a": "2 画", "d": ["1 画", "3 画", "4 画"]},
-   {"q": "“三” 有几画？", "qe": "How many strokes does 三 have?", "a": "3 画", "d": ["2 画", "4 画", "5 画"]},
-   {"q": "“国” 有几画？", "qe": "How many strokes does 国 have?", "a": "8 画", "d": ["7 画", "9 画", "10 画"]},
-   {"q": "「爸」的声母是？", "qe": "What is the initial of this character?", "a": "b", "d": ["p", "d", "m"], "x": "爸 读 bà，声母是 b。", "xe": "爸 is read bà; its initial is b.", "np": 1},
-   {"q": "「破」的声母是？", "qe": "What is the initial of this character?", "a": "p", "d": ["b", "f", "m"], "x": "破 读 pò，声母是 p。", "xe": "破 is read pò; its initial is p.", "np": 1},
-   {"q": "「大」的声母是？", "qe": "What is the initial of this character?", "a": "d", "d": ["t", "b", "g"], "x": "大 读 dà，声母是 d。", "xe": "大 is read dà; its initial is d.", "np": 1},
-   {"q": "「他」的声母是？", "qe": "What is the initial of this character?", "a": "t", "d": ["d", "n", "l"], "x": "他 读 tā，声母是 t。", "xe": "他 is read tā; its initial is t.", "np": 1},
-   {"q": "「看」的声母是？", "qe": "What is the initial of this character?", "a": "k", "d": ["g", "h", "j"], "x": "看 读 kàn，声母是 k。", "xe": "看 is read kàn; its initial is k.", "np": 1},
-   {"q": "「去」的声母是？", "qe": "What is the initial of this character?", "a": "q", "d": ["j", "x", "ch"], "x": "去 读 qù，声母是 q。", "xe": "去 is read qù; its initial is q.", "np": 1},
-   {"q": "「吃」的声母是？", "qe": "What is the initial of this character?", "a": "ch", "d": ["zh", "sh", "q"], "x": "吃 读 chī，声母是 ch。", "xe": "吃 is read chī; its initial is ch.", "np": 1},
-   {"q": "「住」的声母是？", "qe": "What is the initial of this character?", "a": "zh", "d": ["z", "ch", "j"], "x": "住 读 zhù，声母是 zh。", "xe": "住 is read zhù; its initial is zh.", "np": 1},
-   {"q": "「是」的声母是？", "qe": "What is the initial of this character?", "a": "sh", "d": ["s", "x", "zh"], "x": "是 读 shì，声母是 sh。", "xe": "是 is read shì; its initial is sh.", "np": 1},
-   {"q": "「四」的声母是？", "qe": "What is the initial of this character?", "a": "s", "d": ["sh", "x", "z"], "x": "四 读 sì，声母是 s。", "xe": "四 is read sì; its initial is s.", "np": 1},
-   {"q": "「才」的声母是？", "qe": "What is the initial of this character?", "a": "c", "d": ["z", "zh", "s"], "x": "才 读 cái，声母是 c。", "xe": "才 is read cái; its initial is c.", "np": 1},
-   {"q": "「在」的声母是？", "qe": "What is the initial of this character?", "a": "z", "d": ["c", "zh", "s"], "x": "在 读 zài，声母是 z。", "xe": "在 is read zài; its initial is z.", "np": 1},
-   {"q": "「六」的韵母是？", "qe": "What is the final of this character?", "a": "iu", "d": ["ui", "u", "ou"], "x": "六 读 liù，韵母是 iu。", "xe": "六 is read liù; its final is iu.", "np": 1},
-   {"q": "「贵」的韵母是？", "qe": "What is the final of this character?", "a": "ui", "d": ["iu", "ei", "i"], "x": "贵 读 guì，韵母是 ui。", "xe": "贵 is read guì; its final is ui.", "np": 1},
-   {"q": "「学」的韵母是？", "qe": "What is the final of this character?", "a": "üe", "d": ["ue", "ie", "ü"], "x": "学 读 xué，韵母是 üe。", "xe": "学 is read xué; its final is üe.", "np": 1},
-   {"q": "「写」的韵母是？", "qe": "What is the final of this character?", "a": "ie", "d": ["üe", "ei", "e"], "x": "写 读 xiě，韵母是 ie。", "xe": "写 is read xiě; its final is ie.", "np": 1},
-   {"q": "「能」的韵母是？", "qe": "What is the final of this character?", "a": "eng", "d": ["en", "ang", "ing"], "x": "能 读 néng，韵母是 eng。", "xe": "能 is read néng; its final is eng.", "np": 1},
-   {"q": "「中」的韵母是？", "qe": "What is the final of this character?", "a": "ong", "d": ["ang", "eng", "ou"], "x": "中 读 zhōng，韵母是 ong。", "xe": "中 is read zhōng; its final is ong.", "np": 1},
-   {"q": "「三」的韵母是？", "qe": "What is the final of this character?", "a": "an", "d": ["ang", "en", "ai"], "x": "三 读 sān，韵母是 an。", "xe": "三 is read sān; its final is an.", "np": 1},
-   {"q": "「方」的韵母是？", "qe": "What is the final of this character?", "a": "ang", "d": ["an", "eng", "ao"], "x": "方 读 fāng，韵母是 ang。", "xe": "方 is read fāng; its final is ang.", "np": 1},
-   {"q": "汉语拼音的一个音节由哪三部分组成？", "qe": "What three parts make up a pinyin syllable?", "a": "声母 + 韵母 + 声调", "d": ["声母 + 笔画 + 声调", "汉字 + 拼音 + 声调", "韵母 + 部首 + 声调"], "x": "例如 mā：m 声母 + a 韵母 + 第一声。", "xe": "For example mā: initial m + final a + 1st tone."},
-   {"q": "“mā” 里的 “m” 是什么？", "qe": "What is the “m” in “mā”?", "a": "声母 initial", "d": ["韵母 final", "声调 tone", "部首 radical"]},
-   {"q": "纸巾测试：读哪个声母时，嘴前的纸会被吹动？", "qe": "Tissue test: which initial makes the paper move?", "a": "p", "d": ["b", "d", "g"], "x": "p t k q ch c 是送气音。", "xe": "p t k q ch c are aspirated."},
-   {"q": "下面哪一组都是送气音？", "qe": "Which group is all aspirated?", "a": "p、t、k", "d": ["b、d、g", "p、d、k", "j、zh、z"]},
-   {"q": "哪一组是翘舌音？", "qe": "Which group are the retroflex initials?", "a": "zh ch sh r", "d": ["z c s", "b p m f", "j q x"], "x": "翘舌音：舌尖向上卷。", "xe": "Retroflex: curl the tongue tip up."},
-   {"q": "哪一组是平舌音？", "qe": "Which group are the dental sibilants?", "a": "z c s", "d": ["zh ch sh r", "b p m f", "j q x"], "x": "平舌音：舌尖平放在上齿后面。", "xe": "Flat: tongue tip behind the upper teeth."},
-   {"q": "哪一组是后鼻韵母？", "qe": "Which group are the back nasal finals?", "a": "ang eng ing ong", "d": ["an en in un", "ai ei ui ao", "a o e i u ü"], "x": "后鼻韵母以 -ng 结尾。", "xe": "Back nasal finals end in -ng."},
-   {"q": "单韵母一共有几个？", "qe": "How many simple finals are there?", "a": "6 个：a o e i u ü", "d": ["4 个", "5 个", "8 个"]},
-   {"q": "“小” 的第一笔是？", "qe": "What is the first stroke of 小?", "a": "中间的竖钩", "d": ["左边的点", "右边的点", "横"], "x": "先中间后两边。", "xe": "Centre before both sides."},
-   {"q": "“水” 的第一笔是？", "qe": "What is the first stroke of 水?", "a": "竖钩", "d": ["横撇", "撇", "捺"], "x": "先写中间的竖钩，再写横撇、撇、捺。", "xe": "Vertical hook first, then the rest."},
-   {"q": "“回” 的最后一笔是？", "qe": "What is the last stroke of 回?", "a": "底部的横（封口）", "d": ["里面的口", "第一笔竖", "右边的竖"], "x": "先外后里再封口。", "xe": "Outside, inside, then close."},
-   {"q": "“大” 的笔顺是？", "qe": "What is the stroke order of 大?", "a": "横、撇、捺", "d": ["撇、横、捺", "横、捺、撇", "竖、横、撇"]},
-   {"q": "“水” 有几画？", "qe": "How many strokes does 水 have?", "a": "4 画", "d": ["3 画", "5 画", "6 画"]},
-   {"q": "“回” 有几画？", "qe": "How many strokes does 回 have?", "a": "6 画", "d": ["5 画", "7 画", "8 画"]},
-   {"q": "“主” 有几画？", "qe": "How many strokes does 主 have?", "a": "5 画", "d": ["4 画", "6 画", "7 画"]},
-   {"q": "“汉” 有几画？", "qe": "How many strokes does 汉 have?", "a": "5 画", "d": ["4 画", "6 画", "7 画"]} ] },
-
-{ no:"C2", name:"问候码头", py:"Wènhòu Mǎtóu", en:"Greetings Pier", module:"问候礼貌与姓名表达", moduleEn:"Greetings, Courtesy & Names",
-  lesson:"Unit 1 Lesson 2《问候》& Lesson 3《姓名》",
-  pos:[-38,8], grass:0x7ab85a, lm:"pier",
-  spots:[
-   { h:"问候与礼貌", en:"Greetings & courtesy",
-     v:[["你好","nǐ hǎo","hello"],["您好","nín hǎo","hello (polite)"],["老师好","lǎoshī hǎo","hello, teacher"],["再见","zàijiàn","goodbye"],["谢谢","xièxie","thank you"],["不客气","bú kèqi","you're welcome"],["对不起","duìbuqǐ","sorry"],["没关系","méi guānxi","that's all right"]],
-     p:[["老师好！——同学们好！","Lǎoshī hǎo! — Tóngxuémen hǎo!","Hello, teacher! — Hello, everyone!"],["谢谢！——不客气！","Xièxie! — Bú kèqi!","Thank you! — You're welcome!"]],
-     tips:[{r:"对老师、长辈用“您 nín”，更礼貌。"}] },
-   { h:"姓名", en:"Names",
-     v:[["我","wǒ","I, me"],["你","nǐ","you"],["他","tā","he, him"],["她","tā","she, her"],["叫","jiào","to be called"],["什么","shénme","what"],["名字","míngzi","name"],["姓","xìng","surname; to be surnamed"]],
-     p:[["你叫什么名字？——我叫阿里。","Nǐ jiào shénme míngzi? — Wǒ jiào Ālǐ.","What's your name? — I'm Ali."],["您贵姓？——我姓王。","Nín guìxìng? — Wǒ xìng Wáng.","May I ask your surname? — My surname is Wang."]],
-     tips:[{r:"中文姓名：姓在前，名在后。王小明 = 姓“王” + 名“小明”。"},{w:"你叫什么名字吗？", ok:"你叫什么名字？", why:"有“什么”的问句，句末不再加“吗”。"}] },
-   {"h": "请求与告别", "en": "Requests & farewells", "v": [["同学们好", "tóngxuémen hǎo", "hello, everyone (teacher to class)"], ["明天见", "míngtiān jiàn", "see you tomorrow"], ["请", "qǐng", "please"], ["请问", "qǐngwèn", "excuse me, may I ask…"], ["请坐", "qǐng zuò", "please sit down"], ["请进", "qǐng jìn", "please come in"], ["很高兴认识你", "hěn gāoxìng rènshi nǐ", "nice to meet you"]], "p": [["请问，你叫什么名字？——我叫阿里。", "Qǐngwèn, nǐ jiào shénme míngzi? — Wǒ jiào Ālǐ.", "Excuse me, what's your name? — I'm Ali."]], "tips": [{"r": "三声变调：“你好”实际读 ní hǎo（两个第三声连读，前一个变第二声），书写仍然是 nǐ hǎo。"}, {"r": "“不”在第四声前读 bú：不客气 bú kèqi、不是 bú shì；在一、二、三声前仍读 bù：不好 bù hǎo。"}, {"w": "老师郑", "ok": "郑老师", "why": "称呼老师：姓在前，称呼在后。"}]},
-   {"h": "人称代词与“是”“吗”", "en": "Pronouns, 是 and 吗", "v": [["我们", "wǒmen", "we, us"], ["你们", "nǐmen", "you (plural)"], ["他们", "tāmen", "they (males or mixed)"], ["她们", "tāmen", "they (all female)"], ["是", "shì", "to be"], ["不是", "bú shì", "is not"], ["吗", "ma", "question particle"], ["也", "yě", "also, too"], ["和", "hé", "and (nouns only)"], ["大学生", "dàxuéshēng", "university student"]], "p": [["你是大学生吗？——是，我是大学生。", "Nǐ shì dàxuéshēng ma? — Shì, wǒ shì dàxuéshēng.", "Are you a university student? — Yes, I am."], ["我是大学生，她也是大学生。", "Wǒ shì dàxuéshēng, tā yě shì dàxuéshēng.", "I'm a university student; she is one too."]], "tips": [{"r": "“吗”放在句末变成是非问句，词序不变：你是大学生吗？"}, {"r": "“也”放在主语后、动词前：我也是大学生。“和”只连接名词：老师和我。"}, {"w": "我是大学生也。", "ok": "我也是大学生。", "why": "“也”必须放在动词前面，不能放在句末。"}, {"r": "常见偏旁：亻（你、他、们）· 女（好、她、妈）· 口（叫、吗）· 夕（名）· 宀（字、家）· 心（您）。"}]} ],
-  quiz:[
-   {q:"见到老师，最礼貌的问候是？", a:"您好！", d:["再见！","谢谢！","没关系！"]},
-   {q:"“你叫什么名字？” 怎么回答？", a:"我叫阿里。", d:["我是好。","我名字阿里。","阿里叫我。"]},
-   {q:"王小明姓什么？", a:"王", d:["小","明","小明"], x:"姓在前，名在后。"},
-   {q:"哪一句是错的？", a:"你叫什么名字吗？", d:["你叫什么名字？","他叫什么名字？","您贵姓？"], x:"有“什么”就不加“吗”。"},
-   {q:"“不客气” 的意思是？", a:"You're welcome", d:["Thank you","Sorry","Goodbye"]},
-   {q:"别人对你说 “谢谢！”，你回答？", a:"不客气！", d:["没关系！","再见！","对不起！"]},
-   {q:"听一听，你听到的是哪一个？", au:"再见", apy:"zàijiàn", a:"再见", d:["谢谢","你好","老师"]},
-   {q:"“他” 和 “她” 的读音？", np:1, a:"一样，都读 tā", d:["“她”读 tà","“他”读 tǎ","完全不一样"]},
-   {"q": "“我们” 的意思是？", "qe": "What does 我们 mean?", "a": "we", "d": ["you (plural)", "they", "I"]},
-   {"q": "“她们” 的意思是？", "qe": "What does 她们 mean?", "a": "they (all female)", "d": ["she", "we", "you (plural)"], "x": "“她们”只用于全是女生；男生或男女混合用“他们”。", "xe": "她们 is only for an all-female group; use 他们 for males or mixed."},
-   {"q": "哪一句是对的？", "qe": "Which sentence is correct?", "a": "我也是大学生。", "d": ["我是也大学生。", "我是大学生也。", "也我是大学生。"], "x": "“也”放在动词前面。", "xe": "Put 也 before the verb."},
-   {"q": "下面哪一个用对了 “和”？", "qe": "Which one uses 和 correctly?", "a": "老师和我", "d": ["我叫大明，和他叫小月。", "我是学生，和他是老师。", "你好，和再见。"], "x": "“和”只连接名词，不能连接两个句子。", "xe": "和 only joins nouns, never two sentences."},
-   {"q": "称呼姓郑的老师，正确的是？", "qe": "How do you address a teacher surnamed Zheng?", "a": "郑老师", "d": ["老师郑", "郑的老师", "老师的郑"]},
-   {"q": "“请问” 的意思是？", "qe": "What does 请问 mean?", "a": "Excuse me, may I ask…", "d": ["Please sit down", "Thank you", "Goodbye"]},
-   {"q": "“请进” 的意思是？", "qe": "What does 请进 mean?", "a": "Please come in", "d": ["Please sit down", "Please speak", "Goodbye"]},
-   {"q": "“明天见” 的意思是？", "qe": "What does 明天见 mean?", "a": "See you tomorrow", "d": ["See you on Monday", "Good morning", "Happy birthday"]},
-   {"q": "“你是大学生吗？” 肯定回答是？", "qe": "How do you answer “yes” to 你是大学生吗？", "a": "是，我是大学生。", "d": ["是，我是大学生吗。", "我是大学生是。", "不是，我是大学生。"]},
-   {"q": "哪一个字有 “女字旁”？", "qe": "Which character has the 女 radical?", "a": "好", "d": ["你", "叫", "他"]},
-   {"q": "“您” 下面的部首是？", "qe": "Which radical is at the bottom of 您?", "a": "心", "d": ["口", "女", "亻"]},
-   {"q": "“同学们好！” 是谁对谁说的？", "qe": "Who says 同学们好 to whom?", "a": "老师对全班同学", "d": ["同学对老师", "同学对同学", "同学对长辈"]} ] },
-
-{ no:"C3", name:"日历钟楼", py:"Rìlì Zhōnglóu", en:"Calendar Clock Tower", module:"数字系统、日期与年龄", moduleEn:"Numbers, Calendar Dates & Age",
-  lesson:"Unit 2 Lesson 4《数字与日期》",
-  pos:[-52,-18], grass:0x8cc063, lm:"clock",
-  spots:[
-   { h:"数字 0–99", en:"Numbers 0–99",
-     v:[["零","líng","0"],["一","yī","1"],["二","èr","2"],["三","sān","3"],["四","sì","4"],["五","wǔ","5"],["六","liù","6"],["七","qī","7"],["八","bā","8"],["九","jiǔ","9"],["十","shí","10"],["二十","èrshí","20"],["九十九","jiǔshíjiǔ","99"]],
-     tips:[{r:"两位数 = 几十几：37 = 三十七，73 = 七十三。"}] },
-   { h:"年、月、日与星期", en:"Dates & days of the week",
-     v:[["年","nián","year"],["月","yuè","month"],["日 / 号","rì / hào","day of month (written / spoken)"],["星期","xīngqī","week"],["星期一","xīngqīyī","Monday"],["星期六","xīngqīliù","Saturday"],["星期天","xīngqītiān","Sunday"],["今天","jīntiān","today"],["昨天","zuótiān","yesterday"],["明天","míngtiān","tomorrow"]],
-     p:[["今天几月几号？——今天十一月四号。","Jīntiān jǐ yuè jǐ hào? — Jīntiān shíyī yuè sì hào.","What's the date today? — It's 4 November."],["今天星期几？——今天星期三。","Jīntiān xīngqī jǐ? — Jīntiān xīngqīsān.","What day is it? — It's Wednesday."],["二〇二六年","èr líng èr liù nián","the year 2026 (read digit by digit)"]],
-     tips:[{r:"日期由大到小：2026年11月4日，星期三。"}] },
-   { h:"年龄与生日", en:"Age & birthdays",
-     v:[["岁","suì","years old"],["多大","duō dà","how old (teens & adults)"],["几岁","jǐ suì","how old (young children)"],["生日","shēngrì","birthday"]],
-     p:[["你今年多大？——我今年二十岁。","Nǐ jīnnián duō dà? — Wǒ jīnnián èrshí suì.","How old are you? — I'm 20 this year."],["你的生日是几月几号？——八月十五号。","Nǐ de shēngrì shì jǐ yuè jǐ hào? — Bā yuè shíwǔ hào.","When's your birthday? — 15 August."]],
-     tips:[{w:"我是二十岁。", ok:"我今年二十岁。", why:"说年龄不用“是”。"}] },
-   {"h": "月份与时间词", "en": "Months & time words", "v": [["十月", "shíyuè", "October"], ["十一月", "shíyīyuè", "November"], ["十二月", "shí'èryuè", "December"], ["去年", "qùnián", "last year"], ["今年", "jīnnián", "this year"], ["明年", "míngnián", "next year"], ["星期二", "xīngqī'èr", "Tuesday"], ["星期三", "xīngqīsān", "Wednesday"], ["星期四", "xīngqīsì", "Thursday"], ["星期五", "xīngqīwǔ", "Friday"], ["几", "jǐ", "how many; which (number)"], ["快乐", "kuàilè", "happy"]], "p": [["请问，今天几月几号？——今天是九月十八号。", "Qǐngwèn, jīntiān jǐ yuè jǐ hào? — Jīntiān shì jiǔ yuè shíbā hào.", "Excuse me, what's the date today? — It's 18 September."], ["我的生日是十月五号。", "Wǒ de shēngrì shì shí yuè wǔ hào.", "My birthday is 5 October."], ["祝你生日快乐！", "Zhù nǐ shēngrì kuàilè!", "Happy birthday!"]], "tips": [{"r": "月份 = 数字 + 月：一月、二月 …… 十二月，没有特别的名字。"}, {"r": "星期天 / 星期日才是周日，没有“星期七”。"}, {"r": "时间词放在主语前，或主语后、动词前：今天我上课 / 我今天上课；不能说“我上课今天”。"}, {"r": "口语说“号”，正式书写（表格、公文）用“日”。"}]} ],
-  quiz:[
-   {q:"“37” 怎么说？", a:"三十七", d:["七十三","三七","三十和七"]},
-   {q:"“星期六” 是？", a:"Saturday", d:["Sunday","Friday","Monday"]},
-   {q:"哪一句是对的？", a:"我今年二十岁。", d:["我是二十岁。","我二十岁是。","我岁二十。"], x:"年龄不用“是”。"},
-   {q:"“2005年” 怎么读？", np:1, a:"èr líng líng wǔ nián", d:["èrshí líng wǔ nián","èr wǔ nián","wǔ líng líng èr nián"], x:"年份一个数字一个数字读。"},
-   {q:"中文日期的顺序是？", a:"年 → 月 → 日", d:["日 → 月 → 年","月 → 日 → 年","月 → 年 → 日"], x:"由大到小。"},
-   {q:"问同学的年龄，哪一句最得体？", a:"你今年多大？", d:["你是几岁吗？","你多大岁？","你岁多大？"]},
-   {q:"星期五的明天是？", a:"星期六", d:["星期四","星期天","星期一"]},
-   {q:"听一听，你听到的日期是？", au:"十一月四号", apy:"shíyī yuè sì hào", a:"11月4号", d:["10月4号","11月14号","4月11号"]},
-   {"q": "“星期天” 还可以怎么说？", "qe": "What is another way to say 星期天?", "a": "星期日", "d": ["星期七", "星期零", "星期八"], "x": "星期天（口语）/ 星期日（书面），没有“星期七”。", "xe": "星期天 (spoken) / 星期日 (written); there is no 星期七."},
-   {"q": "“明年” 的意思是？", "qe": "What does 明年 mean?", "a": "next year", "d": ["last year", "this year", "every year"]},
-   {"q": "“去年” 的意思是？", "qe": "What does 去年 mean?", "a": "last year", "d": ["next year", "this year", "every year"]},
-   {"q": "哪一句是对的？", "qe": "Which sentence is correct?", "a": "今天我上课。", "d": ["我上课今天。", "上课我今天。", "今天上课我。"], "x": "时间词放在主语前，或主语后、动词前。", "xe": "Put time words before the subject, or between subject and verb."},
-   {"q": "在表格上，正式的写法是？", "qe": "What is the formal way to write it on a form?", "a": "八月十五日", "d": ["八月十五号", "八月十五天", "八月十五年"], "x": "书面用“日”，口语用“号”。", "xe": "Written: 日. Spoken: 号."},
-   {"q": "“你几岁？” 适合问谁？", "qe": "Who is 你几岁？ suitable for?", "a": "10 岁以下的小孩", "d": ["大学老师", "大学同学", "长辈"], "x": "问大人用“你今年多大？”。", "xe": "For adults ask 你今年多大？"},
-   {"q": "“祝你生日快乐！” 的意思是？", "qe": "What does 祝你生日快乐 mean?", "a": "Happy birthday!", "d": ["Good luck!", "Welcome!", "See you tomorrow!"]},
-   {"q": "“十二月” 怎么读？", "qe": "How do you read 十二月?", "a": "shí'èr yuè", "d": ["shí yī yuè", "èr shí yuè", "shí liǎng yuè"], "np": 1},
-   {"q": "“90” 怎么说？", "qe": "How do you say 90?", "a": "九十", "d": ["十九", "九零", "九百"]},
-   {"q": "“20” 怎么说？", "qe": "How do you say 20?", "a": "二十", "d": ["两十", "十二", "二零"]},
-   {"q": "问日期应该问？", "qe": "How do you ask the date?", "a": "今天几月几号？", "d": ["今天什么月什么号？", "今天几号月几？", "几月几号今天？"], "x": "问日期用“几”。", "xe": "Use 几 to ask the date."} ] },
-
-{ no:"C4", name:"文莱住址村", py:"Wénlái Zhùzhǐ Cūn", en:"Address Village", module:"联系方式与文莱居住地点", moduleEn:"Contact Details, Phone & Residence",
-  lesson:"Unit 2 Lesson 5《电话号码与住址》",
-  pos:[-24,-34], grass:0x79b65c, lm:"village",
-  spots:[
-   { h:"电话号码", en:"Phone numbers",
-     v:[["电话","diànhuà","telephone"],["手机","shǒujī","mobile phone"],["号码","hàomǎ","number"],["多少","duōshao","how many; what (number)"],["幺","yāo","“one” in phone numbers"]],
-     p:[["你的手机号码是多少？","Nǐ de shǒujī hàomǎ shì duōshao?","What's your mobile number?"],["我的手机号码是八七六幺四幺二。","Wǒ de shǒujī hàomǎ shì bā qī liù yāo sì yāo èr.","My number is 876-1412."]],
-     tips:[{r:"电话号码一个数字一个数字读，“1” 读 yāo，免得和 “七 qī” 听混。"}] },
-   { h:"住在哪儿", en:"Where you live",
-     v:[["住","zhù","to live"],["在","zài","at, in"],["哪儿","nǎr","where"],["家","jiā","home; family"],["文莱","Wénlái","Brunei"],["斯里巴加湾市","Sīlǐbājiāwān Shì","Bandar Seri Begawan"],["加东","Jiādōng","Gadong"],["都东","Dūdōng","Tutong"],["马来奕","Mǎláiyì","Belait"],["淡布隆","Dànbùlóng","Temburong"]],
-     p:[["你住在哪儿？——我住在斯里巴加湾市。","Nǐ zhù zài nǎr? — Wǒ zhù zài Sīlǐbājiāwān Shì.","Where do you live? — I live in BSB."],["你家在哪儿？——我家在加东。","Nǐ jiā zài nǎr? — Wǒ jiā zài Jiādōng.","Where's your home? — In Gadong."]],
-     tips:[{r:"地址由大到小：文莱 → 文莱-摩拉县 → 加东。"},{w:"我在住加东。", ok:"我住在加东。", why:"“住在 + 地方”。"}] },
-   {"h": "礼貌询问与更多地名", "en": "Polite questions & more places", "v": [["哪里", "nǎlǐ", "where (same as 哪儿)"], ["住在", "zhù zài", "to live in"], ["斯市", "Sīshì", "BSB (short form)"], ["诗里亚", "Shīlǐyà", "Seria"], ["北京", "Běijīng", "Beijing"], ["上海", "Shànghǎi", "Shanghai"]], "p": [["请问，您的电话号码是多少？", "Qǐngwèn, nín de diànhuà hàomǎ shì duōshao?", "Excuse me, what is your telephone number? (polite)"], ["你家的电话号码是多少？", "Nǐ jiā de diànhuà hàomǎ shì duōshao?", "What is your home telephone number?"]], "tips": [{"r": "问电话号码用“多少”（号码很长）；“几”一般只问 1–10 的数。"}, {"r": "房间号、航班号、身份证号里的 “1” 也读 yāo。"}, {"r": "哪儿 / 哪里 都是 where；哪 nǎ = which；那 nà = that。"}, {"r": "常见部首：阝（城市、地方）· 讠（说话）· 囗（国界）· 宀（住所）· 亻（人）。"}]} ],
-  quiz:[
-   {q:"电话号码里的 “1” 读？", a:"yāo", d:["yī","yí","yì"]},
-   {q:"问电话号码，用哪个词？", a:"多少", d:["几岁","什么时候","哪国"]},
-   {q:"“我住在加东。” 的意思是？", a:"I live in Gadong.", d:["My home is big.","I work in Gadong.","I am going to Gadong."]},
-   {q:"中文地址的顺序是？", a:"由大到小：国家 → 地区 → 地方", d:["由小到大：门牌号先写","随便排都可以","先写电话号码"]},
-   {q:"“马来奕” 是文莱的哪个地方？", a:"Belait", d:["Tutong","Temburong","Gadong"]},
-   {q:"哪一句是对的？", a:"我住在斯里巴加湾市。", d:["我在住斯里巴加湾市。","我住斯里巴加湾市在。","斯里巴加湾市住在我。"]},
-   {q:"听一听，你听到的号码是？", au:"八七六幺四幺二", apy:"bā qī liù yāo sì yāo èr", a:"876-1412", d:["876-4142","867-1412","876-1422"]},
-   {"q": "问电话号码为什么用 “多少” 而不用 “几”？", "qe": "Why use 多少 instead of 几 to ask a phone number?", "a": "号码很长，不止 1–10", "d": ["因为“几”太不礼貌", "因为“多少”更短", "没有原因，随便用"], "x": "“几”一般问 1–10 的数。", "xe": "几 is for numbers up to about 10."},
-   {"q": "“哪里” 和 “哪儿” 的意思？", "qe": "What do 哪里 and 哪儿 mean?", "a": "一样，都是 where", "d": ["哪里是 when，哪儿是 who", "哪里是 what，哪儿是 which", "完全不同"]},
-   {"q": "“斯市” 是哪里？", "qe": "What place is 斯市?", "a": "Bandar Seri Begawan (BSB)", "d": ["Seria", "Tutong", "Gadong"]},
-   {"q": "“诗里亚” 是哪里？", "qe": "What place is 诗里亚?", "a": "Seria", "d": ["Gadong", "Tutong", "Temburong"]},
-   {"q": "“上海” 是？", "qe": "What is 上海?", "a": "Shanghai", "d": ["Beijing", "Seria", "Singapore"]},
-   {"q": "“北京” 是？", "qe": "What is 北京?", "a": "Beijing", "d": ["Shanghai", "Seria", "Singapore"]},
-   {"q": "房间号 “101” 怎么读最清楚？", "qe": "How is room 101 read most clearly?", "a": "幺零幺", "d": ["一零一", "七零七", "幺零七"], "x": "“1” 读 yāo，避免和 “七” 混淆。", "xe": "Read 1 as yāo to avoid confusion with 七."},
-   {"q": "请问，您的电话号码是多少？这样问适合谁？", "qe": "Who is this polite question suitable for?", "a": "老师或长辈", "d": ["只能问小孩", "只能问自己", "只能问家人"]} ] },
-
-{ no:"C5", name:"家庭树林", py:"Jiātíng Shùlín", en:"Family Grove", module:"家庭结构与父母职业（上、下）", moduleEn:"Family, Classifier 口, Occupations & 也",
-  lesson:"Unit 3 Lesson 6《家庭成员》& Lesson 7《职业与工作》",
-  pos:[2,-14], grass:0x6fae55, lm:"tree",
-  spots:[
-   { h:"家庭成员", en:"Family members",
-     v:[["爸爸","bàba","dad"],["妈妈","māma","mum"],["哥哥","gēge","elder brother"],["姐姐","jiějie","elder sister"],["弟弟","dìdi","younger brother"],["妹妹","mèimei","younger sister"],["爷爷","yéye","grandpa (father's side)"],["奶奶","nǎinai","grandma (father's side)"],["口","kǒu","measure word for family members"],["没有","méiyǒu","not have"],["和","hé","and (joins nouns)"],["谁","shéi","who"]],
-     p:[["你家有几口人？——我家有五口人。","Nǐ jiā yǒu jǐ kǒu rén? — Wǒ jiā yǒu wǔ kǒu rén.","How many people are in your family? — Five."],["你家有谁？——爸爸、妈妈、一个弟弟和我。","Nǐ jiā yǒu shéi? — Bàba, māma, yí ge dìdi hé wǒ.","Who's in your family? — Dad, Mum, a younger brother and me."],["这是谁？——这是我姐姐。","Zhè shì shéi? — Zhè shì wǒ jiějie.","Who is this? — This is my elder sister."]],
-     tips:[{w:"我不有哥哥。", ok:"我没有哥哥。", why:"“有”的否定永远是“没有”。"}] },
-   { h:"职业与工作地点", en:"Occupations & workplaces",
-     v:[["工作","gōngzuò","job; to work"],["做","zuò","to do"],["老师","lǎoshī","teacher"],["医生","yīshēng","doctor"],["护士","hùshi","nurse"],["工程师","gōngchéngshī","engineer"],["律师","lǜshī","lawyer"],["公务员","gōngwùyuán","civil servant"],["商人","shāngrén","businessperson"],["家庭主妇","jiātíng zhǔfù","homemaker"],["退休","tuìxiū","to retire"],["医院","yīyuàn","hospital"],["公司","gōngsī","company"],["也","yě","also, too"]],
-     p:[["你爸爸做什么工作？——他是工程师。","Nǐ bàba zuò shénme gōngzuò? — Tā shì gōngchéngshī.","What does your dad do? — He's an engineer."],["我姐姐在医院工作。","Wǒ jiějie zài yīyuàn gōngzuò.","My elder sister works at a hospital."],["我爸爸是老师，我妈妈也是老师。","Wǒ bàba shì lǎoshī, wǒ māma yě shì lǎoshī.","My dad is a teacher, and my mum is a teacher too."],["我爷爷奶奶退休了。","Wǒ yéye nǎinai tuìxiū le.","My grandparents are retired."]],
-     tips:[{w:"他工作在医院。", ok:"他在医院工作。", why:"“在 + 地方”放在动词前面。"},{w:"我妈妈也老师。", ok:"我妈妈也是老师。", why:"“也”是副词，后面要有动词“是”。"},{w:"我妈妈是老师也。", ok:"我妈妈也是老师。", why:"“也”不能放在句末。"}] },
-   {"h": "家庭补充", "en": "More about family", "v": [["家庭", "jiātíng", "family; household"], ["家庭树", "jiātíngshù", "family tree"], ["兄弟姐妹", "xiōngdì jiěmèi", "siblings"], ["独生子", "dúshēngzǐ", "only son"], ["独生女", "dúshēngnǚ", "only daughter"], ["这", "zhè", "this"], ["那", "nà", "that"], ["个", "gè", "general measure word"], ["学生", "xuésheng", "student"], ["经理", "jīnglǐ", "manager"], ["学校", "xuéxiào", "school"]], "p": [["你有兄弟姐妹吗？——我有两个姐姐。", "Nǐ yǒu xiōngdì jiěmèi ma? — Wǒ yǒu liǎng gè jiějie.", "Do you have siblings? — I have two elder sisters."], ["我是独生子。", "Wǒ shì dúshēngzǐ.", "I am an only son."], ["我爸爸是公司经理。", "Wǒ bàba shì gōngsī jīnglǐ.", "My dad is a company manager."]], "tips": [{"r": "两个字相同的亲属称谓（爸爸、妈妈、哥哥、姐姐、弟弟、妹妹、爷爷、奶奶），第二个字读轻声。"}, {"w": "我有二个姐姐。", "ok": "我有两个姐姐。", "why": "“个”前面的数字 2 用“两”，不用“二”。"}, {"w": "我有一口哥哥。", "ok": "我有一个哥哥。", "why": "“口”只用来数家里的总人数；数每一个人用“个”。"}, {"w": "我家有爸爸和妈妈和我。", "ok": "我家有爸爸、妈妈和我。", "why": "“和”只放在最后一项前面，前面用顿号。"}]} ],
-  quiz:[
-   {q:"“我___哥哥。”（I don't have an elder brother.）", a:"没有", d:["不有","不是","没是"], x:"“有”的否定是“没有”。"},
-   {q:"课本里，问家庭人数用哪个量词：你家有几___人？", a:"口", d:["岁","号","名"]},
-   {q:"哪一句是对的？", a:"我妈妈也是老师。", d:["我妈妈也老师。","我妈妈是老师也。","也我妈妈是老师。"], x:"“也”在动词“是”前面。"},
-   {q:"哪一句是对的？", a:"我哥哥在医院工作。", d:["我哥哥工作在医院。","我哥哥医院在工作。","在医院我哥哥工作。"], x:"在 + 地方 + 工作。"},
-   {q:"“护士” 是？", a:"nurse", d:["doctor","lawyer","engineer"]},
-   {q:"“妹妹” 是？", a:"younger sister", d:["elder sister","younger brother","mum"]},
-   {q:"问职业：“你爸爸___？”", a:"做什么工作", d:["叫什么名字","今年多大","住在哪儿"]},
-   {q:"爷爷奶奶以前工作，现在不工作了，可以说？", a:"他们退休了。", d:["他们是家庭主妇。","他们是学生。","他们没有工作在。"]},
-   {q:"听一听，你听到的是？", au:"我家有五口人", apy:"Wǒ jiā yǒu wǔ kǒu rén.", a:"我家有五口人。", d:["我家有四口人。","我家有九口人。","我家有五个哥哥。"]},
-   {"q": "“我有一___哥哥。”", "qe": "Fill in the measure word.", "a": "个", "d": ["口", "岁", "号"], "x": "数每一个人用“个”，“口”只数家里的总人数。", "xe": "Use 个 for each person; 口 only for the whole family."},
-   {"q": "“我有___个姐姐。”（two elder sisters）", "qe": "Fill in the number.", "a": "两", "d": ["二", "三个", "双"], "x": "“个”前面的 2 用“两”。", "xe": "Before 个, use 两 for 2."},
-   {"q": "“爸爸” 的第二个字怎么读？", "qe": "How is the second syllable of 爸爸 read?", "a": "轻声", "d": ["第一声", "第二声", "第四声"], "x": "叠词亲属称谓第二个字读轻声。", "xe": "In reduplicated family terms the second syllable is neutral."},
-   {"q": "哪一句是对的？", "qe": "Which sentence is correct?", "a": "我家有爸爸、妈妈和我。", "d": ["我家有爸爸和妈妈和我。", "我家有和爸爸妈妈我。", "和我家有爸爸妈妈。"], "x": "“和”只放在最后一项前面。", "xe": "和 goes only before the last item."},
-   {"q": "“独生女” 是？", "qe": "What is 独生女?", "a": "only daughter", "d": ["only son", "elder sister", "younger sister"]},
-   {"q": "“经理” 是？", "qe": "What is 经理?", "a": "manager", "d": ["nurse", "lawyer", "engineer"]},
-   {"q": "“学校” 是？", "qe": "What is 学校?", "a": "school", "d": ["hospital", "company", "home"]},
-   {"q": "“这” 是近指还是远指？", "qe": "Is 这 near or far?", "a": "近指 this", "d": ["远指 that", "问人 who", "问地方 where"]},
-   {"q": "“兄弟姐妹” 的意思是？", "qe": "What does 兄弟姐妹 mean?", "a": "siblings", "d": ["parents", "grandparents", "classmates"]} ] },
-
-{ no:"C6", name:"国籍港口", py:"Guójí Gǎngkǒu", en:"Nationality Harbour", module:"国家国籍、多语言与注册表（上、下）", moduleEn:"Countries, Nationalities, Languages & Registration Form",
-  lesson:"Unit 3 Lesson 8《国家与语言》·《学生个人中文注册表》",
-  pos:[8,14], grass:0x84bd5f, lm:"port",
-  spots:[
-   { h:"国家与国籍", en:"Countries & nationalities",
-     v:[["国家","guójiā","country"],["文莱","Wénlái","Brunei"],["中国","Zhōngguó","China"],["马来西亚","Mǎláixīyà","Malaysia"],["新加坡","Xīnjiāpō","Singapore"],["英国","Yīngguó","the UK"],["美国","Měiguó","the USA"],["日本","Rìběn","Japan"],["韩国","Hánguó","South Korea"],["哪","nǎ","which"]],
-     p:[["你是哪国人？——我是文莱人。","Nǐ shì nǎ guó rén? — Wǒ shì Wénláirén.","What nationality are you? — I'm Bruneian."],["你是中国人吗？——不是，我是新加坡人。","Nǐ shì Zhōngguórén ma? — Bú shì, wǒ shì Xīnjiāpōrén.","Are you Chinese? — No, I'm Singaporean."]],
-     tips:[{r:"国家 + 人 = 国籍：文莱人、中国人、英国人。"},{w:"我是文莱。", ok:"我是文莱人。", why:"漏了“人”，意思变成“我就是文莱这个国家”。"},{w:"你是哪国人吗？", ok:"你是哪国人？", why:"有“哪”的问句不加“吗”。"},{r:"哪 nǎ（which，有口字旁） ≠ 那 nà（that）。"}] },
-   { h:"语言与“会”", en:"Languages with 会",
-     v:[["语言","yǔyán","language"],["会","huì","can (learned skill)"],["说","shuō","to speak"],["汉语 / 华语","Hànyǔ / Huáyǔ","Mandarin (spoken)"],["中文","Zhōngwén","Chinese (written / general)"],["英语","Yīngyǔ","English"],["马来语","Mǎláiyǔ","Malay"],["一点儿","yìdiǎnr","a little"]],
-     p:[["我会说马来语和英语，也会说一点儿华语。","Wǒ huì shuō Mǎláiyǔ hé Yīngyǔ, yě huì shuō yìdiǎnr Huáyǔ.","I speak Malay and English, and also a little Mandarin."],["你会说华语吗？——我会说一点儿。","Nǐ huì shuō Huáyǔ ma? — Wǒ huì shuō yìdiǎnr.","Do you speak Mandarin? — A little."]],
-     tips:[{w:"我会说汉语一点儿。", ok:"我会说一点儿汉语。", why:"“一点儿”在动词后、语言前。"},{w:"我会英语。", ok:"我会说英语。", why:"初学阶段，“会”后面加动词“说”。"},{r:"“-语”多指口头说的，“-文”多指书面写的：英语 / 英文，马来语 / 马来文。"}] },
-   { h:"个人中文注册表", en:"Personal registration form",
-     v:[["姓名","xìngmíng","full name"],["性别","xìngbié","gender"],["男","nán","male"],["女","nǚ","female"],["国籍","guójí","nationality"],["出生日期","chūshēng rìqī","date of birth"],["年龄","niánlíng","age"],["地址","dìzhǐ","address"]],
-     tips:[{r:"表格上的日期用“日”：八月十五日（口语才说“号”）。"},{r:"年龄栏只写“二十一岁”，不写“是”。"},{r:"地址由大到小填写。"}] },
-   {"h": "更多国家与语言", "en": "More countries & languages", "v": [["澳大利亚", "Àodàlìyà", "Australia"], ["加拿大", "Jiānádà", "Canada"], ["英文", "Yīngwén", "English (written)"], ["马来文", "Mǎláiwén", "Malay (written)"], ["话", "huà", "speech; words"]], "p": [["不是，我不是马来西亚人，我是中国人。", "Bú shì, wǒ bú shì Mǎláixīyàrén, wǒ shì Zhōngguórén.", "No, I'm not Malaysian; I'm Chinese."], ["他们不会说华语，他们只会说马来语和英语。", "Tāmen bú huì shuō Huáyǔ, tāmen zhǐ huì shuō Mǎláiyǔ hé Yīngyǔ.", "They can't speak Mandarin; they only speak Malay and English."], ["你会说几种语言？", "Nǐ huì shuō jǐ zhǒng yǔyán?", "How many languages can you speak?"]], "tips": [{"r": "口字旁（哪、吗、叫）和大口框“囗”（国）不同：口 = 嘴巴，囗 = 国界。"}, {"r": "说、语、话、请 都有言字旁（讠），和说话、语言有关。"}, {"r": "“会”表示学来的技能：会说汉语、会写汉字。"}, {"w": "我是文莱，我也会英语。", "ok": "我是文莱人，我也会说英语。", "why": "国籍要加“人”；“会”后面要加动词“说”。"}]} ],
-  quiz:[
-   {q:"哪一句是对的？", a:"你是哪国人？", d:["你是哪国人吗？","你是哪人国？","哪国你是人？"]},
-   {q:"“我是___。”（I am Bruneian.）", a:"文莱人", d:["文莱","文莱国","文莱的"], x:"国家 + 人 = 国籍。"},
-   {q:"哪一句是对的？", a:"我会说一点儿汉语。", d:["我会说汉语一点儿。","我一点儿会说汉语。","我会一点儿说汉语。"]},
-   {q:"“我会说马来语和英语，___会说一点儿华语。”", a:"也", d:["和","吗","的"]},
-   {q:"注册表 “性别” 一栏，男生写？", a:"男", d:["女","人","他"]},
-   {q:"注册表上的出生日期，规范写法是？", a:"八月十五日", d:["八月十五号","十五日八月","八号十五月"]},
-   {q:"问 “which” 用哪一个字？", a:"哪 nǎ", d:["那 nà","哪儿 nǎr","吗 ma"]},
-   {q:"“新加坡” 是？", a:"Singapore", d:["Malaysia","Japan","South Korea"]},
-   {q:"听一听，你听到的是？", au:"你是哪国人", apy:"Nǐ shì nǎ guó rén?", a:"你是哪国人？", d:["你是中国人吗？","你住在哪儿？","你会说英语吗？"]},
-   {"q": "“澳大利亚” 是？", "qe": "What is 澳大利亚?", "a": "Australia", "d": ["Canada", "Japan", "South Korea"]},
-   {"q": "“加拿大” 是？", "qe": "What is 加拿大?", "a": "Canada", "d": ["Australia", "Japan", "Malaysia"]},
-   {"q": "多指书面文字的是哪一个？", "qe": "Which one mostly refers to the written language?", "a": "英文", "d": ["英语", "汉语", "华语"], "x": "“-语”多指口头，“-文”多指书面。", "xe": "-语 is mostly spoken, -文 is mostly written."},
-   {"q": "“说” 的部首是？", "qe": "What is the radical of 说?", "a": "讠（言字旁）", "d": ["口", "亻", "囗"]},
-   {"q": "“哪” 的部首是？", "qe": "What is the radical of 哪?", "a": "口（口字旁）", "d": ["囗", "讠", "亻"]},
-   {"q": "“国” 里面的框是？", "qe": "What is the enclosure in 国?", "a": "囗（大口框）", "d": ["口（口字旁）", "冂", "厂"]},
-   {"q": "“我是文莱，我也会英语。” 怎样改对？", "qe": "How do you correct this sentence?", "a": "我是文莱人，我也会说英语。", "d": ["我是文莱，我也会说英语。", "我是文莱人，我也会英语。", "我文莱人，我也说英语会。"]},
-   {"q": "“你会说几种语言？” 问的是？", "qe": "What does this ask?", "a": "How many languages you can speak", "d": ["Which country you are from", "Where you live", "How old you are"]},
-   {"q": "“他们不会说华语。” 的意思是？", "qe": "What does this mean?", "a": "They can't speak Mandarin.", "d": ["They speak Mandarin well.", "They can write Chinese.", "They live in China."]} ] },
-
-{ no:"C7", name:"交通车站", py:"Jiāotōng Chēzhàn", en:"Transport Station", module:"校园交通与日常出行", moduleEn:"Transportation & Commuting to University",
-  lesson:"Unit 4 Lesson 9《交通工具》",
-  pos:[32,30], grass:0x7cb85e, lm:"bus",
-  spots:[
-   { h:"交通工具", en:"Means of transport",
-     v:[["巴士","bāshì","bus"],["公共汽车","gōnggòng qìchē","bus (standard term)"],["汽车 / 车","qìchē / chē","car"],["出租车","chūzūchē","taxi"],["校车","xiàochē","school bus"],["自行车","zìxíngchē","bicycle"],["摩托车","mótuōchē","motorbike"],["飞机","fēijī","aeroplane"],["船","chuán","boat"]],
-     tips:[{r:"文莱特色：去水村 (Kampong Ayer) 或淡布隆，可以坐船。"}] },
-   { h:"动词搭配与语序", en:"Verb + vehicle & word order",
-     v:[["坐","zuò","to take, ride (bus, plane, boat)"],["开","kāi","to drive"],["骑","qí","to ride (bike, motorbike)"],["走路","zǒulù","to walk"],["来","lái","to come"],["去","qù","to go"],["怎么","zěnme","how"],["每天","měitiān","every day"]],
-     p:[["你每天怎么来大学？——我每天坐巴士来大学。","Nǐ měitiān zěnme lái dàxué? — Wǒ měitiān zuò bāshì lái dàxué.","How do you get to uni every day? — I take the bus."],["我爸爸开车去公司。","Wǒ bàba kāichē qù gōngsī.","My dad drives to the office."],["我骑摩托车去加东。","Wǒ qí mótuōchē qù Jiādōng.","I ride a motorbike to Gadong."]],
-     tips:[{r:"坐 + 巴士 / 飞机 / 船　·　开 + 车　·　骑 + 自行车 / 摩托车"},{r:"语序：谁 + 什么时候 + 怎么去 + 去 / 来 + 哪儿"},{w:"我坐巴士来大学每天。", ok:"我每天坐巴士来大学。", why:"时间词“每天”放在动词前面。"}] },
-   { h:"要多长时间", en:"How long it takes",
-     v:[["分钟","fēnzhōng","minute(s)"],["小时","xiǎoshí","hour"],["半","bàn","half"],["要","yào","to take (time)"]],
-     p:[["我开车来大学，要二十分钟。","Wǒ kāichē lái dàxué, yào èrshí fēnzhōng.","I drive to university; it takes 20 minutes."],["坐飞机去新加坡要两个小时。","Zuò fēijī qù Xīnjiāpō yào liǎng ge xiǎoshí.","Flying to Singapore takes two hours."]] },
-   {"h": "更多交通词", "en": "More transport words", "v": [["德士", "déshì", "taxi (Brunei / SG / MY)"], ["交通工具", "jiāotōng gōngjù", "means of transport"], ["大学", "dàxué", "university"], ["课室", "kèshì", "classroom"], ["上学", "shàngxué", "to go to school"], ["上班", "shàngbān", "to go to work"], ["回家", "huíjiā", "to go home"], ["朋友", "péngyou", "friend"], ["一起", "yìqǐ", "together"], ["送", "sòng", "to take someone (to a place)"], ["堵车", "dǔchē", "traffic jam"], ["辆", "liàng", "measure word for vehicles"], ["架", "jià", "measure word for aeroplanes"]], "tips": [{"r": "本地用词：文莱、马来西亚、新加坡常说“巴士”“德士”；中国大陆说“公共汽车”“出租车”。两种都要认识。"}, {"r": "文莱特色：去水村 (Kampong Ayer) 要坐船，当地人叫“水上德士”。"}, {"r": "量词：一辆车 · 两辆自行车 · 一架飞机 · 一条船。"}]},
-   {"h": "语序铁律与多长时间", "en": "Word order & how long", "p": [["坐校车要多长时间？——只要五分钟。", "Zuò xiàochē yào duō cháng shíjiān? — Zhǐ yào wǔ fēnzhōng.", "How long does the campus bus take? — Only five minutes."], ["你爸爸怎么去上班？——他开车去上班。", "Nǐ bàba zěnme qù shàngbān? — Tā kāichē qù shàngbān.", "How does your dad get to work? — He drives."], ["你怎么回家？——我走路回家。", "Nǐ zěnme huíjiā? — Wǒ zǒulù huíjiā.", "How do you get home? — I walk."], ["妈妈开车送我上学。", "Māma kāichē sòng wǒ shàngxué.", "Mum drives me to school."], ["我和朋友一起走路去课室。", "Wǒ hé péngyou yìqǐ zǒulù qù kèshì.", "My friend and I walk to class together."], ["我和朋友一起坐巴士来大学，要半个小时。", "Wǒ hé péngyou yìqǐ zuò bāshì lái dàxué, yào bàn ge xiǎoshí.", "My friend and I take the bus to university; it takes half an hour."]], "tips": [{"r": "语序铁律：谁 + 什么时候 + 怎么去 + 去 / 来 + 哪儿（WHO – WHEN – HOW – GO – WHERE）。"}, {"r": "坐 = 你是乘客；开 = 你是司机；骑 = 两腿分开坐；走 = 用脚。"}, {"r": "“要十五分钟”只是说明时间；“只要十五分钟”表示时间很短、很方便。"}, {"r": "怎么去 / 怎么来：说话的人在大学里，问“你怎么来大学？”；不在大学里，问“你怎么去大学？”。"}, {"w": "我开巴士去大学。", "ok": "我坐巴士去大学。", "why": "你不是司机，是乘客，用“坐”。"}, {"w": "我坐自行车。", "ok": "我骑自行车。", "why": "自行车、摩托车用“骑”。"}, {"w": "我走去大学。", "ok": "我走路去大学。", "why": "初学阶段说“走路”。"}, {"w": "你去大学怎么？", "ok": "你怎么去大学？", "why": "“怎么”放在动词前面。"}, {"w": "我去文莱大学坐校车。", "ok": "我坐校车去文莱大学。", "why": "交通方式放在“去”的前面。"}, {"w": "十分钟开车。", "ok": "开车（要）十分钟。", "why": "时间放在后面。"}, {"w": "我一起和朋友走路。", "ok": "我和朋友一起走路。", "why": "“和 + 人 + 一起 + 动词”。"}]},
-   {"h": "汉字与偏旁", "en": "Characters & radicals", "v": [["校", "xiào", "school (木字旁)"], ["路", "lù", "road; way (足字旁)"], ["么", "me", "question suffix (怎么、什么)"]], "tips": [{"r": "车字旁：车、辆、轮；走字底：走、起、赶；足字旁：路、跑、跳。"}, {"r": "校（木字旁，右边“交”表示读音）· 坐（两个人坐在土地上）· 骑（马字旁，最早是“骑马”）。"}, {"r": "例字笔画数：校 10 画 · 车 4 画 · 坐 7 画 · 开 4 画 · 骑 11 画 · 走 7 画 · 路 13 画 · 么 3 画。"}]} ],
-  quiz:[
-   {q:"“___自行车”", a:"骑", d:["坐","开","走"]},
-   {q:"“___飞机”", a:"坐", d:["骑","开","走路"]},
-   {q:"“你每天怎么来大学？” 问的是？", a:"交通方式（how）", d:["时间（when）","地点（where）","人（who）"]},
-   {q:"哪一句语序是对的？", a:"我每天坐巴士来大学。", d:["我坐巴士来大学每天。","每天我来大学坐巴士我。","我来每天大学坐巴士。"]},
-   {q:"“出租车” 是？", a:"taxi", d:["school bus","motorbike","bicycle"]},
-   {q:"“要二十分钟” 的意思是？", a:"It takes 20 minutes.", d:["It takes 20 hours.","At 20 o'clock.","20 buses."]},
-   {q:"“船” 是？", a:"boat", d:["aeroplane","car","train"]},
-   {q:"听一听，你听到的是？", au:"我开车去公司", apy:"Wǒ kāichē qù gōngsī.", a:"我开车去公司。", d:["我坐车去学校。","我骑车去公司。","我走路去公司。"]},
-   {"q": "“我哥哥___摩托车去上班。”", "qe": "Fill in the verb.", "a": "骑", "d": ["坐", "开", "走"]},
-   {"q": "“你每天___去大学？”", "qe": "Fill in the word.", "a": "怎么", "d": ["什么", "哪儿", "几"]},
-   {"q": "“我不会开车，我每天___校车去课室。”", "qe": "Fill in the verb.", "a": "坐", "d": ["开", "骑", "走"]},
-   {"q": "“我家很近，我___路去学校。”", "qe": "Fill in the verb.", "a": "走", "d": ["坐", "开", "骑"]},
-   {"q": "“爸爸___车送我上学。”", "qe": "Fill in the verb.", "a": "开", "d": ["坐", "骑", "走"]},
-   {"q": "哪一句是对的？", "qe": "Which sentence is correct?", "a": "我坐巴士去大学。", "d": ["我开巴士去大学。", "我坐自行车去大学。", "我走去大学。"], "x": "乘客用“坐”，自行车用“骑”，走路要说“走路”。", "xe": "Passengers use 坐; bikes use 骑; walking is 走路."},
-   {"q": "哪一句语序是对的？", "qe": "Which word order is correct?", "a": "我每天坐校车去文莱大学。", "d": ["我去文莱大学坐校车。", "我坐校车每天去大学。", "我每天去文莱大学坐校车。"], "x": "谁 + 什么时候 + 怎么去 + 去 + 哪儿。", "xe": "WHO – WHEN – HOW – GO – WHERE."},
-   {"q": "“德士” 是？", "qe": "What is 德士?", "a": "taxi", "d": ["bus", "school bus", "motorbike"], "x": "文莱、马来西亚、新加坡常说“德士”；中国大陆说“出租车”。", "xe": "Brunei, Malaysia and Singapore say 德士; Mainland China says 出租车."},
-   {"q": "“巴士” 和 “公共汽车” 的关系？", "qe": "How are 巴士 and 公共汽车 related?", "a": "意思一样，都是 bus", "d": ["巴士是 taxi", "公共汽车是 school bus", "完全不同"]},
-   {"q": "“校车” 是？", "qe": "What is 校车?", "a": "school / campus bus", "d": ["taxi", "bicycle", "aeroplane"]},
-   {"q": "“堵车” 的意思是？", "qe": "What does 堵车 mean?", "a": "traffic jam", "d": ["to park", "to drive fast", "to take a taxi"]},
-   {"q": "“只要十分钟” 表示？", "qe": "What does 只要十分钟 suggest?", "a": "时间很短，很方便", "d": ["时间很长", "一共十个人", "只能坐十分钟"], "x": "“只要”表示时间很短。", "xe": "只要 means it takes only a short time."},
-   {"q": "“妈妈开车送我上学” 里的 “送” 是什么意思？", "qe": "What does 送 mean in this sentence?", "a": "to take someone (drop off)", "d": ["to give a gift", "to send a letter", "to sell"]},
-   {"q": "“半个小时” 是多长时间？", "qe": "How long is 半个小时?", "a": "30 minutes", "d": ["1 hour", "15 minutes", "5 minutes"]},
-   {"q": "去水村 (Kampong Ayer) 要坐什么？", "qe": "What do you take to Kampong Ayer?", "a": "船", "d": ["校车", "飞机", "摩托车"]},
-   {"q": "“一辆车” 里的 “辆” 是？", "qe": "What is 辆 in 一辆车?", "a": "measure word for vehicles", "d": ["a verb", "a colour", "a number"]},
-   {"q": "你在大学里，问别人怎么到大学，应该说？", "qe": "You are at the university and ask how someone gets there. What do you say?", "a": "你怎么来大学？", "d": ["你怎么去大学？", "你去大学怎么？", "怎么你来大学？"], "x": "说话的人在那里用“来”。", "xe": "Use 来 when the speaker is already there."},
-   {"q": "“路” 的部首是？", "qe": "What is the radical of 路?", "a": "足字旁（⻊）", "d": ["车字旁", "走字底", "木字旁"]},
-   {"q": "“骑” 的部首是？", "qe": "What is the radical of 骑?", "a": "马字旁", "d": ["木字旁", "土", "足字旁"]},
-   {"q": "“校” 的部首是？", "qe": "What is the radical of 校?", "a": "木字旁", "d": ["马字旁", "足字旁", "土"]},
-   {"q": "“车” 有几画？", "qe": "How many strokes does 车 have?", "a": "4 画", "d": ["3 画", "5 画", "6 画"]},
-   {"q": "“走” 有几画？", "qe": "How many strokes does 走 have?", "a": "7 画", "d": ["6 画", "8 画", "9 画"]},
-   {"q": "“校” 有几画？", "qe": "How many strokes does 校 have?", "a": "10 画", "d": ["9 画", "11 画", "12 画"]},
-   {"q": "美美说：“我不会开车，我只会骑自行车。” 她会什么？", "qe": "What can Meimei do?", "a": "骑自行车", "d": ["开车", "骑摩托车", "坐飞机"]} ] },
-
-{ no:"C8", name:"服饰街", py:"Fúshì Jiē", en:"Colour & Clothing Street", module:"颜色服饰与文莱传统装束", moduleEn:"Colours, Clothing & Traditional Attire",
-  lesson:"Unit 4 Lesson 10《颜色与衣服》",
-  pos:[48,4], grass:0x88c262, lm:"clothes",
-  spots:[
-   { h:"颜色", en:"Colours",
-     v:[["颜色","yánsè","colour"],["红色","hóngsè","red"],["黄色","huángsè","yellow"],["蓝色","lánsè","blue"],["绿色","lǜsè","green"],["白色","báisè","white"],["黑色","hēisè","black"]],
-     p:[["你喜欢什么颜色？——我喜欢蓝色。","Nǐ xǐhuan shénme yánsè? — Wǒ xǐhuan lánsè.","What colour do you like? — Blue."]],
-     tips:[{r:"在文莱，黄色是王室的颜色。"}] },
-   { h:"衣服与量词", en:"Clothes & measure words",
-     v:[["衣服","yīfu","clothes"],["衬衫","chènshān","shirt"],["裤子","kùzi","trousers"],["裙子","qúnzi","skirt"],["帽子","màozi","hat, cap"],["穿","chuān","to wear (clothes)"],["戴","dài","to wear (hat, glasses)"],["件","jiàn","measure word for tops"],["条","tiáo","measure word for trousers, skirts"]],
-     p:[["你穿什么颜色的衣服？——我穿白色的衬衫。","Nǐ chuān shénme yánsè de yīfu? — Wǒ chuān báisè de chènshān.","What colour are you wearing? — A white shirt."],["一件红色的衬衫，一条黑色的裤子。","yí jiàn hóngsè de chènshān, yì tiáo hēisè de kùzi","a red shirt and a pair of black trousers"]],
-     tips:[{w:"他穿帽子。", ok:"他戴帽子。", why:"帽子、眼镜用“戴”，衣服、裤子用“穿”。"},{r:"件：衬衫、衣服　·　条：裤子、裙子"}] },
-   { h:"文莱传统服装", en:"Brunei traditional attire",
-     v:[["传统","chuántǒng","traditional"],["服装","fúzhuāng","attire"],["开斋节","Kāizhāi Jié","Hari Raya Aidilfitri"]],
-     p:[["她穿 Baju Kurung。","Tā chuān Baju Kurung.","She is wearing a Baju Kurung."],["他穿 Baju Melayu，戴 songkok。","Tā chuān Baju Melayu, dài songkok.","He wears a Baju Melayu and a songkok."]],
-     tips:[{r:"开斋节等正式场合，大家常穿传统服装。"}] },
-   {"h": "更多颜色与衣服", "en": "More colours & clothes", "v": [["粉红色", "fěnhóngsè", "pink"], ["灰色", "huīsè", "grey"], ["上衣", "shàngyī", "top; shirt"], ["T恤", "T xù", "T-shirt"], ["连衣裙", "liányīqún", "dress"], ["长袖", "chángxiù", "long-sleeved"], ["短袖", "duǎnxiù", "short-sleeved"], ["漂亮", "piàoliang", "pretty"], ["设计", "shèjì", "to design"], ["最", "zuì", "most"]], "p": [["你的上衣是什么颜色的？——我的上衣是蓝色的。", "Nǐ de shàngyī shì shénme yánsè de? — Wǒ de shàngyī shì lánsè de.", "What colour is your top? — My top is blue."], ["你要什么颜色的？——我要粉红色的。", "Nǐ yào shénme yánsè de? — Wǒ yào fěnhóngsè de.", "Which colour would you like? — I'd like the pink one."], ["你有几条裙子？——我有两条。", "Nǐ yǒu jǐ tiáo qúnzi? — Wǒ yǒu liǎng tiáo.", "How many skirts do you have? — Two."]], "tips": [{"r": "问东西的颜色：你的上衣是什么颜色的？回答：我的上衣是蓝色的。（“色的”不能少）"}, {"r": "问颜色本身，没有“的”：这是什么颜色？这是红色。"}, {"r": "完整的短语：数量 + 量词 + 颜色 + 的 + 衣服 → 一件红色的上衣。"}, {"r": "数数用“二”，量词前用“两”：两件、两条。回答时名词可以省略，量词不能省略。"}, {"r": "文化：华人觉得红色很吉利；在文莱，黄色是王室的颜色，绿色和伊斯兰文化有关；华人在丧礼上常穿白色或黑色的衣服。"}, {"w": "我的上衣是蓝。", "ok": "我的上衣是蓝色的。", "why": "“色的”不能少。"}, {"w": "你的裙子什么颜色？", "ok": "你的裙子是什么颜色的？", "why": "这个问句需要“是……的”。"}, {"w": "一个裤子", "ok": "一条裤子", "why": "衣服不用“个”：上衣用“件”，裤子、裙子用“条”。"}, {"w": "二件T恤", "ok": "两件T恤", "why": "量词前面用“两”。"}, {"w": "一件上衣红色", "ok": "一件红色的上衣", "why": "颜色 + 的 放在衣服前面。"}]},
-   {"h": "穿、戴与配饰", "en": "Wearing things", "v": [["鞋", "xié", "shoes"], ["眼镜", "yǎnjìng", "glasses"], ["手表", "shǒubiǎo", "watch"], ["好看", "hǎokàn", "good-looking; nice"], ["双", "shuāng", "a pair (shoes)"], ["顶", "dǐng", "measure word for hats"], ["副", "fù", "measure word for glasses"], ["块", "kuài", "measure word for watches"], ["一样", "yíyàng", "the same"], ["旗袍", "qípáo", "qipao"], ["唐装", "tángzhuāng", "Tang suit"], ["还", "hái", "also; still"]], "p": [["我今天穿一件白色的衬衫。", "Wǒ jīntiān chuān yí jiàn báisè de chènshān.", "Today I'm wearing a white shirt."], ["我穿一条黑色的裤子和一双黑色的鞋。", "Wǒ chuān yì tiáo hēisè de kùzi hé yì shuāng hēisè de xié.", "I'm wearing black trousers and black shoes."], ["她穿一条蓝色的裙子，戴一副眼镜。", "Tā chuān yì tiáo lánsè de qúnzi, dài yí fù yǎnjìng.", "She's wearing a blue skirt and glasses."], ["他戴一顶黑色的帽子。", "Tā dài yì dǐng hēisè de màozi.", "He is wearing a black cap."], ["你的衬衫很好看！——谢谢！", "Nǐ de chènshān hěn hǎokàn! — Xièxie!", "Your shirt looks great! — Thanks!"], ["开斋节的时候，你穿什么？——我穿 Baju Kurung。", "Kāizhāi Jié de shíhou, nǐ chuān shénme? — Wǒ chuān Baju Kurung.", "What do you wear at Hari Raya? — A Baju Kurung."], ["你的 Baju Melayu 是什么颜色的？——是蓝色的。", "Nǐ de Baju Melayu shì shénme yánsè de? — Shì lánsè de.", "What colour is your Baju Melayu? — Blue."]], "tips": [{"r": "身体进去 → 穿：衬衫、上衣、T恤、裤子、裙子、鞋。头上、脸上、手上 → 戴：帽子、眼镜、手表。"}, {"r": "一句话里先“穿”后“戴”：她穿一条蓝色的裙子，戴一副眼镜。"}, {"r": "量词：件（上衣）· 条（裤子、裙子）· 双（鞋）· 顶（帽子）· 副（眼镜）· 块（手表）。顶、副、块只要认识，说话时可以不用：我戴眼镜。"}, {"r": "“一”的变调：在第四声前读 yí（一件 yí jiàn、一块 yí kuài）；在第一、二、三声前读 yì（一双 yì shuāng、一条 yì tiáo、一顶 yì dǐng）。"}, {"r": "两样东西用“和”：一件白色的衬衫和一条黑色的裤子；三样以上，前面用“、”，最后用“和”。“还”放在动词前面，再加一样：我穿一件衬衫，还穿一双白色的鞋。"}, {"r": "说好不好看：“很 + 形容词”，不用“是”：你的鞋很好看。说颜色用“是……的”：你的鞋是黑色的。"}, {"r": "文莱：男生穿 Baju Melayu、戴 songkok，女生穿 Baju Kurung；开斋节时一家人常穿一样颜色的衣服。中国：旗袍是女生的传统服装，唐装男女都可以穿；过年很多人穿红色的衣服。马来传统服装的名字不用翻译。"}, {"w": "他穿帽子。", "ok": "他戴帽子。", "why": "帽子、眼镜、手表用“戴”。"}, {"w": "我穿眼镜。", "ok": "我戴眼镜。", "why": "眼镜用“戴”。"}, {"w": "我今天是穿白色的衬衫。", "ok": "我今天穿白色的衬衫。", "why": "“穿”前面不加“是”。"}, {"w": "我有一个鞋。", "ok": "我有一双鞋。", "why": "鞋用“双”。"}, {"w": "我穿一条蓝色的衬衫。", "ok": "我穿一件蓝色的衬衫。", "why": "衬衫用“件”。"}, {"w": "你的衬衫是好看。", "ok": "你的衬衫很好看。", "why": "说好不好看用“很 + 形容词”。"}]} ],
-  quiz:[
-   {q:"一___裤子", a:"条", d:["件","口","岁"]},
-   {q:"一___衬衫", a:"件", d:["条","口","号"]},
-   {q:"___帽子", a:"戴", d:["穿","坐","开"]},
-   {q:"“黄色” 是？", a:"yellow", d:["red","green","blue"]},
-   {q:"“你穿什么颜色的衣服？” 怎么回答？", a:"我穿蓝色的衣服。", d:["我是蓝色。","我穿衣服蓝色。","蓝色穿我。"]},
-   {q:"在文莱，哪个颜色代表王室？", a:"黄色", d:["绿色","黑色","白色"]},
-   {q:"“裙子” 是？", a:"skirt", d:["trousers","hat","shirt"]},
-   {q:"听一听，你听到的是？", au:"红色", apy:"hóngsè", a:"红色", d:["黄色","黑色","绿色"]},
-   {"q": "“我的上衣是蓝。” 哪里不对？", "qe": "What is wrong with this sentence?", "a": "漏了“色的”", "d": ["漏了“个”", "漏了“吗”", "没有错"], "x": "应该说：我的上衣是蓝色的。", "xe": "It should be: 我的上衣是蓝色的。"},
-   {"q": "哪一句是对的？", "qe": "Which sentence is correct?", "a": "你的裙子是什么颜色的？", "d": ["你的裙子什么颜色？", "你裙子的什么是颜色？", "什么颜色你的裙子？"], "x": "这个问句需要“是……的”。", "xe": "This question needs 是……的."},
-   {"q": "问颜色本身，哪一句是对的？", "qe": "Asking about a colour itself, which is correct?", "a": "这是什么颜色？", "d": ["这是什么颜色的？", "这什么颜色是的？", "颜色什么这是？"], "x": "问颜色本身，没有“的”。", "xe": "No 的 when asking about a colour itself."},
-   {"q": "“我有一___上衣。”", "qe": "Fill in the measure word.", "a": "件", "d": ["条", "双", "个"]},
-   {"q": "“两___裙子”", "qe": "Fill in the measure word.", "a": "条", "d": ["件", "双", "个"]},
-   {"q": "“一___鞋”", "qe": "Fill in the measure word.", "a": "双", "d": ["件", "条", "个"]},
-   {"q": "“一___帽子”", "qe": "Fill in the measure word.", "a": "顶", "d": ["件", "条", "双"]},
-   {"q": "“___衬衫”", "qe": "Fill in the verb.", "a": "穿", "d": ["戴", "坐", "开"]},
-   {"q": "“___眼镜”", "qe": "Fill in the verb.", "a": "戴", "d": ["穿", "坐", "骑"]},
-   {"q": "“___手表”", "qe": "Fill in the verb.", "a": "戴", "d": ["穿", "坐", "开"]},
-   {"q": "“___鞋”", "qe": "Fill in the verb.", "a": "穿", "d": ["戴", "坐", "开"]},
-   {"q": "“___裙子”", "qe": "Fill in the verb.", "a": "穿", "d": ["戴", "骑", "开"]},
-   {"q": "“二件T恤” 哪里不对？", "qe": "What is wrong with 二件T恤?", "a": "量词前面要用“两”", "d": ["T恤不能用“件”", "应该用“个”", "没有错"]},
-   {"q": "“一个裤子” 哪里不对？", "qe": "What is wrong with 一个裤子?", "a": "裤子用“条”，不用“个”", "d": ["裤子用“件”", "应该用“双”", "没有错"]},
-   {"q": "“我穿眼镜。” 怎样改对？", "qe": "How do you correct 我穿眼镜?", "a": "我戴眼镜。", "d": ["我开眼镜。", "我坐眼镜。", "我骑眼镜。"]},
-   {"q": "“我今天是穿黑色的裤子。” 哪里不对？", "qe": "What is wrong here?", "a": "“穿”前面不加“是”", "d": ["漏了“个”", "漏了“吗”", "没有错"]},
-   {"q": "“你的衬衫是好看。” 怎样改对？", "qe": "How do you correct this?", "a": "你的衬衫很好看。", "d": ["你的衬衫好看是。", "你的衬衫不是好看。", "你是的衬衫好看。"], "x": "说好不好看用“很 + 形容词”。", "xe": "Use 很 + adjective."},
-   {"q": "称赞别人的鞋，怎么说？", "qe": "How do you compliment someone's shoes?", "a": "你的鞋很好看！", "d": ["你的鞋是黑色的？", "你有几双鞋？", "我要一双鞋。"]},
-   {"q": "三样东西要怎么连接？", "qe": "How do you join three items?", "a": "前面用“、”，最后用“和”", "d": ["全部用“和”", "全部用“也”", "不用连接"]},
-   {"q": "“还” 放在哪里？", "qe": "Where does 还 go?", "a": "动词前面", "d": ["句子最后", "名词后面", "主语前面"], "x": "例如：我穿一件衬衫，还穿一双白色的鞋。", "xe": "e.g. 我穿一件衬衫，还穿一双白色的鞋。"},
-   {"q": "“一件” 里的 “一” 读？", "qe": "How is 一 read in 一件?", "a": "yí", "d": ["yī", "yì", "yǐ"], "x": "在第四声前读 yí。", "xe": "Before a 4th tone it is yí.", "np": 1},
-   {"q": "“一双” 里的 “一” 读？", "qe": "How is 一 read in 一双?", "a": "yì", "d": ["yí", "yī", "yǐ"], "x": "在第一、二、三声前读 yì。", "xe": "Before tones 1–3 it is yì.", "np": 1},
-   {"q": "「穿」的拼音是？", "qe": "Which is the correct pinyin?", "a": "chuān", "d": ["chuán", "chuǎn", "chuàn"], "x": "“船”读 chuán。", "xe": "船 (boat) is chuán.", "np": 1},
-   {"q": "「鞋」的拼音是？", "qe": "Which is the correct pinyin?", "a": "xié", "d": ["xiě", "xiè", "xiē"], "x": "“写”读 xiě。", "xe": "写 (to write) is xiě.", "np": 1},
-   {"q": "「黄」的拼音是？", "qe": "Which is the correct pinyin?", "a": "huáng", "d": ["hóng", "huǎng", "huàng"], "x": "黄 huáng 先发 u，再滑到 ang。", "xe": "huáng starts with u and glides to ang.", "np": 1},
-   {"q": "“色” 的声母是？", "qe": "What is the initial of 色?", "a": "s（舌尖平放）", "d": ["sh（舌头卷起）", "x", "z"], "x": "色 sè 是平舌音。", "xe": "色 is a flat-tongue s."},
-   {"q": "在文莱，开斋节男生常穿？", "qe": "What do men often wear at Hari Raya in Brunei?", "a": "Baju Melayu，戴 songkok", "d": ["Baju Kurung", "旗袍", "唐装"]},
-   {"q": "在文莱，开斋节女生常穿？", "qe": "What do women often wear at Hari Raya in Brunei?", "a": "Baju Kurung", "d": ["Baju Melayu", "songkok", "唐装"]},
-   {"q": "旗袍是哪里的传统服装？", "qe": "Where is the qipao a traditional dress?", "a": "中国", "d": ["文莱", "日本", "马来西亚"]},
-   {"q": "过年的时候，很多华人穿什么颜色的衣服？", "qe": "What colour do many Chinese people wear at Chinese New Year?", "a": "红色", "d": ["白色", "黑色", "绿色"]},
-   {"q": "在文莱，绿色和什么有关？", "qe": "In Brunei, green is linked with what?", "a": "伊斯兰文化", "d": ["华人新年", "王室", "丧礼"]},
-   {"q": "“镜” 的偏旁是？", "qe": "What is the radical of 镜?", "a": "钅", "d": ["巾", "革", "衤"]},
-   {"q": "“帽” 的偏旁是？", "qe": "What is the radical of 帽?", "a": "巾", "d": ["钅", "革", "衤"]},
-   {"q": "“衬” 和 “衫” 都有哪个偏旁？", "qe": "Which radical do 衬 and 衫 share?", "a": "衤", "d": ["亻", "讠", "钅"]},
-   {"q": "“色” 有几画？", "qe": "How many strokes does 色 have?", "a": "6 画", "d": ["5 画", "7 画", "8 画"]},
-   {"q": "“黄” 有几画？", "qe": "How many strokes does 黄 have?", "a": "11 画", "d": ["10 画", "12 画", "13 画"]},
-   {"q": "“穿” 有几画？", "qe": "How many strokes does 穿 have?", "a": "9 画", "d": ["8 画", "10 画", "11 画"]},
-   {"q": "“双” 有几画？", "qe": "How many strokes does 双 have?", "a": "4 画", "d": ["3 画", "5 画", "6 画"]},
-   {"q": "“鞋” 有几画？", "qe": "How many strokes does 鞋 have?", "a": "15 画", "d": ["13 画", "14 画", "16 画"]} ] },
-
-{ no:"C9", wip:true, name:"终点舞台", py:"Zhōngdiǎn Wǔtái", en:"Showcase Stage", module:"个人综合展示与结课评估", moduleEn:"Personal Showcase, Dining & Review",
-  lesson:"综合拓展《全学期总复习与展示》",
-  pos:[40,-26], grass:0x7fba5c, lm:"stage", mixed:true,
-  spots:[
-   { h:"60 秒自我介绍", en:"Model 60-second self-introduction",
-     p:[["老师好，同学们好！我叫阿里。","Lǎoshī hǎo, tóngxuémen hǎo! Wǒ jiào Ālǐ.","Hello teacher, hello everyone! I'm Ali."],["我今年二十一岁，我的生日是八月十五号。","Wǒ jīnnián èrshíyī suì, wǒ de shēngrì shì bā yuè shíwǔ hào.","I'm 21. My birthday is 15 August."],["我是文莱人，我家住在斯里巴加湾市。","Wǒ shì Wénláirén, wǒ jiā zhù zài Sīlǐbājiāwān Shì.","I'm Bruneian; my family lives in BSB."],["我家有五口人：爸爸、妈妈、哥哥、妹妹和我。","Wǒ jiā yǒu wǔ kǒu rén: bàba, māma, gēge, mèimei hé wǒ.","There are five of us: Dad, Mum, elder brother, younger sister and me."],["我爸爸是公务员，我妈妈是老师。","Wǒ bàba shì gōngwùyuán, wǒ māma shì lǎoshī.","Dad is a civil servant; Mum is a teacher."],["我会说马来语和英语，也会说一点儿华语。","Wǒ huì shuō Mǎláiyǔ hé Yīngyǔ, yě huì shuō yìdiǎnr Huáyǔ.","I speak Malay and English, and a little Mandarin."],["我每天开车来大学。谢谢大家！","Wǒ měitiān kāichē lái dàxué. Xièxie dàjiā!","I drive to uni every day. Thank you, everyone!"]] },
-   { h:"餐厅点餐", en:"Ordering food",
-     v:[["要","yào","to want, would like"],["茶","chá","tea"],["咖啡","kāfēi","coffee"],["水","shuǐ","water"],["米饭","mǐfàn","rice"],["面","miàn","noodles"],["杯","bēi","cup (measure word)"],["碗","wǎn","bowl (measure word)"],["多少钱","duōshao qián","how much (money)"],["块","kuài","dollar (spoken)"]],
-     p:[["你要什么？——我要一杯茶。","Nǐ yào shénme? — Wǒ yào yì bēi chá.","What would you like? — A cup of tea."],["请给我一碗面。","Qǐng gěi wǒ yì wǎn miàn.","A bowl of noodles, please."],["多少钱？——五块。","Duōshao qián? — Wǔ kuài.","How much? — Five dollars."]],
-     tips:[{r:"杯：茶、咖啡、水　·　碗：米饭、面"}] },
-   { h:"期末口试十问", en:"Ten questions to practise for the Final Oral",
-     p:[["你叫什么名字？","Nǐ jiào shénme míngzi?","C2"],["你今年多大？","Nǐ jīnnián duō dà?","C3"],["你的生日是几月几号？","Nǐ de shēngrì shì jǐ yuè jǐ hào?","C3"],["你住在哪儿？","Nǐ zhù zài nǎr?","C4"],["你家有几口人？","Nǐ jiā yǒu jǐ kǒu rén?","C5"],["你爸爸做什么工作？","Nǐ bàba zuò shénme gōngzuò?","C5"],["你是哪国人？","Nǐ shì nǎ guó rén?","C6"],["你会说什么语言？","Nǐ huì shuō shénme yǔyán?","C6"],["你每天怎么来大学？","Nǐ měitiān zěnme lái dàxué?","C7"],["你今天穿什么颜色的衣服？","Nǐ jīntiān chuān shénme yánsè de yīfu?","C8"]] } ],
-  quiz:[
-   {q:"一___茶", a:"杯", d:["碗","条","件"]},
-   {q:"“多少钱？” 问的是？", a:"价钱（price）", d:["时间（time）","年龄（age）","名字（name）"]},
-   {q:"一___面", a:"碗", d:["杯","件","口"]} ] }
-];
-const QUIZ_EN = {"哪一句是对的？": "Which sentence is correct?", "听一听，你听到的是？": "Listen. What did you hear?", "听一听，你听到的是哪一个？": "Listen. Which one did you hear?", "问职业：“你爸爸___？”": "Asking about jobs: complete the question about Dad.", "问电话号码，用哪个词？": "Which word do you use to ask for a phone number?", "问同学的年龄，哪一句最得体？": "Which is the most natural way to ask a classmate's age?", "问 “which” 用哪一个字？": "Which character means \"which\"?", "王小明姓什么？": "What is Wang Xiaoming's surname?", "课本里，问家庭人数用哪个量词：你家有几___人？": "Which measure word does the textbook use when asking how many people are in a family?", "见到老师，最礼貌的问候是？": "What is the most polite greeting for a teacher?", "笔画 “丿” 叫什么？": "What is this stroke called?", "电话号码里的 “1” 读？": "How is \"1\" read in a phone number?", "爷爷奶奶以前工作，现在不工作了，可以说？": "Your grandparents used to work but don't any more. What can you say?", "注册表上的出生日期，规范写法是？": "What is the correct way to write a date of birth on a form?", "注册表 “性别” 一栏，男生写？": "In the gender box of the form, what does a male student write?", "星期五的明天是？": "Which day comes after Friday?", "在文莱，哪个颜色代表王室？": "Which colour stands for the royal family in Brunei?", "哪一句语序是对的？": "Which sentence has the right word order?", "哪一句是错的？": "Which sentence is wrong?", "听一听，你听到的日期是？": "Listen. What date did you hear?", "听一听，你听到的号码是？": "Listen. What number did you hear?", "别人对你说 “谢谢！”，你回答？": "Someone thanks you. How do you reply?", "写 “国” 字，最后一笔是？": "When writing this character, which stroke comes last?", "中文日期的顺序是？": "What order do Chinese dates use?", "中文地址的顺序是？": "What order do Chinese addresses use?", "一___面": "Fill in the measure word: a bowl of noodles.", "一___裤子": "Fill in the measure word: a pair of trousers.", "一___衬衫": "Fill in the measure word: a shirt.", "一___茶": "Fill in the measure word: a cup of tea.", "“黄色” 是？": "What does this word mean?", "“马来奕” 是文莱的哪个地方？": "Which place in Brunei is this?", "“要二十分钟” 的意思是？": "What does this phrase mean?", "“裙子” 是？": "What does this word mean?", "“船” 是？": "What does this word mean?", "“星期六” 是？": "What does this word mean?", "“新加坡” 是？": "What does this word mean?", "“护士” 是？": "What does this word mean?", "“妹妹” 是？": "What does this word mean?", "“出租车” 是？": "What does this word mean?", "“我是___。”（I am Bruneian.）": "Fill in the blank.", "“我住在加东。” 的意思是？": "What does this sentence mean?", "“我会说马来语和英语，___会说一点儿华语。”": "Fill in the blank: I speak Malay and English, and ___ a little Mandarin.", "“我___哥哥。”（I don't have an elder brother.）": "Fill in the blank.", "“多少钱？” 问的是？": "What does this question ask about?", "“你穿什么颜色的衣服？” 怎么回答？": "How do you answer this question?", "“你每天怎么来大学？” 问的是？": "What does this question ask about?", "“你好” 实际读作？": "How is this greeting actually pronounced?", "“你叫什么名字？” 怎么回答？": "How do you answer this question?", "“他” 和 “她” 的读音？": "How do these two characters sound?", "“人” 的笔顺是？": "What is the stroke order of this character?", "“不是” 里的 “不” 读？": "How is the first character pronounced here?", "“不客气” 的意思是？": "What does this phrase mean?", "“qu”（去）里的 u 实际读作？": "In \"qu\", what sound is the u really?", "“mǎ” 是第几声？": "Which tone is this syllable?", "“hao” 的声调符号应标在哪个字母上？": "Which letter takes the tone mark in \"hao\"?", "“___飞机”": "Which verb goes with \"plane\"?", "“___自行车”": "Which verb goes with \"bicycle\"?", "“37” 怎么说？": "How do you say 37?", "“2005年” 怎么读？": "How do you read the year 2005?", "___帽子": "Which verb goes with \"hat\"?"};
-const EXPLAIN_EN = {"标调顺序：有 a 标 a；没有 a，找 o 或 e；i 和 u 在一起，标在后面那个：guì、liù。": "Where the tone mark goes: on a if there is one; otherwise on o or e; when i and u are together, mark the second one: guì, liù.", "j、q、x 后面的 u 其实是 ü：ju = jü，qu = qü，xu = xü。": "After j, q and x, the letter u is really ü (the dots are just dropped): ju = jü, qu = qü, xu = xü.", "n、l 后面要保留两点：nǚ（女）、lǜ（绿）。": "After n and l you must keep the two dots, because nu/lu also exist: nǚ (female), lǜ (green).", "先横后竖：十　·　先撇后捺：人　·　从上到下：三　·　从左到右：你": "Stroke-order rules: horizontal before vertical (十) · left-falling before right-falling (人) · top to bottom (三) · left to right (你).", "全包围的字“先进人，后关门”：国 —— 先写里面的“玉”，最后一横封口。": "For enclosed characters, \"let people in, then close the door\": in 国, write the outer frame, then the inside 玉, and seal it with the bottom stroke last.", "对老师、长辈用“您 nín”，更礼貌。": "Use 您 nín (polite \"you\") for teachers and elders; it is more respectful than 你.", "中文姓名：姓在前，名在后。王小明 = 姓“王” + 名“小明”。": "Chinese names put the surname first and the given name after: 王小明 = surname 王 + given name 小明.", "有“什么”的问句，句末不再加“吗”。": "A question that already has 什么 (what) never takes 吗 at the end — the question word does the job.", "两位数 = 几十几：37 = 三十七，73 = 七十三。": "Two-digit numbers are \"tens + ones\": 37 = 三十七 (three-ten-seven), 73 = 七十三.", "日期由大到小：2026年11月4日，星期三。": "Dates go from big to small: year → month → day → weekday: 2026年11月4日，星期三.", "说年龄不用“是”。": "Don't use 是 with age: say 我今年二十岁, not 我是二十岁.", "电话号码一个数字一个数字读，“1” 读 yāo，免得和 “七 qī” 听混。": "Read phone numbers digit by digit, and say \"1\" as yāo so it isn't confused with 七 qī (7).", "地址由大到小：文莱 → 文莱-摩拉县 → 加东。": "Addresses go from big to small: country → district → area, e.g. Brunei → Brunei-Muara → Gadong.", "“住在 + 地方”。": "The pattern is 住在 + place (\"live at + place\"): 我住在加东.", "“有”的否定永远是“没有”。": "The negative of 有 (have) is always 没有, never 不有.", "“在 + 地方”放在动词前面。": "The place phrase 在 + place comes before the verb: 他在医院工作 (literally \"he at hospital works\").", "“也”是副词，后面要有动词“是”。": "也 (also) is an adverb, so it needs a verb after it: 我妈妈也是老师, not 也老师.", "“也”不能放在句末。": "也 can't go at the end like English \"too\"; it sits before the verb.", "国家 + 人 = 国籍：文莱人、中国人、英国人。": "Country + 人 = nationality: 文莱人 Bruneian, 中国人 Chinese, 英国人 British.", "漏了“人”，意思变成“我就是文莱这个国家”。": "Without 人 the sentence means \"I am the country Brunei\" — always add 人 for nationality.", "有“哪”的问句不加“吗”。": "A question with 哪 (which) already asks something, so don't add 吗.", "哪 nǎ（which，有口字旁） ≠ 那 nà（that）。": "哪 nǎ means \"which\" (it has the mouth radical 口 and a 3rd tone); 那 nà means \"that\" (no 口, 4th tone).", "“一点儿”在动词后、语言前。": "一点儿 (a little) goes after the verb and before the language: 我会说一点儿汉语.", "初学阶段，“会”后面加动词“说”。": "At beginner level, put the verb 说 after 会: 我会说英语 (\"I can speak English\").", "“-语”多指口头说的，“-文”多指书面写的：英语 / 英文，马来语 / 马来文。": "Words ending in -语 usually mean the spoken language, -文 the written language: 英语 / 英文, 马来语 / 马来文.", "表格上的日期用“日”：八月十五日（口语才说“号”）。": "On forms, write dates with 日: 八月十五日. In speech people say 号.", "年龄栏只写“二十一岁”，不写“是”。": "In the age box, just write 二十一岁 — no 是.", "地址由大到小填写。": "Fill in the address from big to small (country first).", "文莱特色：去水村 (Kampong Ayer) 或淡布隆，可以坐船。": "In Brunei you can take a boat (water taxi) to Kampong Ayer or Temburong.", "坐 + 巴士 / 飞机 / 船　·　开 + 车　·　骑 + 自行车 / 摩托车": "Verb + vehicle: 坐 (sit/ride in) bus, plane, boat · 开 (drive) a car · 骑 (ride, astride) a bicycle or motorbike.", "语序：谁 + 什么时候 + 怎么去 + 去 / 来 + 哪儿": "Word order: who + when + how + 去/来 + where: 我每天坐巴士来大学.", "时间词“每天”放在动词前面。": "Time words like 每天 (every day) go before the verb, not at the end.", "在文莱，黄色是王室的颜色。": "In Brunei, yellow is the royal colour.", "帽子、眼镜用“戴”，衣服、裤子用“穿”。": "Use 戴 for things you put on like hats and glasses; use 穿 for clothes and trousers.", "件：衬衫、衣服　·　条：裤子、裙子": "Measure words: 件 for shirts and tops · 条 for trousers and skirts (long, narrow things).", "开斋节等正式场合，大家常穿传统服装。": "On formal occasions such as Hari Raya, people often wear traditional clothes.", "杯：茶、咖啡、水　·　碗：米饭、面": "Measure words: 杯 (cup) for tea, coffee and water · 碗 (bowl) for rice and noodles.", "j、q、x 后的 u 都读 ü，只是省略了两点。": "After j, q and x, u is pronounced ü — the dots are just left out.", "“不”在四声前变二声：bú shì。": "不 changes to 2nd tone before a 4th tone: bú shì.", "“也”在动词“是”前面。": "也 goes right before the verb 是.", "“有”的否定是“没有”。": "The negative of 有 is 没有.", "两个三声相连，前一个变二声。": "When two 3rd tones are together, the first becomes a 2nd tone.", "先撇后捺。": "Left-falling stroke first, then right-falling.", "先进人，后关门。": "Let people in first, then close the door: fill the inside, then seal the bottom.", "国家 + 人 = 国籍。": "Country + 人 = nationality.", "在 + 地方 + 工作。": "在 + place + 工作 (work).", "姓在前，名在后。": "Surname first, given name after.", "年份一个数字一个数字读。": "Read years digit by digit: 二〇〇五年.", "年龄不用“是”。": "No 是 with age.", "有 a 标 a：hǎo。": "If there's an a, the tone mark goes on it: hǎo.", "有“什么”就不加“吗”。": "With 什么 in the question, don't add 吗.", "由大到小。": "From big to small: year → month → day."};
-/* Mini-game content per island.
-   hz: 8 characters for 笔顺描红 · sb: [sentence tokens separated by spaces, English] for 句子积木 */
-const EXTRA = {
-  C1:{ hz:"一二三十人口大中水回主汉", sb:[["妈妈 骂 马 吗 ？","Does Mum scold the horse? (four tones!)"],["马 不 是 人 。","A horse is not a person."],["我 不 是 马 。","I am not a horse."]] },
-  C2:{ hz:"你好我他她叫名字", sb:[["你 叫 什么 名字 ？","What's your name?"],["我 叫 阿里 。","My name is Ali."],["我 姓 王 ， 叫 小明 。","My surname is Wang; my given name is Xiaoming."]] },
-  C3:{ hz:"年月日天今明几岁", sb:[["今天 十一月 四号 。","Today is 4 November."],["今天 星期三 。","Today is Wednesday."],["我 今年 二十 岁 。","I'm 20 this year."],["我 的 生日 是 八月 十五号 。","My birthday is 15 August."]] },
-  C4:{ hz:"住在家电话号多少", sb:[["你 住 在 哪儿 ？","Where do you live?"],["我 住 在 斯里巴加湾市 。","I live in Bandar Seri Begawan."],["你 的 手机 号码 是 多少 ？","What's your mobile number?"]] },
-  C5:{ hz:"做工作师生医也在", sb:[["你 家 有 几 口 人 ？","How many people are in your family?"],["我 没有 哥哥 。","I don't have an elder brother."],["我 姐姐 在 医院 工作 。","My elder sister works at a hospital."],["我 妈妈 也 是 老师 。","My mum is a teacher too."]] },
-  C6:{ hz:"国人会说文语哪吗", sb:[["你 是 哪 国 人 ？","What nationality are you?"],["我 是 文莱 人 。","I'm Bruneian."],["我 会 说 一点儿 华语 。","I can speak a little Mandarin."],["我 会 说 马来语 和 英语 。","I speak Malay and English."]] },
-  C7:{ hz:"车坐开走来去每怎校骑路么", sb:[["你 每天 怎么 来 大学 ？","How do you get to uni every day?"],["我 每天 坐 巴士 来 大学 。","I take the bus to uni every day."],["我 爸爸 开车 去 公司 。","My dad drives to the office."]] },
-  C8:{ hz:"红黄蓝白黑色穿衣绿件条戴衬衫鞋帽镜双", sb:[["你 穿 什么 颜色 的 衣服 ？","What colour are you wearing?"],["我 穿 白色 的 衬衫 。","I'm wearing a white shirt."],["他 戴 帽子 。","He's wearing a hat."]] },
-  C9:{ hz:"要茶水米饭杯钱吃", sb:[["我 要 一 杯 茶 。","I'd like a cup of tea."],["请 给 我 一 碗 面 。","A bowl of noodles, please."],["我 会 说 马来语 和 英语 ， 也 会 说 一点儿 华语 。","I speak Malay and English, and a little Mandarin too."]] }
-};
-ISLANDS.forEach(d=>Object.assign(d, EXTRA[d.no]));
-const GAMES = [
-  {id:"sb", name:"句子积木", en:"Sentence Builder", desc:"把词块排成正确的句子", descEn:"Put the word tiles in the right order"},
-  {id:"mm", name:"翻牌配对", en:"Memory Match", desc:"汉字和英文配成一对", descEn:"Match each hanzi to its English"},
-  {id:"wm", name:"打地鼠", en:"Whack-a-Word", desc:"看英文，打中对的汉字", descEn:"Read the English, hit the right hanzi"},
-  {id:"sw", name:"笔顺描红", en:"Stroke Order", desc:"用手指按笔顺写 8 个生字", descEn:"Write 8 characters stroke by stroke"}
-];
-const SOON_UNUSED = [
-  {name:"声调冲浪", en:"Tone Surfing", desc:"用声调控制小船（麦克风）", descEn:"Steer a boat with your tones (microphone)"},
-  {name:"跟读过关", en:"Read Aloud", desc:"念对才能过关（麦克风）", descEn:"Say it right to pass (microphone)"},
-  {name:"手势选答", en:"Gesture Quiz", desc:"举手指选答案（摄像头）", descEn:"Hold up fingers to answer (camera)"}
-];
 
 /* ============================== state ============================== */
 const KEY = "m1-knowledge-isles-v1";
@@ -1061,6 +641,7 @@ function speechRate(text){
 }
 let ttsFails=0, ttsTok=0;
 function speak(text){
+  if(!text || !String(text).trim()) return;
   if(!hasTTS){ toast("这个浏览器不支持朗读，请看拼音。"); return; }
   const tok=++ttsTok, clean=text.replace(/——/g,"，");
   const run=(attempt)=>{
@@ -1109,7 +690,12 @@ let fly = null, viewOff = {x:0,y:0}, viewOffGoal = {x:0,y:0};
 const HIGH = () => state.gfx ? state.gfx==="high" : !matchMedia("(max-width:720px)").matches && (navigator.hardwareConcurrency||4)>=4;
 
 const matCache = {};
-function M(color, opts){ const k=color+(opts?JSON.stringify(opts):""); if(!matCache[k]) matCache[k]=new THREE.MeshStandardMaterial(Object.assign({color, roughness:.72, metalness:0}, opts||{})); return matCache[k]; }
+function M(color, opts){ const k=color+(opts?JSON.stringify(opts):""); if(!matCache[k]){ matCache[k]=new THREE.MeshStandardMaterial(Object.assign({color, roughness:.72, metalness:0}, opts||{})); matCache[k].userData.shared=true; } return matCache[k]; }
+function disposeTree(root){ if(!root) return; root.traverse(o=>{
+  if(o.geometry && !o.geometry.userData?.shared && o.geometry!==_frond && o.geometry!==WAKE_GEO) o.geometry.dispose();
+  const mats=Array.isArray(o.material)?o.material:o.material?[o.material]:[];
+  mats.forEach(m=>{ if(!m || m.userData?.shared) return; const ni=nightMats.indexOf(m); if(ni>=0) nightMats.splice(ni,1); m.dispose(); });
+}); }
 function mesh(geo, color, x=0,y=0,z=0, opts){ const m=new THREE.Mesh(geo, typeof color==="number"?M(color,opts):color); m.position.set(x,y,z); m.castShadow=true; m.receiveShadow=true; return m; }
 const rbox = (w,h,d) => { const r=Math.min(.12, Math.min(w,h,d)*.22); return r>.012 ? new THREE.RoundedBoxGeometry(w,h,d,geoK()<1?1:2,r) : new THREE.BoxGeometry(w,h,d); };
 const box = (w,h,d,c,x,y,z,o)=>mesh(rbox(w,h,d),c,x,y,z,o);
@@ -1388,7 +974,7 @@ function cardMat(kind){ if(cardMats[kind]) return cardMats[kind];
         #include <colorspace_fragment>
         #include <fog_fragment>
       }`});
-  m.uniforms.map.value=tex; m.userData.u=m.uniforms; grassMats.push(m); cardMats[kind]=m; return m; }
+  m.uniforms.map.value=tex; m.userData.u=m.uniforms; m.userData.shared=true; grassMats.push(m); cardMats[kind]=m; return m; }
 // leaf-cluster billboards for tree crowns: each card always faces the camera; a dark core behind keeps the crown solid and casts the shadow
 /* ---- island life: seagulls circling over the sea and butterflies over the flowers (animated sprite frames) ---- */
 const life={gulls:[], flies:[]};
@@ -1461,7 +1047,7 @@ function canopyMat(kind){ const key="cn-"+kind; if(cardMats[key]) return cardMat
         #include <colorspace_fragment>
         #include <fog_fragment>
       }`});
-  m.uniforms.map.value=tex; m.userData.u=m.uniforms; grassMats.push(m); cardMats[key]=m; return m; }
+  m.uniforms.map.value=tex; m.userData.u=m.uniforms; m.userData.shared=true; grassMats.push(m); cardMats[key]=m; return m; }
 // balls: [[x,y,z,r],…] — the old sphere crown; picks: which pictures of the atlas to use
 function leafCanopy(parent, balls, kind, picks, rr, core){
   const rects=CARD_RECTS[kind], inst=[];
@@ -1496,7 +1082,7 @@ const SPR_DIM={"cloud-0":[520,276],"cloud-1":[460,268],"cloud-2":[548,276],"clou
   "mist-0":[520,244],"mist-1":[524,252],"mist-2":[492,428],"mist-3":[480,456]};
 const sprTexCache={}, nightMats=[];   // sprite materials that dim at night (their pictures are drawn without tone mapping)
 const nightTint=m=>!themeDark()?[1,1,1]:(m&&m.userData.layered)?[.3,.33,.47]:[.5,.53,.68];   // layered mist adds up, so it dims more
-function sprTex(name){ if(!sprTexCache[name]){ const t=new THREE.TextureLoader().load(`assets/sprites/${name}.png`); t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=4; sprTexCache[name]=t; } return sprTexCache[name]; }
+function sprTex(name){ if(!sprTexCache[name]){ const t=new THREE.TextureLoader().load(`assets/sprites/${name}.webp`); t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=4; sprTexCache[name]=t; } return sprTexCache[name]; }
 // a camera-facing picture, `width` world units wide; its own material so it can fade on its own
 function spriteOf(name, width, opts){ const [w,h]=SPR_DIM[name]; const m=new THREE.SpriteMaterial(Object.assign({map:sprTex(name), transparent:true, depthWrite:false, fog:true, toneMapped:false}, opts||{}));
   m.userData.layered=true; m.color.setRGB(...nightTint(m)); nightMats.push(m); const s=new THREE.Sprite(m); s.scale.set(width, width*h/w, 1); return s; }
@@ -1642,7 +1228,9 @@ function applyTheme(){ if(!scene) return; const dark=themeDark();
     // the sky never changes while playing, so draw it once into a cube texture instead of shading it every frame
     try{ if(!skyRT){ skyRT=new THREE.WebGLCubeRenderTarget(512,{type:THREE.HalfFloatType, generateMipmaps:false}); skyCam=new THREE.CubeCamera(1,5000,skyRT); }
       skyCam.update(renderer, envScene); scene.background=skyRT.texture; sky.visible=false; }catch(e){ sky.visible=true; scene.background=null; }
-    if(scene.environment) scene.environment.dispose(); scene.environment=pmrem.fromScene(envScene,0.04).texture; }
+    if(applyTheme.envRT) applyTheme.envRT.dispose();
+    applyTheme.envRT=pmrem.fromScene(envScene,0.04); scene.environment=applyTheme.envRT.texture;
+    s2.geometry.dispose(); s2.material.dispose(); }
   nightMats.forEach(m=>m.color.setRGB(...nightTint(m)));
   Object.values(cardMats).forEach(m=>m.uniforms.uLight.value.setRGB(...(dark?[.42,.45,.6]:[.9,.9,.88])));
   refreshShadows();
@@ -1656,7 +1244,7 @@ function animateAll(t){
   swayers.forEach(s=>{ s.o.rotation.z=Math.sin(t*1.1+s.ph)*s.amp; s.o.rotation.x=Math.cos(t*.9+s.ph)*s.amp*.6; });
   routeDots.forEach(r=>{ r.m.position.y=.3+Math.sin(t*1.6+r.ph)*.12; });
   seaBoats.forEach(f=>f(t));
-  isles.forEach(o=>{ o.anim.forEach(f=>f(t)); if(o.fanim) o.fanim.forEach(f=>f(t)); });
+  isles.forEach(o=>{ o.anim.forEach(f=>f(t)); if(o.banim) o.banim.forEach(f=>f(t)); if(o.bsway) o.bsway.forEach(s=>{ s.o.rotation.z=Math.sin(t*1.1+s.ph)*s.amp; s.o.rotation.x=Math.cos(t*.9+s.ph)*s.amp*.6; }); if(o.fanim) o.fanim.forEach(f=>f(t)); });
 }
 /* ---- performance: merge every mesh that never moves into one mesh per material ----
    The islands are built from ~1,400 small meshes; drawing each one separately (twice, with shadows) is what made phones stutter.
@@ -1674,7 +1262,7 @@ function findMoving(root, extra){
 const vcShared={};
 function simpleKey(m){ if(!m.isMeshStandardMaterial || m.isMeshPhysicalMaterial || m.map || m.normalMap || m.roughnessMap || m.metalnessMap || m.emissiveMap || m.alphaMap || m.vertexColors || m.transparent || m.side!==THREE.FrontSide || m.alphaTest>0 || m.wireframe) return null;
   return "S|"+m.roughness+"|"+m.metalness+"|"+(m.flatShading?1:0)+"|"+m.emissive.getHex()+"|"+m.emissiveIntensity; }
-function sharedVcMaterial(key, m){ return vcShared[key]||(vcShared[key]=new THREE.MeshStandardMaterial({vertexColors:true, roughness:m.roughness, metalness:m.metalness, flatShading:m.flatShading, emissive:m.emissive.clone(), emissiveIntensity:m.emissiveIntensity})); }
+function sharedVcMaterial(key, m){ if(!vcShared[key]){ vcShared[key]=new THREE.MeshStandardMaterial({vertexColors:true, roughness:m.roughness, metalness:m.metalness, flatShading:m.flatShading, emissive:m.emissive.clone(), emissiveIntensity:m.emissiveIntensity}); vcShared[key].userData.shared=true; } return vcShared[key]; }
 function bakeStatic(root, moving){
   root.updateMatrixWorld(true);
   const inv=new THREE.Matrix4().copy(root.matrixWorld).invert(), groups=new Map(), subRoots=[], m4=new THREE.Matrix4();
@@ -1741,7 +1329,7 @@ function initScene(){
   // perahu traffic + high drifting clouds
   [[-12,30,6,.16,NY.lantern,C.gold],[20,-2,5,-.2,C.gold,NY.shutter],[-28,-12,5,.18,NY.shutter,NY.lantern],[30,52,9,.1,NY.lantern,NY.shutter]].map(([cx,cz,R,...o])=>[cx*POS_K,cz*POS_K,R*1.4,...o]).forEach(([cx,cz,R,sp,a,b])=>{ const bt=perahu(a,b); bt.scale.setScalar(1.35); scene.add(bt);
     seaBoats.push(t=>{ const ang=t*sp; bt.position.set(cx+Math.cos(ang)*R,.25+Math.sin(t*1.5+cx)*.15,cz+Math.sin(ang)*R); bt.rotation.y=-ang+(sp>0?Math.PI:0); bt.rotation.z=Math.sin(t*1.2+cz)*.06; }); });
-  const crr=rng(7); for(let k=0;k<11;k++){ const c=spriteOf(`cloud-${k%7}`, (k%7>4?22:42)+crr()*26); c.position.set((crr()-.5)*420,55+crr()*35,(crr()-.5)*320-60); scene.add(c); seaBoats.push(t=>{ c.position.x+=.012; if(c.position.x>230) c.position.x=-230; }); }
+  const crr=rng(7); for(let k=0;k<11;k++){ const c=spriteOf(`cloud-${k%7}`, (k%7>4?22:42)+crr()*26), x0=(crr()-.5)*420; c.position.set(x0,55+crr()*35,(crr()-.5)*320-60); scene.add(c); seaBoats.push(t=>{ c.position.x=((x0+t*.72+230)%460+460)%460-230; }); }
   if(hi && perfStep<1){
     const rt=new THREE.WebGLRenderTarget(1,1,{type:THREE.HalfFloatType, samples:4});
     composer=new THREE.EffectComposer(renderer, rt);
@@ -1786,6 +1374,7 @@ function perfInit(){ prMax=Math.min(window.devicePixelRatio||1, HIGH()?2:1.5); p
   const sv=loadPerf(); if(sv){ perfStep=sv.tier||0; perfLite=perfStep>=3; prCur=Math.min(prMax, sv.pr||prCur); if(perfLite){ prMax=Math.min(prMax,1); prCur=Math.min(prCur,1); } }
   renderer.setPixelRatio(prCur); }
 function setPr(v){ v=Math.round(v*4)/4; if(v===prCur) return; prCur=v; renderer.setPixelRatio(v); resize(); savePerf(); }
+function disposeComposer(){ if(!composer) return; try{ if(bloomPass&&bloomPass.dispose) bloomPass.dispose(); if(tiltH&&tiltH.dispose) tiltH.dispose(); if(tiltV&&tiltV.dispose) tiltV.dispose(); if(gradePass&&gradePass.dispose) gradePass.dispose(); composer.dispose(); }catch(e){} composer=null; bloomPass=null; tiltH=null; tiltV=null; gradePass=null; }
 function perfWatch(now, wantGap){ const gap=now-lastRender; lastRender=now;
   if(document.body.classList.contains("drawer-open") || gap>250){ perfWin=0; perfBad=0; perfN=0; return; }   // ignore panels and tab switches
   perfWin+=gap; perfN++; if(gap>wantGap*1.45) perfBad++;
@@ -1793,8 +1382,8 @@ function perfWatch(now, wantGap){ const gap=now-lastRender; lastRender=now;
   const fpsNow=perfN/(perfWin/1000), bad=perfBad/perfN; perfWin=0; perfBad=0; perfN=0; perfPush(fpsNow,bad);
   if(bad>.12){ perfGood=0;
     if(prCur>1) return setPr(Math.max(1, prCur-.25));
-    if(perfStep===0){ perfStep=1; if(composer && bad>.25) composer=null; savePerf(); return; }
-    if(perfStep===1 && bad>.25){ perfStep=2; renderer.shadowMap.enabled=false; scene.traverse(o=>{ if(o.material && !Array.isArray(o.material)) o.material.needsUpdate=true; }); savePerf(); if(window.__sendLog) window.__sendLog("quality","quality lowered: shadows off",perfInfo()); return; }
+    if(perfStep===0){ perfStep=1; disposeComposer(); savePerf(); return; }
+    if(perfStep===1 && bad>.25){ perfStep=2; disposeComposer(); renderer.shadowMap.enabled=false; scene.traverse(o=>{ if(o.material && !Array.isArray(o.material)) o.material.needsUpdate=true; }); savePerf(); if(window.__sendLog) window.__sendLog("quality","quality lowered: shadows off",perfInfo()); return; }
     if(perfStep===2 && bad>.25 && ++perfLiteN>=3){ perfStep=3; perfLite=true; prMax=Math.min(prMax,1); setPr(1); savePerf(); if(window.__sendLog) window.__sendLog("quality","quality lowered: lite mode (30 fps)",perfInfo()); }
     return; }
   if(bad<.02 && ++perfGood>=4 && prCur<prMax){ perfGood=0; setPr(Math.min(prMax, prCur+.25)); } }
@@ -1842,17 +1431,18 @@ function updateVoyage(dt){ const v=voyage; if(!v) return;
   const f=1-Math.exp(-dt*(v.t<1.2?2.2:3.2)); camera.position.lerp(want,f); controls.target.lerp(look,Math.min(1,f*1.4));
   if(v.t>=v.T+.8) endVoyage(); }
 function endVoyage(){ const v=voyage; if(!v) return; voyage=null; document.removeEventListener("pointerdown",v.onTap,true);
-  v.wake.forEach(w=>{ scene.remove(w.m); w.m.material.dispose(); }); scene.remove(v.boat); document.body.classList.remove("voyage"); controls.enabled=true;
+  v.wake.forEach(w=>{ scene.remove(w.m); w.m.material.dispose(); }); scene.remove(v.boat); disposeTree(v.boat); document.body.classList.remove("voyage"); controls.enabled=true;
   if(typeof sfx==="function") sfx("win"); const B=ISLANDS[v.to]; toast(`到达 ${B.no}「${B.name}」！`,`Arrived at ${B.no} ${B.en}!`);
   if(v.done) v.done(); else focusIsland(v.to); }
 
 function resize(){ if(!renderer) return; { const ar=document.getElementById("arStage"); if(ar && !ar.hidden) return; } const w=innerWidth, h=innerHeight; renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix();
   /* the glow is soft anyway: compute it at half resolution */
   if(composer){ composer.setPixelRatio(renderer.getPixelRatio()); composer.setSize(w,h); if(bloomPass) bloomPass.setSize(Math.max(64,Math.round(w*renderer.getPixelRatio()/2)), Math.max(64,Math.round(h*renderer.getPixelRatio()/2))); const pr=renderer.getPixelRatio(); tiltH.uniforms.uDir.value.set(1/(w*pr),0); tiltV.uniforms.uDir.value.set(0,1/(h*pr)); }
-  applyOffset(); }
-function applyOffset(){ const w=innerWidth, h=innerHeight; if(Math.abs(viewOff.x)<.5 && Math.abs(viewOff.y)<.5){ camera.clearViewOffset(); } else camera.setViewOffset(w,h,viewOff.x,viewOff.y,w,h); }
+  applyOffset(true); }
+let _offX=NaN, _offY=NaN;
+function applyOffset(force){ if(!force && Math.abs(viewOff.x-_offX)<.05 && Math.abs(viewOff.y-_offY)<.05) return; _offX=viewOff.x; _offY=viewOff.y; const w=innerWidth, h=innerHeight; if(Math.abs(viewOff.x)<.5 && Math.abs(viewOff.y)<.5){ camera.clearViewOffset(); } else camera.setViewOffset(w,h,viewOff.x,viewOff.y,w,h); }
 const SHEET_MQ = matchMedia("(max-width:720px), (max-width:1100px) and (orientation:portrait)");
-function updateOffsetGoal(){ const p=$("#panel"), s=$("#side"); const el=!p.hidden?p:(!s.hidden?s:null); document.body.classList.toggle("drawer-open", !!el); if(!el){ viewOffGoal={x:0,y:0}; return; }
+function updateOffsetGoal(){ const p=$("#panel"), s=$("#side"); const el=(!p.hidden&&!p.classList.contains("peek"))?p:(!s.hidden?s:null); document.body.classList.toggle("drawer-open", !!el); if(!el){ viewOffGoal={x:0,y:0}; return; }
   if(SHEET_MQ.matches) viewOffGoal={x:0,y:el.offsetHeight/2}; else viewOffGoal={x:(el.offsetWidth+16)/2,y:0}; }
 
 function loop(now){
@@ -1902,7 +1492,7 @@ function maintSign(){ const g=new THREE.Group(), Y=0xffc61a, K=0x222222;
   return g; }
 function refreshMaint(){ if(!scene) return; isles.forEach((o,i)=>{ const blk=state.teacher?null:isleBlock(i);
   if(blk && blk.kind==="maint" && !o.maint){ o.maint=maintSign(); o.maint.position.set(0, o.sh?terrainH(o.sh,0,o.r*.55)+.05:2.2, o.r*.55); o.group.add(o.maint); refreshShadows(); }
-  if((!blk || blk.kind!=="maint") && o.maint){ o.group.remove(o.maint); o.maint=null; refreshShadows(); } }); }
+  if((!blk || blk.kind!=="maint") && o.maint){ o.group.remove(o.maint); disposeTree(o.maint); o.maint=null; refreshShadows(); } }); }
 function refreshLabels(){ ISLANDS.forEach((d,i)=>{ const un=isUnlocked(i), b=lbls[i]; if(!b) return; b.classList.toggle("locked",!un);
   b.setAttribute("aria-label",`${d.no} ${d.name}${un?"":"（未解锁）"}，${starsOf(i)} 颗星`);
   const blk=state.teacher?null:isleBlock(i);
@@ -2025,6 +1615,9 @@ function gamesDone(i){ const g=state.games[i]||{}; return ["sb","mm","wm"].filte
 function renderPanel(){
   const d=ISLANDS[cur], st=starsOf(cur);
   panel.classList.toggle("tall", tab==="games" || tab==="build");
+  panel.classList.toggle("build-mode", tab==="build");
+  panel.classList.remove("peek");
+  if(tab==="build") bSel=null;
   setHTML(panel, `
    <div class="d-head">
      <button class="d-close" type="button" id="pClose" aria-label="关闭">${X_SVG}</button>
@@ -2401,6 +1994,9 @@ function wmEnd(body){
 function swBank(i){ const set=new Set(Array.from(ISLANDS[i].hz)); islandWords(i).forEach(w=>[...w.zh].forEach(c=>{ if(HZ_RE.test(c)) set.add(c); })); return [...set]; }
 function swStart(body){ const done=new Set(gst(cur).sw||[]), bank=swBank(cur), fresh=shuffle(bank.filter(c=>!done.has(c))), old=shuffle(bank.filter(c=>done.has(c)));
   gs={k:0, chars:fresh.concat(old).slice(0,8)}; swRender(body); }
+let _hwP=null;
+function loadHanziWriter(){ if(window.HanziWriter) return Promise.resolve(); if(_hwP) return _hwP;
+  _hwP=new Promise((res,rej)=>{ const s=document.createElement("script"); s.src="lib/hanzi-writer.min.js"; s.onload=()=>res(); s.onerror=()=>{ _hwP=null; rej(new Error("hanzi-writer")); }; document.head.appendChild(s); }); return _hwP; }
 function swRender(body){
   if(writer){ try{ writer.cancelQuiz(); }catch(e){} writer=null; }
   const chars=gs.chars, g=gst(cur), done=new Set(g.sw||[]), c=chars[gs.k];
@@ -2411,7 +2007,8 @@ function swRender(body){
     <p class="sw-msg" id="swMsg">请按笔顺，用手指或鼠标在田字格里写「${c}」。<span class=ui-en data-b>Write it in the grid with your finger or mouse, stroke by stroke.</span></p>`);
   bindBack(body);
   body.querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>{ gs.k=+b.dataset.k; swRender(body); });
-  if(!window.HanziWriter){ setHTML($("#swMsg"),"笔顺功能需要联网才能载入，请检查网络后再试。<span class=ui-en data-b>Stroke order needs the internet to load.</span>"); return; }
+  if(!window.HanziWriter){ setHTML($("#swMsg"),"正在载入笔顺功能…<span class=ui-en data-b>Loading stroke order…</span>");
+    loadHanziWriter().then(()=>{ if(game==="sw") swRender(body); },()=>{ const m=$("#swMsg"); if(m) setHTML(m,"笔顺功能载入失败，请检查网络后再试。<span class=ui-en data-b>Could not load stroke order — check your connection.</span>"); }); return; }
   const cs=getComputedStyle(document.documentElement), col=n=>cs.getPropertyValue(n).trim();
   const size=Math.max(200, Math.min(280, body.clientWidth-60));
   const hw=$("#hw"); hw.style.width=hw.style.height=size+"px";
@@ -2511,6 +2108,21 @@ function toneTip(target, got){ const f=classifyTone.last||{}; const T={
   4:["从高处干脆地往下降，像说“对！”。","Drop sharply from high, like saying \"right!\"."]}[target];
   return T; }
 
+/* PCM audio capture via AudioWorklet (off main thread), falling back to ScriptProcessor on older browsers */
+const _workletCode=`class PCMCap extends AudioWorkletProcessor{constructor(o){super();this.sz=(o.processorOptions&&o.processorOptions.sz)||1024;this.b=new Float32Array(this.sz);this.n=0;}process(ins){const ch=ins[0]&&ins[0][0];if(!ch)return true;for(let i=0;i<ch.length;i++){this.b[this.n++]=ch[i];if(this.n>=this.sz){this.port.postMessage(this.b);this.b=new Float32Array(this.sz);this.n=0;}}return true;}}registerProcessor("pcm-cap",PCMCap);`;
+async function createAudioCapture(ac, src, size, onChunk){
+  if(ac.audioWorklet && typeof AudioWorkletNode!=="undefined"){
+    try{
+      if(!ac._pcmLoaded){ const u=URL.createObjectURL(new Blob([_workletCode],{type:"application/javascript"})); try{ await ac.audioWorklet.addModule(u); ac._pcmLoaded=true; }finally{ URL.revokeObjectURL(u); } }
+      const n=new AudioWorkletNode(ac,"pcm-cap",{processorOptions:{sz:size}});
+      n.port.onmessage=e=>{ if(e.data) onChunk(e.data); };
+      src.connect(n); return ()=>{ n.port.onmessage=null; try{ src.disconnect(n); n.disconnect(); }catch(e){} };
+    }catch(e){}
+  }
+  const sp=ac.createScriptProcessor(size,1,1); src.connect(sp); sp.connect(ac.destination);
+  sp.onaudioprocess=e=>onChunk(e.inputBuffer.getChannelData(0));
+  return ()=>{ sp.onaudioprocess=null; try{ src.disconnect(sp); sp.disconnect(); }catch(e){} };
+}
 function toneTargets(i){ const out=[], seen=new Set(); islandWords(i).forEach(w=>[...w.zh].forEach((c,k)=>{ if(seen.has(c)||!HZ_RE.test(c)) return; const p=pyOf(w.zh)[k]||"", t=toneOf(p); if(t>0){ seen.add(c); out.push({c,p,t}); } })); return out; }
 function toneStart(body){ withConsent("mic", body, async()=>{
   let pool=toneTargets(cur); const byT=[1,2,3,4].map(t=>shuffle(pool.filter(x=>x.t===t)));
@@ -2519,9 +2131,10 @@ function toneStart(body){ withConsent("mic", body, async()=>{
   try{ media.stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false, noiseSuppression:false, autoGainControl:true}}); }catch(err){ return mediaError(body,err,"mic"); }
   media.ac=new (window.AudioContext||window.webkitAudioContext)(); const src=media.ac.createMediaStreamSource(media.stream), an=media.ac.createAnalyser(); an.fftSize=2048; src.connect(an); gs.an=an;
   // pitch is measured per audio block (≈23 ms), independent of the screen frame rate
-  const sp=media.ac.createScriptProcessor(1024,1,1), ring=new Float32Array(2048); src.connect(sp); sp.connect(media.ac.destination);
-  sp.onaudioprocess=e=>{ if(!media.ac){ sp.onaudioprocess=null; return; }   /* the game was closed while a last audio block was still on its way */
-    const inp=e.inputBuffer.getChannelData(0); ring.copyWithin(0,1024); ring.set(inp,1024); if(!gs||!gs.listening) return; const p=pitchOf(ring, media.ac.sampleRate); gs.frames=(gs.frames||0)+1; if(p>0){ gs.trace.push(p); gs.lastVoice=performance.now(); gs.voiced=(gs.voiced||0)+1; } };
+  const ring=new Float32Array(2048);
+  await createAudioCapture(media.ac, src, 1024, inp=>{ if(!media.ac) return;
+    ring.copyWithin(0,1024); ring.set(inp,1024); if(!gs||!gs.listening) return; const p=pitchOf(ring, media.ac.sampleRate); gs.frames=(gs.frames||0)+1; if(p>0){ gs.trace.push(p); gs.lastVoice=performance.now(); gs.voiced=(gs.voiced||0)+1; } });
+  if(game!=="tone"||!media.ac) return;
   toneRender(body); }); }
 const TONE_SHAPE={1:[[0,.2],[1,.2]], 2:[[0,.6],[1,.15]], 3:[[0,.45],[.5,.85],[1,.3]], 4:[[0,.1],[1,.85]]};
 function toneRender(body){
@@ -2645,14 +2258,16 @@ async function recordAI(body, it){ if(gs.busy) return; gs.busy=true; const b=$("
   try{ if(!media.stream) media.stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false, noiseSuppression:false, autoGainControl:true}}); }catch(err){ gs.busy=false; Music.hold(false); return mediaError(body,err,"mic"); }
   if(!media.ac){ media.ac=new (window.AudioContext||window.webkitAudioContext)(); }
   if(media.ac.state!=="running") await media.ac.resume();
-  const src=media.ac.createMediaStreamSource(media.stream), sp=media.ac.createScriptProcessor(2048,1,1), chunks=[], sr=media.ac.sampleRate; src.connect(sp); sp.connect(media.ac.destination);
-  let speech=false, lastLoud=0, t0=performance.now();
+  const src=media.ac.createMediaStreamSource(media.stream), chunks=[], sr=media.ac.sampleRate;
+  let speech=false, lastLoud=0, t0=performance.now(), doneCap=false;
   b.innerHTML="正在听…<span class=ui-en>Listening…</span>"; rubify(b); msg(`请念出上面的内容，念完停一下。<span class=ui-en data-b>Read it aloud, then pause.</span>`);
-  await new Promise(res=>{ sp.onaudioprocess=e=>{ const x=e.inputBuffer.getChannelData(0); chunks.push(new Float32Array(x)); let s=0; for(let i=0;i<x.length;i+=2) s+=x[i]*x[i]; const rms=Math.sqrt(s/(x.length/2)), now=performance.now();
+  let stopCap=null;
+  await new Promise(async res=>{ stopCap=await createAudioCapture(media.ac, src, 2048, x=>{ if(doneCap) return;
+      chunks.push(new Float32Array(x)); let s=0; for(let i=0;i<x.length;i+=2) s+=x[i]*x[i]; const rms=Math.sqrt(s/(x.length/2)), now=performance.now();
       const bar=$("#lvlBar"); if(bar) bar.style.width=Math.min(100,rms*900)+"%";
       if(rms>.02){ if(!speech) msg(`听到声音了…<span class=ui-en data-b>Hearing you…</span>`); speech=true; lastLoud=now; }
-      if((speech && now-lastLoud>850) || now-t0>7000 || game!=="read"){ sp.onaudioprocess=null; res(); } }; });
-  try{ src.disconnect(); sp.disconnect(); }catch(e){}
+      if((speech && now-lastLoud>850) || now-t0>7000 || game!=="read"){ doneCap=true; res(); } }); });
+  if(stopCap) stopCap(); try{ src.disconnect(); }catch(e){}
   const bar=$("#lvlBar"); if(bar) bar.style.width="0%"; Music.hold(false);
   if(game!=="read"){ gs.busy=false; return; }
   if(!speech){ gs.busy=false; b.disabled=false; b.innerHTML="🎤 开始念<span class=ui-en>Read now</span>"; rubify(b); msg(`没有听到声音。请看绿色音量条有没有跳动，靠近一点再念。<span class=ui-en data-b>No voice detected — watch the green bar and move closer.</span>`); return; }
@@ -2748,9 +2363,10 @@ function arOpen(body){
     if(hands.length && !gs.seenHand){ gs.seenHand=true; const h=$("#arHint"); if(h) h.classList.add("dim"); }
     // bubbles: hover → dwell ring; grab gesture on a bubble → pick
     const now=performance.now(), bs=[...st.querySelectorAll(".ar-b")], sr=st.getBoundingClientRect();
-    const overAny=cursors.some(c=>bs.some(b=>{ const r=b.getBoundingClientRect(); return c.x>r.left-sr.left-14&&c.x<r.right-sr.left+14&&c.y>r.top-sr.top-14&&c.y<r.bottom-sr.top+14; }));
+    const rects=bs.map(b=>{ const r=b.getBoundingClientRect(); return {x0:r.left-sr.left-14, y0:r.top-sr.top-14, x1:r.right-sr.left+14, y1:r.bottom-sr.top+14}; });
+    const overAny=cursors.some(c=>rects.some(rc=>c.x>rc.x0&&c.x<rc.x1&&c.y>rc.y0&&c.y<rc.y1));
     if(!gs.answered && !gs.armed && !overAny && !cursors.some(c=>c.grab)) gs.armed=true;   // hand must leave the bubbles / open before the next grab
-    bs.forEach((b,j)=>{ const r=b.getBoundingClientRect(), x0=r.left-sr.left-14, y0=r.top-sr.top-14, x1=r.right-sr.left+14, y1=r.bottom-sr.top+14;
+    bs.forEach((b,j)=>{ const {x0,y0,x1,y1}=rects[j];
       const on=cursors.find(c=>c.x>x0&&c.x<x1&&c.y>y0&&c.y<y1); b.classList.toggle("hover",!!on);
       if(gs.answered||now<gs.lock||!gs.armed){ gs.dwell[j]=0; b.style.setProperty("--p",0); return; }
       if(on){ gs.dwell[j]=gs.dwell[j]||now; const p=Math.min(1,(now-gs.dwell[j])/1100); b.style.setProperty("--p",p); if(on.grab || p>=1){ sfx("grab"); arPick(j, body, {x:(x0+x1)/2, y:(y0+y1)/2}); } }
@@ -2770,7 +2386,7 @@ function arQuestion(body){ const st=$("#arStage"); if(!st) return; const q=gs.qs
 function burst(x,y,ok){ const cols=ok?["#ffd23f","#ff6b6b","#4ecdc4","#ffffff","#7bd389"]:["#ff6b6b","#c0141d"]; for(let k=0;k<(ok?70:18);k++){ const a=Math.random()*6.28, sp=2+Math.random()*(ok?9:4); gs.parts.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-(ok?4:1),life:40+Math.random()*25,c:cols[k%cols.length],s:4+Math.random()*5}); } }
 function arPick(j, body, at){ if(!gs||gs.answered) return; gs.answered=true; const st=$("#arStage"), q=gs.qs[gs.k], ok=q.opts[j]===q.a, bs=[...st.querySelectorAll(".ar-b")];
   const r=bs[j].getBoundingClientRect(), sr=st.getBoundingClientRect(), x=at?at.x:r.left-sr.left+r.width/2, y=at?at.y:r.top-sr.top+r.height/2;
-  if(ok){ gs.score++; bs[j].classList.add("burst"); burst(x,y,true); sfx("ok"); speak(q.a.length<=8?q.a:""); }
+  if(ok){ gs.score++; bs[j].classList.add("burst"); burst(x,y,true); sfx("ok"); if(q.a.length<=8) speak(q.a); }
   else { bs[j].classList.add("wrong"); burst(x,y,false); sfx("no"); const k=q.opts.indexOf(q.a); if(bs[k]) bs[k].classList.add("glow"); }
   $("#arScore").innerHTML=`${gs.k+1} / ${gs.qs.length}　★ ${gs.score}`;
   setTimeout(()=>{ if(game!=="gest"||!gs) return; gs.k++; if(gs.k>=gs.qs.length) arFinish(body); else arQuestion(body); }, ok?1300:1900); }
@@ -3011,7 +2627,7 @@ const DRAW={
   grille:()=>(x,S)=>{ x.fillStyle="#cfd4d8"; x.fillRect(0,0,S,S); x.fillStyle="#3a3f44"; for(let k=0;k<10;k++) x.fillRect(14+k*(S-28)/10,18,(S-28)/10-8,S-36); },
 };
 function tmat(kind, args, rx=1, ry=1, opts){ const key=kind+JSON.stringify(args)+"|"+rx+"|"+ry+JSON.stringify(opts||{}); if(TMAT[key]) return TMAT[key];
-  const m=new THREE.MeshStandardMaterial(Object.assign({map:canvasTex(kind+JSON.stringify(args), DRAW[kind](...args), rx, ry), roughness:.8}, opts||{})); TMAT[key]=m; return m; }
+  const m=new THREE.MeshStandardMaterial(Object.assign({map:canvasTex(kind+JSON.stringify(args), DRAW[kind](...args), rx, ry), roughness:.8}, opts||{})); m.userData.shared=true; TMAT[key]=m; return m; }
 const tbox=(w,h,d,mat,x,y,z)=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat); m.position.set(x,y,z); m.castShadow=m.receiveShadow=true; return m; };
 // gable roof: two sloping slabs meeting at a ridge along x, eaves overhanging, with a ridge cap
 function gableRoof(g, len, span, rise, mat, x, y, z, ridgeCol, thick=.1){ const half=span/2, slope=Math.hypot(half,rise), ang=Math.atan2(rise,half);
@@ -3254,13 +2870,18 @@ function makeDecor(id, k, r){ const g=new THREE.Group(), rr=rng(k*13+id.length);
 function render3DBuild(i){
   if(!scene || !isles[i]) return; const o=isles[i];
   if(!o.bgrp){ o.bgrp=new THREE.Group(); o.group.add(o.bgrp); }
+  disposeTree(o.bgrp);
   while(o.bgrp.children.length) o.bgrp.remove(o.bgrp.children[0]);
+  o.banim=[]; o.bsway=[];
+  const sbKeep=seaBoats.length, swKeep=swayers.length;
   buildsOf(i).forEach((id,k)=>{ if(!id) return; const a=SLOT_ANG[k];
     const g=makeDecor(id,k,o.r);
     const it=BUILD.find(x=>x.id===id);
     if(it&&it.water){ const RR=o.r*(id==="waterhouse"?1.32:1.5); g.position.set(Math.cos(a)*RR,id==="waterhouse"?0:.25,Math.sin(a)*RR); g.rotation.y=id==="waterhouse"?-a+Math.PI/2:-a; }
     else { const R=o.r*.72, x=Math.cos(a)*R, z=Math.sin(a)*R; g.position.set(x, o.sh?terrainH(o.sh,x,z):2.2, z); g.rotation.y=-a+Math.PI/2; }
     o.bgrp.add(g); });
+  if(seaBoats.length>sbKeep) o.banim=seaBoats.splice(sbKeep);
+  if(swayers.length>swKeep) o.bsway=swayers.splice(swKeep);
   o.bgrp.traverse(m=>{ if(m.isMesh){ m.castShadow=true; m.receiveShadow=true; } });
   o.bgrp.children.forEach(bakeGroup); refreshShadows();
 }
@@ -3579,6 +3200,7 @@ function creature(id){
 function render3DFarm(i){
   if(!scene || !isles[i]) return; const o=isles[i];
   if(!o.fgrp){ o.fgrp=new THREE.Group(); o.group.add(o.fgrp); o.fanim=[]; }
+  disposeTree(o.fgrp);
   while(o.fgrp.children.length) o.fgrp.remove(o.fgrp.children[0]); o.fanim=[];
   const r=o.r;
   farmOf(i).forEach((id,k)=>{ const c=creature(id), rr=rng(i*53+k*7+id.length); o.fgrp.add(c);
@@ -3610,20 +3232,34 @@ function render3DFarm(i){
   o.fgrp.children.forEach(bakeGroup);
 }
 
-/* ---------- build UI: island map with plots 1–6, drag & drop + tap ---------- */
+/* ---------- build UI: fixed 3x2 plot grid + one-tap & drag placement + peek 3D ---------- */
 let bSel=null;   // {kind:"shop", id} | {kind:"plot", k}
 let buildTab="decor";
+function syncBuildCoins(){ const c=$("#bCoins"); if(c) c.textContent=state.coins; }
 function placeItem(k, id, body){ if(!itemOpen(BUILD.find(x=>x.id===id)||{tier:0})) return false; const slots=buildsOf(cur), free=state.teacher, it=BUILD.find(x=>x.id===id), old=slots[k] && BUILD.find(x=>x.id===slots[k]);
-  if(!free && state.coins<it.cost){ toast("椰子币不够","Not enough coins"); return false; }
-  if(!free){ state.coins-=it.cost; if(old) state.coins+=Math.floor(old.cost/2); }
-  slots[k]=id; save(); updateCoins(); render3DBuild(cur); toast(`建好了：${it.name}（${k+1} 号空地）`, `Built: ${it.en} on plot ${k+1}`); setTimeout(()=>FX.dust(document.querySelector(`[data-plot="${k}"]`)),30); return true; }
-function moveItem(from, to){ const slots=buildsOf(cur); [slots[from], slots[to]]=[slots[to], slots[from]]; save(); render3DBuild(cur); }
+  const refund=old?Math.floor(old.cost/2):0;
+  if(!free && state.coins+refund<it.cost){ toast("椰子币不够","Not enough coins"); return false; }
+  if(!free){ state.coins=state.coins-it.cost+refund; }
+  slots[k]=id; save(); updateCoins(); syncBuildCoins(); render3DBuild(cur);
+  toast(old?`已换成：${it.name}（${k+1} 号，退 ${refund} 币）`:`建好了：${it.name}（${k+1} 号空地）`, old?`Replaced with ${it.en} on plot ${k+1}`:`Built: ${it.en} on plot ${k+1}`);
+  setTimeout(()=>FX.dust(document.querySelector(`[data-plot="${k}"]`)),30); return true; }
+function removePlot(k){ const slots=buildsOf(cur), free=state.teacher, id=slots[k]; if(!id) return;
+  const it=BUILD.find(x=>x.id===id), refund=Math.floor(it.cost/2);
+  slots[k]=null; if(!free) state.coins+=refund; save(); updateCoins(); syncBuildCoins(); render3DBuild(cur);
+  toast(`已拆掉：${it.name}${free?"":`，退回 ${refund} 椰子币`}`, `Removed: ${it.en}`); }
+function moveItem(from, to){ const slots=buildsOf(cur); [slots[from], slots[to]]=[slots[to], slots[from]]; save(); render3DBuild(cur);
+  toast(`已交换 ${from+1} 号和 ${to+1} 号空地`, `Swapped plot ${from+1} and ${to+1}`); }
+function nextEmptyPlot(slots, after=-1){ for(let s=1;s<=slots.length;s++){ const j=(after+s)%slots.length; if(!slots[j]) return j; } return -1; }
 function renderBuild(body){
-  const free=state.teacher, open=farmOpen();
-  setHTML(body, `<div class="coinbar"><span class="coin" aria-hidden="true"></span><b>${state.coins}</b> 椰子币<span class=ui-en>coins</span> ${free?'<small>（教师模式：免费建设 Teacher mode: free）</small>':""}</div>
-    <div class="subtabs" role="tablist"><button type="button" class="subtab" data-bt="decor" aria-selected="${buildTab==="decor"}">摆设<span class=ui-en>Decorate</span></button><button type="button" class="subtab" data-bt="farm" aria-selected="${buildTab==="farm"}">海洋养殖<span class=ui-en>Sea farm</span>${open?"":" "+ICON("ic-lock")}</button></div>
+  const free=state.teacher, open=farmOpen(), peeking=panel.classList.contains("peek");
+  setHTML(body, `<div class="build-bar">
+      <div class="coinbar" title="椰子币 Coins"><span class="coin sm" aria-hidden="true"></span><b id="bCoins">${state.coins}</b>${free?'<small style="color:var(--ok);font-weight:700">免费</small>':""}</div>
+      <div class="subtabs" role="tablist"><button type="button" class="subtab" data-bt="decor" aria-selected="${buildTab==="decor"}">摆设<span class=ui-en>Decorate</span></button><button type="button" class="subtab" data-bt="farm" aria-selected="${buildTab==="farm"}">海洋养殖<span class=ui-en>Sea farm</span>${open?"":" "+ICON("ic-lock")}</button></div>
+      <button type="button" class="peek-btn" id="bPeek" aria-pressed="${peeking}">${peeking?"继续建设":"👁 看岛"}</button>
+    </div>
     <div id="bView"></div>`);
-  body.querySelectorAll("[data-bt]").forEach(b=>b.onclick=()=>{ buildTab=b.dataset.bt; bSel=null; renderBuild(body); });
+  body.querySelectorAll("[data-bt]").forEach(b=>b.onclick=()=>{ buildTab=b.dataset.bt; bSel=null; panel.classList.remove("peek"); updateOffsetGoal(); renderBuild(body); });
+  $("#bPeek").onclick=()=>{ const on=panel.classList.toggle("peek"); $("#bPeek").setAttribute("aria-pressed",String(on)); $("#bPeek").textContent=on?"继续建设":"👁 看岛"; updateOffsetGoal(); };
   if(buildTab==="farm") renderFarm($("#bView"), body); else renderDecor($("#bView"), body);
 }
 let decorCat="all", seaCat="all";
@@ -3637,7 +3273,7 @@ function snapThumb(id){ if(!renderer || thumbCache[id]) return;
   sc.add(g); const bb=new THREE.Box3().setFromObject(g), c=bb.getCenter(new THREE.Vector3()), r=bb.getSize(new THREE.Vector3()).length()*.5;
   cam.position.set(c.x+r*1.3, c.y+r*.9, c.z+r*2.1); cam.lookAt(c); cam.updateProjectionMatrix();
   const prevT=renderer.getRenderTarget(), prevTM=renderer.toneMapping; renderer.setRenderTarget(rt); renderer.setClearColor(0x000000,0); renderer.clear(); renderer.render(sc,cam); renderer.readRenderTargetPixels(rt,0,0,160,160,buf); renderer.setRenderTarget(prevT);
-  sc.remove(g); const cv=document.createElement("canvas"); cv.width=cv.height=160; const x=cv.getContext("2d"), im=x.createImageData(160,160);
+  sc.remove(g); disposeTree(g); const cv=document.createElement("canvas"); cv.width=cv.height=160; const x=cv.getContext("2d"), im=x.createImageData(160,160);
   for(let yy=0;yy<160;yy++) for(let xx=0;xx<160;xx++){ const si=((159-yy)*160+xx)*4, di=(yy*160+xx)*4; for(let k=0;k<3;k++) im.data[di+k]=Math.min(255,Math.pow(buf[si+k]/255,1/2.2)*255*1.05); im.data[di+3]=buf[si+3]; }
   x.putImageData(im,0,0); thumbCache[id]=cv.toDataURL("image/png"); }
 // fill in the 3D snapshots one per frame, so opening the shop never stalls
@@ -3647,53 +3283,81 @@ function fillThumbs(root){ const run=thumbBusy=(thumbBusy|0)+1; const todo=[...r
     requestAnimationFrame(step); }; requestAnimationFrame(step); }
 function seaThumb(id){ const k="sea:"+id; return thumbCache[k]?`<img class="thumb" src="${thumbCache[k]}" alt="" draggable="false">`:`<span class="thumb" data-thumb="${k}"></span>`; }
 function thumbOf(id){ const src=DECOR_SPR[id]?`assets/sprites/decor/${id}.webp`:thumbCache[id]; return src?`<img class="thumb" src="${src}" alt="" draggable="false">`:`<span class="thumb" data-thumb="${id}"></span>`; }
-// keep the island map pinned on top only when the panel is tall enough; otherwise it would cover the shop
-function fitMapSticky(view){ const wrap=view.querySelector(".imap-wrap"), sc=SHEET_MQ.matches?view.closest(".drawer"):view.closest(".d-body"); if(!wrap||!sc) return;
-  wrap.classList.remove("nostick"); if(wrap.offsetHeight > sc.clientHeight*.5) wrap.classList.add("nostick"); }
-// after choosing an item: bring the plots into view so the student can tap one
-function showMap(view){ const wrap=view.querySelector(".imap-wrap"); if(!wrap || !wrap.classList.contains("nostick")) return; const sc=SHEET_MQ.matches?view.closest(".drawer"):view.closest(".d-body"); if(!sc) return;
-  const top=wrap.getBoundingClientRect().top-sc.getBoundingClientRect().top+sc.scrollTop-(SHEET_MQ.matches?70:8); sc.scrollTo({top, behavior:"smooth"}); }
-// scroll so the shop list starts right below the sticky island map
-function showShop(view){ const shop=view.querySelector(".shop"), wrap=view.querySelector(".imap-wrap"); if(!shop) return; const sc=SHEET_MQ.matches?view.closest(".drawer"):view.closest(".d-body"); if(!sc) return;
-  const pinned=wrap && !wrap.classList.contains("nostick"); const top=shop.getBoundingClientRect().top-sc.getBoundingClientRect().top+sc.scrollTop-(pinned?wrap.offsetHeight:SHEET_MQ.matches?70:0)-24; if(sc.scrollTop<top) sc.scrollTo({top, behavior:"smooth"}); }
 // category tabs; the number shows how many items in that category are unlocked
 function catBar(cats, cur, list, key){ const tab=(id,zh,en)=>{ const all=list.filter(x=>id==="all"||x.cat===id), open=all.filter(itemOpen).length;
     return `<button type="button" class="cat" data-${key}="${id}" aria-pressed="${cur===id}"><b>${ICON("cat-"+id,"ci")}${zh} <small>${open}/${all.length}</small></b><span class=ui-en>${en}</span></button>`; };
   return `<div class="cats" role="group" aria-label="类别 Categories">${tab("all","全部","All")}${cats.map(([id,zh,en])=>tab(id,zh,en)).join("")}</div>`; }
-function renderDecor(view, body){
+function renderDecor(view, body, keepScroll){
+  const prevShop=keepScroll?(view.querySelector(".shop-scroll")?.scrollTop||0):0;
+  const prevCats=keepScroll?(view.querySelector(".cats")?.scrollLeft||0):0;
   const slots=buildsOf(cur), free=state.teacher;
-  const plotHTML=slots.map((id,k)=>{ const a=SLOT_ANG[k], it=id&&BUILD.find(x=>x.id===id), x=50+Math.cos(a)*36, y=50+Math.sin(a)*36, sel=bSel&&bSel.kind==="plot"&&bSel.k===k;
-    return `<button class="plot ${it?"on":""} ${sel?"sel":""}" type="button" data-plot="${k}" style="left:${x}%;top:${y}%"><i>${k+1}</i>${it?`<b>${it.name}</b>`:'<span class="ph">空地<span class=ui-en>Empty</span></span>'}</button>`; }).join("");
-  setHTML(view, `<p class="notice">把商店里的东西<b>拖</b>到 1–6 号空地上，或者先点东西、再点空地。已经建好的东西也可以拖到别的空地，互相交换位置。<span class=ui-en data-b>Drag an item from the shop onto plots 1–6, or tap an item then tap a plot. Drag built items between plots to move or swap them.</span></p>
-    <div class="imap-wrap"><div class="imap" aria-label="我的岛 My island"><div class="iland"></div><div class="icore">${esc(ISLANDS[cur].name)}</div>${plotHTML}</div>
-    <div class="row" id="selBar">${bSel&&bSel.kind==="plot"&&slots[bSel.k]?`<span class="sw-msg">已选 ${bSel.k+1} 号：${BUILD.find(x=>x.id===slots[bSel.k]).name} · 点另一块空地移动<span class=ui-en>Selected — tap another plot to move</span></span><button class="btn ghost sm" type="button" id="rmSel">拆除<span class=ui-en>Remove</span></button>`: bSel&&bSel.kind==="shop"?`<span class="sw-msg">已选「${BUILD.find(x=>x.id===bSel.id).name}」· 点一块空地放下<span class=ui-en>Selected — tap a plot to place it</span></span>`:""}</div>${catBar(DECOR_CATS, decorCat, BUILD, "dc")}</div>
-    <h3 class="spot-h" style="margin:0">南洋商店<span class=ui-en>Nanyang shop</span> <span class="en">已解锁 ${BUILD.filter(itemOpen).length}/${BUILD.length} 种 · ${BUILD.filter(itemOpen).length}/${BUILD.length} unlocked</span></h3>
-    <div class="shop">${BUILD.filter(it=>decorCat==="all"||it.cat===decorCat).sort((a,b)=>(itemOpen(b)-itemOpen(a))||(a.tier-b.tier)).map(it=>{ const open=itemOpen(it), can=open&&(free||state.coins>=it.cost), sel=bSel&&bSel.kind==="shop"&&bSel.id===it.id;
-      return `<div class="item ${can?"":"off"} ${open?"":"lockd"} ${sel?"sel":""}" role="button" tabindex="0" data-b="${it.id}" aria-disabled="${!can}">${thumbOf(it.id)}<b>${it.name}</b><span class="en">${it.en}</span>${open?`<span class="price"><span class="coin sm" aria-hidden="true"></span>${it.cost}</span>`:`<span class="price lockp">${ICON("ic-lock")} ${tierLabel(it.tier)} 解锁<span class=ui-en>Unlocks at ${tierLabel(it.tier)}</span></span>`}</div>`; }).join("")}</div>`);
-  view.querySelectorAll("[data-dc]").forEach(b=>b.onclick=()=>{ decorCat=b.dataset.dc; bSel=null; renderDecor(view, body); showShop(view); });
+  // default to the first empty plot so students can tap any shop item to place in one tap
+  if(!bSel){ const e0=nextEmptyPlot(slots); if(e0>=0) bSel={kind:"plot", k:e0}; }
+  const plotHTML=slots.map((id,k)=>{ const it=id&&BUILD.find(x=>x.id===id), sel=bSel&&bSel.kind==="plot"&&bSel.k===k;
+    return `<button class="pcard ${it?"on":""} ${sel?"sel":""}" type="button" data-plot="${k}" aria-pressed="${!!sel}">
+      <span class="pno">${k+1}</span>
+      ${it?`<span class="prm" data-rmplot="${k}" role="button" tabindex="0" title="拆除 Remove" aria-label="拆除 ${k+1} 号">×</span>${thumbOf(id)}<b>${it.name}</b>`:'<span class="ph">＋ 空地<span class=ui-en>Empty</span></span>'}
+    </button>`; }).join("");
+  let barHTML="";
+  if(bSel&&bSel.kind==="shop"){ const it=BUILD.find(x=>x.id===bSel.id);
+    barHTML=`<span class="stxt">已选「<b>${it.name}</b>」· 点上方 1–6 号空地放下<span class=ui-en>Tap a plot (1–6) above to place</span></span><button class="btn ghost" type="button" id="clrSel">取消</button>`; }
+  else if(bSel&&bSel.kind==="plot"){ const id=slots[bSel.k], it=id&&BUILD.find(x=>x.id===id);
+    barHTML=it
+      ? `<span class="stxt">已选 <b>${bSel.k+1} 号</b>（${it.name}）· 点其他空地互换，或点下方物品替换<span class=ui-en>Tap another plot to swap, or tap an item to replace</span></span><button class="btn ghost" type="button" id="rmSel">拆除${free?"":` +${Math.floor(it.cost/2)}`}</button>`
+      : `<span class="stxt">已选 <b>${bSel.k+1} 号空地</b> · 点下方物品直接放入（也可拖拽）<span class=ui-en>Tap any item below to place on plot ${bSel.k+1}, or drag</span></span>`; }
+  else { barHTML=`<span class="stxt">6 块空地已满 · 点上方空地可互换、替换或拆除<span class=ui-en>All 6 plots full — tap a plot to swap, replace or remove</span></span>`; }
+  const selPlotOld=bSel&&bSel.kind==="plot"&&slots[bSel.k]?BUILD.find(x=>x.id===slots[bSel.k]):null;
+  const budget=state.coins+(selPlotOld?Math.floor(selPlotOld.cost/2):0);
+  setHTML(view, `<div class="plot-grid ${bSel&&bSel.kind==="shop"?"picking":""}" aria-label="1–6 号空地 Plots 1–6">${plotHTML}</div>
+    <div class="selbar" id="selBar">${barHTML}</div>
+    ${catBar(DECOR_CATS, decorCat, BUILD, "dc")}
+    <div class="shop-scroll"><div class="shop">${BUILD.filter(it=>decorCat==="all"||it.cat===decorCat).sort((a,b)=>(itemOpen(b)-itemOpen(a))||(a.tier-b.tier)).map(it=>{ const open=itemOpen(it), can=open&&(free||budget>=it.cost), sel=bSel&&bSel.kind==="shop"&&bSel.id===it.id;
+      return `<div class="item ${can?"":"off"} ${open?"":"lockd"} ${sel?"sel":""}" role="button" tabindex="0" data-b="${it.id}" aria-disabled="${!can}">${thumbOf(it.id)}<b>${it.name}</b><span class="en">${it.en}</span>${open?`<span class="price"><span class="coin sm" aria-hidden="true"></span>${it.cost}</span>`:`<span class="price lockp">${ICON("ic-lock")} ${tierLabel(it.tier)} 解锁<span class=ui-en>Unlocks at ${tierLabel(it.tier)}</span></span>`}</div>`; }).join("")}</div></div>`);
+  if(keepScroll){ const sc=view.querySelector(".shop-scroll"); if(sc) sc.scrollTop=prevShop; const cs=view.querySelector(".cats"); if(cs) cs.scrollLeft=prevCats; }
+  const rerender=(keep=true)=>renderDecor(view, body, keep);
+  view.querySelectorAll("[data-dc]").forEach(b=>b.onclick=()=>{ const curCats=view.querySelector(".cats")?.scrollLeft||0; decorCat=b.dataset.dc; rerender(false); const cs=view.querySelector(".cats"); if(cs) cs.scrollLeft=curCats; });
   fillThumbs(view);
-  const rerender=()=>renderDecor(view, body);
-  fitMapSticky(view);
-  // tap behaviour
-  view.querySelectorAll("[data-b]").forEach(el=>{ el.addEventListener("click",()=>{ if(el.dataset.dragged){ delete el.dataset.dragged; return; } const id=el.dataset.b, it=BUILD.find(x=>x.id===id); if(!itemOpen(it)){ toast(`到 ${tierLabel(it.tier)} 岛就能解锁「${it.name}」`, `Unlocks when you reach ${tierLabel(it.tier)}`); return; } if(!free && state.coins<it.cost){ toast("椰子币不够","Not enough coins"); return; } bSel={kind:"shop", id}; rerender(); showMap(view); }); el.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); el.click(); } }); });
-  view.querySelectorAll("[data-plot]").forEach(el=>el.addEventListener("click",()=>{ if(el.dataset.dragged){ delete el.dataset.dragged; return; } const k=+el.dataset.plot;
-    if(bSel&&bSel.kind==="shop"){ if(placeItem(k,bSel.id,body)) bSel=null; rerender(); return; }
-    if(bSel&&bSel.kind==="plot"&&bSel.k!==k){ moveItem(bSel.k,k); bSel=null; rerender(); return; }
-    bSel = slots[k] ? {kind:"plot", k} : null; rerender(); }));
-  const rm=$("#rmSel"); if(rm) rm.onclick=()=>{ const k=bSel.k, it=BUILD.find(x=>x.id===slots[k]); slots[k]=null; if(!free) state.coins+=Math.floor(it.cost/2); save(); updateCoins(); render3DBuild(cur); bSel=null; toast(`已拆掉：${it.name}，退回 ${Math.floor(it.cost/2)} 椰子币`, `Removed: ${it.en}`); rerender(); };
-  // drag & drop (mouse: move 5px; touch: hold 200 ms)
+  // quick remove button on occupied plot card
+  view.querySelectorAll("[data-rmplot]").forEach(el=>el.addEventListener("click",e=>{ e.stopPropagation(); const k=+el.dataset.rmplot; removePlot(k); bSel={kind:"plot", k}; rerender(); }));
+  // tap shop item: if a plot is selected, place directly in one tap and auto-advance to next empty plot!
+  view.querySelectorAll("[data-b]").forEach(el=>{ el.addEventListener("click",()=>{ if(el.dataset.dragged){ delete el.dataset.dragged; return; }
+    const id=el.dataset.b, it=BUILD.find(x=>x.id===id);
+    if(!itemOpen(it)){ toast(`到 ${tierLabel(it.tier)} 岛就能解锁「${it.name}」`, `Unlocks when you reach ${tierLabel(it.tier)}`); return; }
+    if(bSel&&bSel.kind==="plot"){
+      if(placeItem(bSel.k, id, body)){ const nx=nextEmptyPlot(buildsOf(cur), bSel.k); bSel=nx>=0?{kind:"plot", k:nx}:null; rerender(); }
+      return;
+    }
+    if(!free && state.coins<it.cost){ toast("椰子币不够","Not enough coins"); return; }
+    bSel={kind:"shop", id}; rerender();
+  }); el.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); el.click(); } }); });
+  // tap plot card: place selected shop item, swap/move occupied plot, or select plot
+  view.querySelectorAll("[data-plot]").forEach(el=>el.addEventListener("click",()=>{ if(el.dataset.dragged){ delete el.dataset.dragged; return; }
+    const k=+el.dataset.plot;
+    if(bSel&&bSel.kind==="shop"){ if(placeItem(k, bSel.id, body)){ const nx=nextEmptyPlot(buildsOf(cur), k); bSel=nx>=0?{kind:"plot", k:nx}:null; } rerender(); return; }
+    if(bSel&&bSel.kind==="plot"&&bSel.k!==k){
+      if(slots[bSel.k]){ moveItem(bSel.k, k); bSel={kind:"plot", k}; }
+      else { bSel={kind:"plot", k}; }
+      rerender(); return;
+    }
+    bSel = (bSel&&bSel.kind==="plot"&&bSel.k===k) ? null : {kind:"plot", k};
+    rerender();
+  }));
+  const rm=$("#rmSel"); if(rm) rm.onclick=()=>{ const k=bSel.k; removePlot(k); bSel={kind:"plot", k}; rerender(); };
+  const clr=$("#clrSel"); if(clr) clr.onclick=()=>{ bSel=null; rerender(); };
+  // drag & drop (mouse: move 5px; touch: hold 180 ms)
   enableDrag(view, "[data-b],[data-plot].on", (src, plotEl)=>{ const k=+plotEl.dataset.plot;
-    if(src.dataset.b){ placeItem(k, src.dataset.b, body); } else { const from=+src.dataset.plot; if(from!==k) moveItem(from,k); }
-    bSel=null; rerender(); });
+    if(src.dataset.b){ if(placeItem(k, src.dataset.b, body)){ const nx=nextEmptyPlot(buildsOf(cur), k); bSel=nx>=0?{kind:"plot", k:nx}:null; } }
+    else { const from=+src.dataset.plot; if(from!==k){ moveItem(from, k); bSel={kind:"plot", k}; } }
+    rerender(); });
 }
 function enableDrag(root, sel, onDrop){
   root.querySelectorAll(sel).forEach(el=>{
-    el.addEventListener("pointerdown",e=>{ if(e.button>0) return; if(el.classList.contains("off")) return;
+    el.addEventListener("pointerdown",e=>{ if(e.button>0) return; if(el.classList.contains("off")) return; if(e.target.closest&&e.target.closest(".prm")) return;
       const sx=e.clientX, sy=e.clientY, touch=e.pointerType!=="mouse"; let ghost=null, timer=null, live=!touch, over=null;
-      const start=()=>{ ghost=el.cloneNode(true); ghost.className+=" drag-ghost"; ghost.style.width=el.offsetWidth+"px"; document.body.appendChild(ghost); el.classList.add("dragging"); move(lastX,lastY); if(navigator.vibrate) try{ navigator.vibrate(15); }catch(_){} };
+      const start=()=>{ ghost=el.cloneNode(true); ghost.className+=" drag-ghost"; ghost.style.width=Math.min(el.offsetWidth,120)+"px"; document.body.appendChild(ghost); el.classList.add("dragging"); move(lastX,lastY); if(navigator.vibrate) try{ navigator.vibrate(15); }catch(_){} };
       let lastX=sx, lastY=sy;
-      const scroller=SHEET_MQ.matches?root.closest(".drawer"):root.closest(".d-body"); const move=(x,y)=>{ if(!ghost) return; if(scroller){ const r=scroller.getBoundingClientRect(); if(y>r.bottom-50) scroller.scrollTop+=14; else if(y<r.top+40) scroller.scrollTop-=14; } ghost.style.left=(x-el.offsetWidth/2)+"px"; ghost.style.top=(y-24)+"px"; ghost.style.display="none"; const t=document.elementFromPoint(x,y); ghost.style.display=""; const p=t&&t.closest("[data-plot]"); if(over&&over!==p) over.classList.remove("over"); over=p; if(p) p.classList.add("over"); };
-      if(touch) timer=setTimeout(()=>{ live=true; start(); },200);
+      const move=(x,y)=>{ if(!ghost) return; ghost.style.left=(x-ghost.offsetWidth/2)+"px"; ghost.style.top=(y-24)+"px"; ghost.style.display="none"; const t=document.elementFromPoint(x,y); ghost.style.display=""; const p=t&&t.closest("[data-plot]"); if(over&&over!==p) over.classList.remove("over"); over=p; if(p) p.classList.add("over"); };
+      if(touch) timer=setTimeout(()=>{ live=true; start(); },180);
       const onMove=ev=>{ lastX=ev.clientX; lastY=ev.clientY; const d=Math.hypot(ev.clientX-sx,ev.clientY-sy);
         if(!live){ if(d>10){ clearTimeout(timer); cleanup(); } return; }
         if(!ghost){ if(d>5) start(); else return; }
@@ -3705,23 +3369,23 @@ function enableDrag(root, sel, onDrop){
     });
   });
 }
-function renderFarm(view, body){
+function renderFarm(view, body, keepScroll){
   if(!farmOpen()){ const n=ISLANDS.filter((_,i)=>progressOpen(i)).length;
     setHTML(view, `<div class="result"><div class="big">${ICON("ic-lock","bigico")}</div><p style="margin:0">解锁 4 座岛之后，就可以在岛的周围养殖海洋生物。现在已解锁 ${n}/4 座。<span class=ui-en data-b>Unlock 4 islands to start a sea farm around your islands. Unlocked so far: ${n}/4.</span></p></div>`); return; }
+  const prevShop=keepScroll?(view.querySelector(".shop-scroll")?.scrollTop||0):0;
   const list=farmOf(cur), free=state.teacher;
   const counts={}; list.forEach(id=>counts[id]=(counts[id]||0)+1);
-  setHTML(view, `<p class="notice">买一种海洋生物，它就会在这座岛的周围游来游去。点名字可以听读音。每座岛最多 ${FARM_MAX} 只。<span class=ui-en data-b>Buy a sea creature and it will swim around this island. Tap a name to hear it. Up to ${FARM_MAX} per island.</span></p>
-    <h3 class="spot-h" style="margin:0">我的海洋<span class=ui-en>My sea</span> <span class="en">${list.length}/${FARM_MAX}</span></h3>
-    <div class="mysea">${list.length?Object.keys(counts).map(id=>{ const c=SEA.find(x=>x.id===id); return `<span class="seachip"><button type="button" class="say" data-say="${c.zh}">${c.zh}</button><span class="en">${c.en} ×${counts[id]}</span><button type="button" class="rmc" data-rm="${id}" aria-label="放走一只 ${c.en}">－</button></span>`; }).join(""):'<span class="sw-msg">还没有养海洋生物。<span class=ui-en>No sea creatures yet.</span></span>'}</div>
-    <h3 class="spot-h" style="margin:0">海洋生物<span class=ui-en>Sea creatures</span> <span class="en">已解锁 ${SEA.filter(itemOpen).length}/${SEA.length} 种 · ${SEA.filter(itemOpen).length}/${SEA.length} unlocked</span></h3>
+  setHTML(view, `<div class="selbar"><span class="stxt">我的海洋 <b>${list.length}/${FARM_MAX}</b> · 点生物名字听读音，点下方购买<span class=ui-en>My sea ${list.length}/${FARM_MAX} — tap name to hear, tap below to buy</span></span></div>
+    <div class="mysea">${list.length?Object.keys(counts).map(id=>{ const c=SEA.find(x=>x.id===id); return `<span class="seachip"><button type="button" class="say" data-say="${c.zh}">${c.zh}</button><span class="en">${c.en} ×${counts[id]}</span><button type="button" class="rmc" data-rm="${id}" aria-label="放走一只 ${c.en}">－</button></span>`; }).join(""):'<span class="sw-msg">还没有养海洋生物，点下方购买。<span class=ui-en>No sea creatures yet — tap below to buy.</span></span>'}</div>
     ${catBar(SEA_CATS, seaCat, SEA, "sc")}
-    <div class="shop">${SEA.filter(c=>seaCat==="all"||c.cat===seaCat).sort((a,b)=>(itemOpen(b)-itemOpen(a))||(a.tier-b.tier)).map(c=>{ const open=itemOpen(c), can=open&&(free||state.coins>=c.cost)&&list.length<FARM_MAX;
-      return `<button class="item ${open?"":"lockd"}" type="button" data-sea="${c.id}" ${can?"":"disabled"}>${seaThumb(c.id)}<b>${c.zh}</b><span class="en">${c.en}</span>${open?`<span class="price"><span class="coin sm" aria-hidden="true"></span>${c.cost}</span>`:`<span class="price lockp">${ICON("ic-lock")} ${tierLabel(c.tier)} 解锁<span class=ui-en>Unlocks at ${tierLabel(c.tier)}</span></span>`}</button>`; }).join("")}</div>`);
-  view.querySelectorAll("[data-sc]").forEach(b=>b.onclick=()=>{ seaCat=b.dataset.sc; renderFarm(view, body); });
+    <div class="shop-scroll"><div class="shop">${SEA.filter(c=>seaCat==="all"||c.cat===seaCat).sort((a,b)=>(itemOpen(b)-itemOpen(a))||(a.tier-b.tier)).map(c=>{ const open=itemOpen(c), can=open&&(free||state.coins>=c.cost)&&list.length<FARM_MAX;
+      return `<button class="item ${open?"":"lockd"}" type="button" data-sea="${c.id}" ${can?"":"disabled"}>${seaThumb(c.id)}<b>${c.zh}</b><span class="en">${c.en}</span>${open?`<span class="price"><span class="coin sm" aria-hidden="true"></span>${c.cost}</span>`:`<span class="price lockp">${ICON("ic-lock")} ${tierLabel(c.tier)} 解锁<span class=ui-en>Unlocks at ${tierLabel(c.tier)}</span></span>`}</button>`; }).join("")}</div></div>`);
+  if(keepScroll){ const sc=view.querySelector(".shop-scroll"); if(sc) sc.scrollTop=prevShop; }
+  view.querySelectorAll("[data-sc]").forEach(b=>b.onclick=()=>{ seaCat=b.dataset.sc; renderFarm(view, body, false); });
   fillThumbs(view);
   view.querySelectorAll("[data-sea]").forEach(b=>b.onclick=()=>{ const c=SEA.find(x=>x.id===b.dataset.sea); if(list.length>=FARM_MAX || !itemOpen(c)) return; if(!free){ if(state.coins<c.cost) return; state.coins-=c.cost; }
-    list.push(c.id); save(); updateCoins(); render3DFarm(cur); speak(c.zh); toast(`养了一只${c.zh}！`, `You now have a ${c.en}!`); renderFarm(view, body); });
-  view.querySelectorAll("[data-rm]").forEach(b=>b.onclick=()=>{ const id=b.dataset.rm, j=list.lastIndexOf(id); if(j<0) return; list.splice(j,1); const c=SEA.find(x=>x.id===id); if(!free) state.coins+=Math.floor(c.cost/2); save(); updateCoins(); render3DFarm(cur); toast(`放走了一只${c.zh}`, `Released a ${c.en}`); renderFarm(view, body); });
+    list.push(c.id); save(); updateCoins(); syncBuildCoins(); render3DFarm(cur); speak(c.zh); toast(`养了一只${c.zh}！`, `You now have a ${c.en}!`); renderFarm(view, body, true); });
+  view.querySelectorAll("[data-rm]").forEach(b=>b.onclick=()=>{ const id=b.dataset.rm, j=list.lastIndexOf(id); if(j<0) return; list.splice(j,1); const c=SEA.find(x=>x.id===id); if(!free) state.coins+=Math.floor(c.cost/2); save(); updateCoins(); syncBuildCoins(); render3DFarm(cur); toast(`放走了一只${c.zh}`, `Released a ${c.en}`); renderFarm(view, body, true); });
 }
 
 /* ============================== Background music v2: composed loops, warm instruments; optional mp3 per island ============================== */
@@ -3750,7 +3414,7 @@ const Music = (() => {
     return true; }
   const apply=(tc=.4)=>{ if(ac) master.gain.setTargetAtTime(level(), ac.currentTime, tc); };
   return {
-    unlock(){ if(state.music===false || held) return; iosPlayback(); if(!init()) return; if(ac.state!=="running") ac.resume(); apply(1.2); },
+    unlock(){ if(state.music===false || held) return false; if(ac && ac.state==="running") return true; iosPlayback(); if(!init()) return false; if(ac.state!=="running") ac.resume(); apply(1.2); return ac.state==="running"; },
     play(){ if(ac && state.music!==false && ac.state==="suspended" && !held) ac.resume(); },
     setOn(on){ state.music=on; save(); if(on) this.unlock(); else apply(.1); },
     setVol(v){ state.vol=v; save(); apply(.1); },
@@ -3922,7 +3586,8 @@ async function syncNow(keepalive){ clearTimeout(syncTimer); syncTimer=null; sync
   if(navigator.onLine===false){ setSync("err"); return; }   // the "online" event below resumes
   syncing=true; setSync("busy"); const sentAt=state.updatedAt||0;
   const body=JSON.stringify({action:"save", token:auth.token, state:cloudState(), summary:progressSummary()});
-  try{ const r=await fetch(API,{method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body, keepalive:!!keepalive}); const j=await r.json();
+  const useKeepalive=!!keepalive && new Blob([body]).size<60000;
+  try{ const r=await fetch(API,{method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body, keepalive:useKeepalive}); const j=await r.json();
     if(j.ok){ state.syncedAt=j.updated; syncOkAt=sentAt; syncFails=0; setSync("ok"); if((state.updatedAt||0)>sentAt) scheduleSync(); }
     else if(j.error==="auth"){ setSync("err"); auth=null; saveAuth(); welcome(true); }
     else if(j.error==="too_big") setSync("err");
@@ -4010,7 +3675,9 @@ $("#zAll").onclick=()=>{ if(scene) setOverview(false); };
 $("#bMe").onclick=()=>openSide("me");
 function applyMusicBtn(){ const b=$("#bMusic"); if(b) b.setAttribute("aria-pressed",String(state.music!==false)); }
 $("#bMusic").onclick=()=>{ const on=state.music===false; Music.setOn(on); applyMusicBtn(); toast(on?"海风声：开":"海风声：关", on?"Sea breeze on":"Sea breeze off"); };
-["pointerdown","touchend","click","keydown"].forEach(ev=>document.addEventListener(ev,()=>Music.unlock(),{passive:true}));
+const _unlockEvs=["pointerdown","touchend","click","keydown"];
+const _onUnlock=()=>{ if(Music.unlock()) _unlockEvs.forEach(ev=>document.removeEventListener(ev,_onUnlock)); };
+_unlockEvs.forEach(ev=>document.addEventListener(ev,_onUnlock,{passive:true}));
 $("#bList").onclick=()=>openSide("list");
 $("#bSet").onclick=()=>openSide("settings");
 $("#bEn").onclick=()=>{ state.en=!state.en; save(); applyEn(); toast(state.en?"已显示英文":"已隐藏英文", state.en?"English on":"English off"); };
@@ -4019,7 +3686,7 @@ $("#bHome").onclick=()=>{ closePanel(); side.hidden=true; updateOffsetGoal(); if
 $("#bMotion").onclick=()=>setAnim(!animOn);
 addEventListener("keydown",e=>{ if(e.key==="Escape"){ if(!panel.hidden) closePanel(); else if(!side.hidden){ side.hidden=true; updateOffsetGoal(); } } });
 function fitTop(){ const t=$(".topbar"); if(t) document.documentElement.style.setProperty("--top-h", Math.ceil(t.getBoundingClientRect().bottom+8)+"px"); }
-addEventListener("resize",()=>{ resize(); fitTop(); updateOffsetGoal(); const bv=document.getElementById("bView"); if(bv && bv.querySelector(".imap-wrap")) fitMapSticky(bv); });
+addEventListener("resize",()=>{ resize(); fitTop(); updateOffsetGoal(); });
 
 /* ============================== boot ============================== */
 document.querySelectorAll(".tbtn").forEach(b=>{ const t=b.querySelector("span"); if(t) b.title=t.textContent.replace(/([^\x00-\x7F])([A-Za-z])/,"$1 $2"); });
@@ -4032,6 +3699,7 @@ function start3D(){ if(started) return; started=true;
   if(HAS3D){ try{ buildLabels(); initScene(); ISLANDS.forEach((_,i)=>{ render3DBuild(i); render3DFarm(i); }); bakeAll(); addLife(); refreshShadows(); try{ renderer.compile(scene,camera); }catch(e){} $("#zoomer").hidden=false; return; }catch(err){ console.error(err); HAS3D=false; } }
   $("#hint").hidden=true; $("#zoomer").hidden=true; refreshLabels(); openSide("list"); }
 if(window.THREE) start3D(); else { addEventListener("three-ready", start3D, {once:true}); setTimeout(start3D, 12000); }
+if("serviceWorker" in navigator && location.protocol!=="file:") navigator.serviceWorker.register("./sw.js").catch(()=>{});
 welcome();
 </script>
 

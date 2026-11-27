@@ -216,7 +216,7 @@ function load_(r){ const a = auth_(r.token, true); if(!a) return {ok:false, erro
 function save_(r){
   const a = auth_(r.token); if(!a) return {ok:false, error:'auth'};
   const st = JSON.stringify(r.state||{}); if(st.length > MAX_STATE) return {ok:false, error:'too_big'};
-  const s = r.summary || {}, now = new Date(), isl = ISLANDS.map((_,i)=>{ const x=(s.islands||[])[i]||{}; return x.locked ? '🔒' : `★${x.s||0} ${x.best!=null?x.best+'/'+(x.n||10):'—'} · ${x.games||0}/7 · ${x.pct||0}%`; });
+  const s = r.summary || {}, now = new Date(), isl = ISLANDS.map((_,i)=>{ const x=(s.islands||[])[i]||{}; return x.locked ? '🔒' : `★${x.s||0} ${x.best!=null?x.best+'/'+(x.n||20):'—'} · ${x.games||0}/7 · ${x.pct||0}%`; });
   const vals = [now, Number(s.pct||0), Number(s.done||0), Number(s.stars||0), Number(s.coins||0)].concat(isl).concat([JSON.stringify(s), st]);
   a.sheet.getRange(a.row, COL.updated+1, 1, vals.length).setValues([vals]);
   return {ok:true, updated:now.getTime()};
@@ -252,8 +252,11 @@ function purge_(cls, quiet){ const k = findClass_(normCode_(cls)); if(!k) return
 function roster_(cls){ cls = normCode_(cls); const k = findClass_(cls); const v = students_().getDataRange().getValues().slice(1).filter(x=>x[COL.cls]===cls);
   return {ok:true, cls, ids:k?k.ids:[], students:v.map(x=>{ const sid=String(x[COL.sid]); return {sid, nick:x[COL.nick], onList: !k || !k.ids.length || k.ids.indexOf(normSid_(sid))>=0, created:time_(x[COL.created]), last:time_(x[COL.last]), updated:time_(x[COL.updated]), pct:x[COL.pct]||0, done:x[COL.done]||0, stars:x[COL.stars]||0, coins:x[COL.coins]||0, summary:safeJSON_(x[COL.summary]), locked:x[COL.lock] && new Date(x[COL.lock])>new Date()}; })}; }
 function resetPin_(cls, sid, pin){ if(!/^\d{4}$/.test(String(pin||''))) return {ok:false, error:'bad_pin'}; const sh=students_(), f=findStudent_(sh, normCode_(cls), normSid_(sid)); if(!f) return {ok:false, error:'no_student'};
+  const oldTok=f.values[COL.token]; if(oldTok) try{ CacheService.getScriptCache().remove('r:'+oldTok); }catch(e){}
   const salt=Utilities.getUuid(); sh.getRange(f.row, COL.salt+1, 1, 2).setValues([[salt, sha(salt+pin)]]); sh.getRange(f.row, COL.token+1, 1, 4).setValues([['','',0,'']]); return {ok:true}; }
-function deleteStudent_(cls, sid){ const sh=students_(), f=findStudent_(sh, normCode_(cls), normSid_(sid)); if(!f) return {ok:false, error:'no_student'}; sh.deleteRow(f.row); return {ok:true}; }
+function deleteStudent_(cls, sid){ const sh=students_(), f=findStudent_(sh, normCode_(cls), normSid_(sid)); if(!f) return {ok:false, error:'no_student'};
+  const oldTok=f.values[COL.token]; if(oldTok) try{ CacheService.getScriptCache().remove('r:'+oldTok); }catch(e){}
+  sh.deleteRow(f.row); return {ok:true}; }
 
 /* ---------------- helpers ---------------- */
 function json(o){ return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON); }
